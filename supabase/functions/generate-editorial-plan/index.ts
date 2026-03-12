@@ -687,6 +687,7 @@ Return a JSON array of ${postsPerCycle} items. Each item must have:
 - suggested_cta: specific CTA text
 - brand_alignment: brief explanation of why this aligns with Spiral Up
 ${SUGGESTION_RATIONALE_SPEC}
+${OUTCOME_FIELDS_SPEC}
 ${VISUAL_FIELDS_SPEC}
 
 Return ONLY a valid JSON array, no markdown wrapping.`;
