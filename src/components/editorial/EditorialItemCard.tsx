@@ -151,6 +151,15 @@ export default function EditorialItemCard({ item }: { item: any }) {
                 <Palette className="w-2.5 h-2.5" /> {item.visual_type.replace(/_/g, ' ')}
               </Badge>
             )}
+            {item.outcome_score > 0 && (
+              <Badge className={`text-[10px] ${
+                item.outcome_score >= 7 ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
+                item.outcome_score >= 4 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' :
+                'bg-muted text-muted-foreground'
+              }`}>
+                {item.outcome_score >= 7 ? '🎯 High' : item.outcome_score >= 4 ? '📊 Medium' : '📉 Low'} Impact
+              </Badge>
+            )}
           </div>
           <p className="font-display font-semibold text-sm mt-1 truncate">{item.working_title}</p>
           <p className="text-xs text-muted-foreground mt-0.5">
