@@ -1,0 +1,164 @@
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+// ─── Planning Config ───
+export function usePlanningConfig() {
+  return useQuery({
+    queryKey: ['planning-config'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('planning_config').select('*').limit(1).single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+  });
+}
+
+export function useUpdatePlanningConfig() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (updates: Record<string, unknown>) => {
+      const { data: existing } = await supabase.from('planning_config').select('id').limit(1).single();
+      if (!existing) throw new Error('No planning config');
+      const { error } = await supabase.from('planning_config').update({ ...updates, updated_at: new Date().toISOString() } as any).eq('id', existing.id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['planning-config'] }),
+  });
+}
+
+// ─── Editorial Plans ───
+export function useEditorialPlans() {
+  return useQuery({
+    queryKey: ['editorial-plans'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('editorial_plans').select('*').order('cycle_start', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useEditorialPlan(planId: string | null) {
+  return useQuery({
+    queryKey: ['editorial-plan', planId],
+    enabled: !!planId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('editorial_plans').select('*').eq('id', planId!).single();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useDeleteEditorialPlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('editorial_plans').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['editorial-plans'] });
+      qc.invalidateQueries({ queryKey: ['editorial-items'] });
+    },
+  });
+}
+
+// ─── Editorial Items ───
+export function useEditorialItems(planId: string | null) {
+  return useQuery({
+    queryKey: ['editorial-items', planId],
+    enabled: !!planId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('editorial_items').select('*').eq('plan_id', planId!).order('publish_date').order('sort_order');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useAllPendingItems() {
+  return useQuery({
+    queryKey: ['editorial-items-pending'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('editorial_items').select('*, editorial_plans(cycle_start, cycle_end)').in('status', ['suggested', 'under_review']).order('publish_date');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useUpdateEditorialItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string } & Record<string, unknown>) => {
+      const { error } = await supabase.from('editorial_items').update({ ...updates, updated_at: new Date().toISOString() } as any).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['editorial-items'] });
+      qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
+    },
+  });
+}
+
+export function useDeleteEditorialItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('editorial_items').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['editorial-items'] });
+      qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
+    },
+  });
+}
+
+// ─── Generate Plan ───
+export function useGenerateEditorialPlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { config: any; cycleStart: string; cycleEnd: string }) => {
+      const { data, error } = await supabase.functions.invoke('generate-editorial-plan', { body: params });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['editorial-plans'] });
+      qc.invalidateQueries({ queryKey: ['editorial-items'] });
+      qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
+    },
+  });
+}
+
+// ─── Regenerate Item ───
+export function useRegenerateItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (item: any) => {
+      const { data, error } = await supabase.functions.invoke('generate-editorial-plan', {
+        body: { action: 'regenerate_item', item },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      // Update the item with new content
+      const { error: updateError } = await supabase.from('editorial_items').update({
+        ...data.item,
+        status: 'suggested',
+        rejection_reason: '',
+        updated_at: new Date().toISOString(),
+      } as any).eq('id', item.id);
+      if (updateError) throw updateError;
+
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['editorial-items'] });
+      qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
+    },
+  });
+}
