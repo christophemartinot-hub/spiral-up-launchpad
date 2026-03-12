@@ -190,7 +190,8 @@ export default function Dashboard() {
                         {format(new Date(item.publish_date), 'MMM d')}
                       </span>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
