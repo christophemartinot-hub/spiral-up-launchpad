@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EditorialAgenda from '@/components/editorial/EditorialAgenda';
 import PlanningConfigPanel from '@/components/editorial/PlanningConfigPanel';
+import VisualConfigPanel from '@/components/editorial/VisualConfigPanel';
 import PlanHistory from '@/components/editorial/PlanHistory';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
@@ -15,7 +16,7 @@ export default function EditorialPlanning() {
       <motion.div initial="hidden" animate="show" variants={fadeIn} transition={{ duration: 0.4 }}>
         <h1 className="text-2xl md:text-3xl font-display font-bold">Editorial Planning</h1>
         <p className="text-muted-foreground mt-1">
-          Your AI editorial copilot — review, approve, and schedule brand-aligned content.
+          Your AI editorial copilot — review, approve, and schedule brand-aligned content with visual directions.
         </p>
       </motion.div>
 
@@ -23,6 +24,7 @@ export default function EditorialPlanning() {
         <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="agenda">📋 Agenda</TabsTrigger>
           <TabsTrigger value="config">⚙️ AI Planning Prompt</TabsTrigger>
+          <TabsTrigger value="visual-config">🎨 AI Visual Prompt</TabsTrigger>
           <TabsTrigger value="history">📁 Plan History</TabsTrigger>
         </TabsList>
 
@@ -31,6 +33,9 @@ export default function EditorialPlanning() {
         </TabsContent>
         <TabsContent value="config">
           <PlanningConfigPanel />
+        </TabsContent>
+        <TabsContent value="visual-config">
+          <VisualConfigPanel />
         </TabsContent>
         <TabsContent value="history">
           <PlanHistory onSelectPlan={setActivePlanId} />
