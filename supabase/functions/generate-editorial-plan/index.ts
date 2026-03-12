@@ -132,14 +132,17 @@ async function getRecentItems(sb: any): Promise<string> {
 
 const VISUAL_FIELDS_SPEC = `
 - visual_type: one of "single_image","carousel","quote_card","framework_card","event_promo","workshop_promo","book_promo","infographic","article_cover","video_storyboard","document_post"
-- visual_concept: 1-2 sentence describing the visual idea
+- visual_concept: 1-2 sentence describing the PRIMARY visual idea (this is the main creative direction)
+- backup_visual_concept: 1-2 sentence describing a BACKUP visual idea (alternative direction if primary is rejected)
+- backup_visual_type: visual type for the backup concept
 - visual_layout: describe layout structure (e.g. "headline top, illustration center, CTA bottom")
 - image_direction: what the main image/illustration should depict
 - visual_headline: headline text to appear on the visual
 - visual_subheadline: subheadline if relevant (empty string if none)
 - cta_placement: where CTA should appear on visual
 - format_ratio: aspect ratio for the channel (e.g. "1:1", "4:5", "16:9")
-- recommended_assets: array of strings naming brand assets to use (book cover, SPIRAL icons, illustrations, etc). Use actual existing brand asset names when possible.`;
+- recommended_assets: array of strings naming brand assets to use (book cover, SPIRAL icons, illustrations, etc). Use actual existing brand asset names when possible.
+- visual_rationale: 1-2 sentence explaining WHY this visual direction was chosen for this content and how it reinforces the message`;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
