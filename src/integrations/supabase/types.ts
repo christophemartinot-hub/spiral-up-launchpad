@@ -415,6 +415,7 @@ export type Database = {
           sort_order: number
           status: string
           suggested_cta: string | null
+          suggestion_rationale: string | null
           updated_at: string
           visual_concept: string | null
           visual_headline: string | null
@@ -452,6 +453,7 @@ export type Database = {
           sort_order?: number
           status?: string
           suggested_cta?: string | null
+          suggestion_rationale?: string | null
           updated_at?: string
           visual_concept?: string | null
           visual_headline?: string | null
@@ -489,6 +491,7 @@ export type Database = {
           sort_order?: number
           status?: string
           suggested_cta?: string | null
+          suggestion_rationale?: string | null
           updated_at?: string
           visual_concept?: string | null
           visual_headline?: string | null
@@ -769,6 +772,65 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_memory: {
+        Row: {
+          action_outcome: string | null
+          channel: string | null
+          content_format: string | null
+          content_pillar: string | null
+          created_at: string
+          cta: string | null
+          cycle_id: string | null
+          id: string
+          memory_type: string
+          metadata: Json | null
+          notes: string | null
+          performance_score: number | null
+          topic: string
+          visual_type: string | null
+        }
+        Insert: {
+          action_outcome?: string | null
+          channel?: string | null
+          content_format?: string | null
+          content_pillar?: string | null
+          created_at?: string
+          cta?: string | null
+          cycle_id?: string | null
+          id?: string
+          memory_type?: string
+          metadata?: Json | null
+          notes?: string | null
+          performance_score?: number | null
+          topic?: string
+          visual_type?: string | null
+        }
+        Update: {
+          action_outcome?: string | null
+          channel?: string | null
+          content_format?: string | null
+          content_pillar?: string | null
+          created_at?: string
+          cta?: string | null
+          cycle_id?: string | null
+          id?: string
+          memory_type?: string
+          metadata?: Json | null
+          notes?: string | null
+          performance_score?: number | null
+          topic?: string
+          visual_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_memory_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offers: {
         Row: {
           created_at: string
@@ -869,10 +931,13 @@ export type Database = {
           cta_preferences: Json | null
           exclusion_rules: Json | null
           id: string
+          intelligence_mode: string
           posts_per_cycle: number
           preferred_formats: Json | null
           priority_topics: Json | null
+          strategic_balance: Json | null
           target_audience: string | null
+          topic_cooldown_cycles: number
           updated_at: string
         }
         Insert: {
@@ -884,10 +949,13 @@ export type Database = {
           cta_preferences?: Json | null
           exclusion_rules?: Json | null
           id?: string
+          intelligence_mode?: string
           posts_per_cycle?: number
           preferred_formats?: Json | null
           priority_topics?: Json | null
+          strategic_balance?: Json | null
           target_audience?: string | null
+          topic_cooldown_cycles?: number
           updated_at?: string
         }
         Update: {
@@ -899,10 +967,13 @@ export type Database = {
           cta_preferences?: Json | null
           exclusion_rules?: Json | null
           id?: string
+          intelligence_mode?: string
           posts_per_cycle?: number
           preferred_formats?: Json | null
           priority_topics?: Json | null
+          strategic_balance?: Json | null
           target_audience?: string | null
+          topic_cooldown_cycles?: number
           updated_at?: string
         }
         Relationships: []
