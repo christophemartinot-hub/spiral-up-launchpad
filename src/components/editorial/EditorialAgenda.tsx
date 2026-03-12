@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Sparkles, Calendar, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { Loader2, Sparkles, Calendar, AlertCircle, CheckCircle2, Clock, Zap } from 'lucide-react';
 import { format, addDays, startOfWeek, endOfWeek, addWeeks } from 'date-fns';
 import {
   useEditorialPlans,
   useEditorialItems,
   useGenerateEditorialPlan,
   usePlanningConfig,
+  useCycleCompletionStatus,
 } from '@/hooks/use-editorial';
 import EditorialItemCard from './EditorialItemCard';
 import { toast } from 'sonner';
@@ -22,6 +23,7 @@ export default function EditorialAgenda({ activePlanId, onPlanChange }: Props) {
   const { data: plans, isLoading: plansLoading } = useEditorialPlans();
   const { data: config } = usePlanningConfig();
   const { data: items, isLoading: itemsLoading } = useEditorialItems(activePlanId);
+  const { data: cycleStatus } = useCycleCompletionStatus(activePlanId);
   const generate = useGenerateEditorialPlan();
 
   // Auto-select latest plan
@@ -31,13 +33,34 @@ export default function EditorialAgenda({ activePlanId, onPlanChange }: Props) {
     }
   }, [plans, activePlanId, onPlanChange]);
 
-  const handleGenerate = () => {
+  const getNextCycleDates = () => {
     const now = new Date();
     const cadence = config?.cadence || 'weekly';
-    const cycleStart = format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+    const activePlan = plans?.find(p => p.id === activePlanId);
+    
+    // If there's an active plan, start next cycle after it ends
+    const baseDate = activePlan ? new Date(activePlan.cycle_end) : now;
+    const nextStart = addDays(baseDate, 1);
+    const cycleStart = format(startOfWeek(nextStart, { weekStartsOn: 1 }), 'yyyy-MM-dd');
     const cycleEnd = cadence === 'weekly'
-      ? format(endOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd')
-      : format(endOfWeek(addWeeks(now, 1), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+      ? format(endOfWeek(nextStart, { weekStartsOn: 1 }), 'yyyy-MM-dd')
+      : format(endOfWeek(addWeeks(nextStart, 1), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+    return { cycleStart, cycleEnd };
+  };
+
+  const handleGenerate = () => {
+    const { cycleStart, cycleEnd } = plans && plans.length > 0
+      ? getNextCycleDates()
+      : (() => {
+          const now = new Date();
+          const cadence = config?.cadence || 'weekly';
+          return {
+            cycleStart: format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd'),
+            cycleEnd: cadence === 'weekly'
+              ? format(endOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd')
+              : format(endOfWeek(addWeeks(now, 1), { weekStartsOn: 1 }), 'yyyy-MM-dd'),
+          };
+        })();
 
     generate.mutate(
       { config, cycleStart, cycleEnd },
@@ -79,6 +102,12 @@ export default function EditorialAgenda({ activePlanId, onPlanChange }: Props) {
                 {format(new Date(activePlan.cycle_start), 'MMM d')} — {format(new Date(activePlan.cycle_end), 'MMM d, yyyy')}
               </span>
               <Badge variant="outline" className="text-xs">{activePlan.cadence}</Badge>
+              {config?.intelligence_mode && (
+                <Badge variant="secondary" className="text-[10px] capitalize">
+                  {(config.intelligence_mode as string) === 'learning' ? '🧠 Learning' : 
+                   (config.intelligence_mode as string) === 'strategic' ? '🎯 Strategic' : '💡 Assist'}
+                </Badge>
+              )}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">No editorial plan yet. Generate your first one!</p>
@@ -89,6 +118,30 @@ export default function EditorialAgenda({ activePlanId, onPlanChange }: Props) {
           {generate.isPending ? 'Generating plan...' : activePlan ? 'Generate New Cycle' : 'Generate First Plan'}
         </Button>
       </div>
+
+      {/* Next cycle suggestion banner */}
+      {cycleStatus?.complete && activePlan && (
+        <Card className="border-2 border-primary/30 bg-primary/5 shadow-card">
+          <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Zap className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-display font-semibold text-sm">Next Cycle Ready</p>
+                <p className="text-xs text-muted-foreground">
+                  {cycleStatus.pct}% of items decided ({cycleStatus.decided}/{cycleStatus.total}). 
+                  The AI has analyzed your feedback and performance data to prepare the next cycle.
+                </p>
+              </div>
+            </div>
+            <Button onClick={handleGenerate} disabled={generate.isPending} variant="default" className="gap-2 whitespace-nowrap">
+              {generate.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              Generate Next Suggested Plan
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats bar */}
       {items && items.length > 0 && (

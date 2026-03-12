@@ -126,19 +126,40 @@ async function getVisualConfig(sb: any): Promise<string> {
   return `\n\n## VISUAL DESIGN RULES\n${parts.join('\n')}`;
 }
 
-async function getRecentItems(sb: any): Promise<string> {
+async function getRecentItems(sb: any, cooldownCycles: number): Promise<string> {
+  // Get recent items across multiple cycles for diversity control
   const { data: recentItems } = await sb
     .from('editorial_items')
-    .select('working_title, channel, content_format, content_pillar, post_angle, visual_type, visual_concept')
+    .select('working_title, channel, content_format, content_pillar, post_angle, visual_type, visual_concept, key_message, plan_id')
     .order('created_at', { ascending: false })
-    .limit(20);
+    .limit(cooldownCycles * 10);
 
   if (!recentItems || recentItems.length === 0) return '';
 
-  const lines = recentItems.map((i: any) => 
+  // Extract topics used recently for cooldown
+  const recentTopics = [...new Set(recentItems.map((i: any) => i.key_message || i.working_title).filter(Boolean))];
+  const recentPillars: Record<string, number> = {};
+  for (const i of recentItems) {
+    const p = i.content_pillar || 'none';
+    recentPillars[p] = (recentPillars[p] || 0) + 1;
+  }
+
+  const lines = recentItems.slice(0, 20).map((i: any) => 
     `- "${i.working_title}" [${i.channel}/${i.content_format}] pillar:${i.content_pillar || 'none'} visual:${i.visual_type || 'none'}`
   );
-  return `\n\n## RECENTLY GENERATED (avoid repeating these themes/angles/visuals)\n${lines.join('\n')}`;
+
+  const parts = [
+    `## RECENTLY GENERATED (avoid repeating these themes/angles/visuals)`,
+    lines.join('\n'),
+    `\n## TOPIC COOLDOWN (${cooldownCycles}-cycle window)`,
+    `These topics were used recently — do NOT repeat them. Find fresh angles or entirely new topics:`,
+    recentTopics.slice(0, 15).map(t => `- "${t}"`).join('\n'),
+    `\n## PILLAR USAGE (recent ${recentItems.length} items)`,
+    Object.entries(recentPillars).map(([p, c]) => `- ${p}: ${c} items`).join('\n'),
+    `Underused pillars should get MORE content. Overused pillars should get LESS.`,
+  ];
+
+  return '\n\n' + parts.join('\n');
 }
 
 async function getFeedbackLearnings(sb: any): Promise<string> {
@@ -155,7 +176,6 @@ async function getFeedbackLearnings(sb: any): Promise<string> {
   const approvedEdited = feedback.filter((f: any) => f.action_type === 'approved_edited').length;
   const rejected = feedback.filter((f: any) => f.action_type === 'rejected').length;
 
-  // Topic patterns
   const topicApprovals: Record<string, number> = {};
   const topicRejections: Record<string, number> = {};
   const titleEdits = feedback.filter((f: any) => f.title_changed).length;
@@ -209,7 +229,6 @@ async function getPerformanceLearnings(sb: any): Promise<string> {
 
   const { data: perfConfig } = await sb.from('performance_config').select('*').limit(1).single();
 
-  // Aggregate by topic, channel, format, visual
   const byChannel: Record<string, { count: number; eng: number }> = {};
   const byFormat: Record<string, { count: number; eng: number }> = {};
   const byVisual: Record<string, { count: number; eng: number }> = {};
@@ -270,6 +289,20 @@ async function getPerformanceLearnings(sb: any): Promise<string> {
   return `\n\n## PERFORMANCE LEARNINGS (from published content data)\n${parts.join('\n')}`;
 }
 
+function getIntelligenceModeInstructions(mode: string): string {
+  if (mode === 'assist') {
+    return `\n\n## INTELLIGENCE MODE: ASSIST
+You are in ASSIST mode. Generate suggestions based purely on brand knowledge and content pillars. Do NOT heavily weight performance data or user behavior patterns. Focus on strategic brand alignment and content variety.`;
+  }
+  if (mode === 'strategic') {
+    return `\n\n## INTELLIGENCE MODE: STRATEGIC
+You are in STRATEGIC mode. Prioritize brand strategy, mission alignment, and long-term positioning over short-term engagement metrics. If a strategically important topic underperforms, suggest NEW ANGLES for it rather than dropping it. Weight strategic_weight at 3x normal. Maintain full pillar coverage even if some pillars have lower engagement.`;
+  }
+  // Default: learning mode
+  return `\n\n## INTELLIGENCE MODE: LEARNING
+You are in LEARNING mode. Actively learn from ALL signals: performance metrics, user approval behavior, and editing patterns. Improve suggestions based on what the user approves, rejects, and edits. Balance performance optimization with editorial diversity. Explain your reasoning using learned signals.`;
+}
+
 const VISUAL_FIELDS_SPEC = `
 - visual_type: one of "single_image","carousel","quote_card","framework_card","event_promo","workshop_promo","book_promo","infographic","article_cover","video_storyboard","document_post"
 - visual_concept: 1-2 sentence describing the PRIMARY visual idea (this is the main creative direction)
@@ -283,6 +316,32 @@ const VISUAL_FIELDS_SPEC = `
 - format_ratio: aspect ratio for the channel (e.g. "1:1", "4:5", "16:9")
 - recommended_assets: array of strings naming brand assets to use (book cover, SPIRAL icons, illustrations, etc). Use actual existing brand asset names when possible.
 - visual_rationale: 1-2 sentence explaining WHY this visual direction was chosen for this content and how it reinforces the message`;
+
+const SUGGESTION_RATIONALE_SPEC = `
+- suggestion_rationale: 1-3 sentences explaining WHY this specific topic/angle was suggested for this cycle, using concrete data from learned signals. Examples:
+  * "Suggested because leadership transformation posts had 42% higher engagement in the last 6 posts and you approved similar topics without edits."
+  * "This pillar has been underrepresented (only 2 posts in last 15) — adding it restores editorial balance."
+  * "Testing a new angle on a strategically important but underperforming topic based on recent rejection feedback."
+  IMPORTANT: Every item MUST have a meaningful suggestion_rationale. Never leave it generic.`;
+
+async function storeLearningMemory(sb: any, planId: string, items: any[]) {
+  const memories = items.map((item: any) => ({
+    cycle_id: planId,
+    memory_type: 'generated',
+    topic: item.key_message || item.working_title || '',
+    content_pillar: item.content_pillar || '',
+    channel: item.channel || '',
+    content_format: item.content_format || '',
+    visual_type: item.visual_type || '',
+    cta: item.suggested_cta || item.cta || '',
+    action_outcome: 'suggested',
+    notes: item.suggestion_rationale || '',
+  }));
+  
+  if (memories.length > 0) {
+    await sb.from('learning_memory').insert(memories);
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -298,20 +357,28 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const sb = createClient(supabaseUrl, supabaseKey);
 
+    const { config, cycleStart, cycleEnd, action } = body;
+
+    // Get planning config for intelligence mode and cooldown
+    const { data: planningConfig } = await sb.from('planning_config').select('*').limit(1).single();
+    const intelligenceMode = planningConfig?.intelligence_mode || 'learning';
+    const topicCooldown = planningConfig?.topic_cooldown_cycles || 3;
+    const strategicBalance = planningConfig?.strategic_balance || {};
+
     const [brandContext, visualConfig, recentItems, feedbackLearnings, perfLearnings] = await Promise.all([
       buildBrandContext(sb),
       getVisualConfig(sb),
-      getRecentItems(sb),
+      getRecentItems(sb, topicCooldown),
       getFeedbackLearnings(sb),
       getPerformanceLearnings(sb),
     ]);
 
-    const { config, cycleStart, cycleEnd, action } = body;
+    const intelligenceModeInstructions = getIntelligenceModeInstructions(intelligenceMode);
 
     // Regenerate a single item
     if (action === 'regenerate_item') {
       const { item } = body;
-      const systemPrompt = `You are the AI editorial planner for Spiral Up. ${brandContext}${visualConfig}${recentItems}${feedbackLearnings}${perfLearnings}
+      const systemPrompt = `You are the AI editorial planner for Spiral Up. ${brandContext}${visualConfig}${recentItems}${feedbackLearnings}${perfLearnings}${intelligenceModeInstructions}
 
 TASK: Regenerate a fresh content suggestion for a ${item.channel} ${item.content_format} scheduled on ${item.publish_date}.
 The previous suggestion was rejected${item.rejection_reason ? ': ' + item.rejection_reason : ''}. Generate a completely different angle.
@@ -328,6 +395,7 @@ Return a JSON object with these fields:
 - key_message: the core message in one sentence
 - suggested_cta: specific CTA text
 - brand_alignment: brief explanation of why this aligns with Spiral Up brand
+${SUGGESTION_RATIONALE_SPEC}
 ${VISUAL_FIELDS_SPEC}
 
 VISUAL RULES:
@@ -501,9 +569,15 @@ Return ONLY valid JSON, no markdown.`;
     const campaignFocus = config?.campaign_focus || '';
     const exclusionRules = config?.exclusion_rules || [];
 
+    // Strategic balance instructions
+    const balanceEntries = Object.entries(strategicBalance);
+    const balanceStr = balanceEntries.length > 0
+      ? `\n\nSTRATEGIC CONTENT MIX (target percentages per cycle):\n${balanceEntries.map(([k, v]) => `- ${k.replace(/_/g, ' ')}: ~${v}%`).join('\n')}\nDistribute items to match this balance. If ${postsPerCycle} items, allocate proportionally.`
+      : '';
+
     const systemPrompt = `You are the AI editorial planner for Spiral Up. Your role is to create a strategic content plan with visual directions for the upcoming publication cycle.
 
-${brandContext}${visualConfig}${recentItems}${feedbackLearnings}${perfLearnings}
+${brandContext}${visualConfig}${recentItems}${feedbackLearnings}${perfLearnings}${intelligenceModeInstructions}${balanceStr}
 
 PLANNING CONSTRAINTS:
 - Cycle: ${cycleStart} to ${cycleEnd}
@@ -529,30 +603,26 @@ RULES:
 - Content must be human, direct, pragmatic — never generic AI marketing
 - Spread publish dates across the cycle
 - Each item MUST include a visual direction
+- TOPIC DIVERSITY: Check the TOPIC COOLDOWN section. If a topic appears there, DO NOT use it again. Find a fresh angle or entirely new topic.
 
 VISUAL RULES:
 - CRITICAL: ALWAYS check the BRAND KIT assets list above FIRST. Never generate, invent, or propose a new icon, illustration, or visual asset if an official one already exists in the Brand Kit.
 - ASSET PRIORITY ORDER (strict):
-  1. Official uploaded Spiral Up illustrations (spiraling-up, spiraling-down, stagnating, act-accept, inspect, learn, provide, respond, synergize)
-  2. Official SPIRAL framework icons (principle icons for each letter)
-  3. Book illustrations by Martin Tognola (book cover, seen-with-book photos)
+  1. Official uploaded Spiral Up illustrations
+  2. Official SPIRAL framework icons
+  3. Book illustrations by Martin Tognola
   4. Approved brand templates, zone icons, event visuals
   5. Clean branded layout using approved colors, typography, and shapes
   6. Neutral placeholder visual brief — ONLY as last resort
 - In recommended_assets, ALWAYS reference actual asset names from the Brand Kit when they match the content theme
-- Every item MUST include a visual direction — no text-only suggestions
-- BLOG POSTS ESPECIALLY must include a hero visual concept. A blog is never just text.
-- For blog_post items, visual_type must be one of: "article_cover", "editorial_cover", "framework_visual", "quote_cover", "book_visual", "event_visual", "branded_abstract"
-- If no approved asset exists, describe a simple visual brief as a placeholder — do NOT invent off-brand imagery
+- Every item MUST include a visual direction
+- BLOG POSTS must include a hero visual concept
 - NEVER suggest glossy, surreal, hyper-polished, or fake stock-photo aesthetics
-- NEVER use cliché AI imagery: floating holograms, robotic hands, glowing brains, futuristic dashboards, exaggerated digital effects
+- NEVER use cliché AI imagery
 - NEVER auto-generate icons or illustrations — use official brand assets only
-- Visuals must feel human, editorial, illustrated, or clean branded
-- Keep visuals credible, modern, warm, and professional
 - Match format ratio to channel (blog = 16:9, linkedin = 1:1, instagram = 4:5)
 - Vary visual types across the plan
-- backup_visual_concept must be a genuinely different direction, not a minor variation
-- visual_rationale must explain which Brand Kit asset is being used and WHY it fits this content
+- visual_rationale must explain which Brand Kit asset is being used and WHY
 
 Return a JSON array of ${postsPerCycle} items. Each item must have:
 - publish_date: YYYY-MM-DD format, within the cycle dates
@@ -569,6 +639,7 @@ Return a JSON array of ${postsPerCycle} items. Each item must have:
 - key_message: the core message in one sentence
 - suggested_cta: specific CTA text
 - brand_alignment: brief explanation of why this aligns with Spiral Up
+${SUGGESTION_RATIONALE_SPEC}
 ${VISUAL_FIELDS_SPEC}
 
 Return ONLY a valid JSON array, no markdown wrapping.`;
@@ -627,8 +698,8 @@ Return ONLY a valid JSON array, no markdown wrapping.`;
         key_message: item.key_message || '',
         suggested_cta: item.suggested_cta || '',
         brand_alignment: item.brand_alignment || '',
+        suggestion_rationale: item.suggestion_rationale || '',
         sort_order: idx,
-        // Visual fields
         visual_type: item.visual_type || '',
         visual_concept: item.visual_concept || '',
         backup_visual_concept: item.backup_visual_concept || '',
@@ -646,6 +717,9 @@ Return ONLY a valid JSON array, no markdown wrapping.`;
 
       const { error: itemsError } = await sb.from('editorial_items').insert(itemsToInsert);
       if (itemsError) throw itemsError;
+
+      // Store learning memory for this cycle
+      await storeLearningMemory(sb, plan.id, items);
 
       return new Response(JSON.stringify({ plan_id: plan.id, items_count: items.length }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

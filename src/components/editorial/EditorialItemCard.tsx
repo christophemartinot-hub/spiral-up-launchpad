@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import {
   ChevronDown, ChevronUp, Check, X, RefreshCw, Edit3, Calendar,
-  Loader2, Info, Palette,
+  Loader2, Info, Palette, Lightbulb,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useUpdateEditorialItem, useRegenerateItem } from '@/hooks/use-editorial';
@@ -41,7 +41,6 @@ export default function EditorialItemCard({ item }: { item: any }) {
 
   const statusConf = STATUS_CONFIG[item.status] || STATUS_CONFIG.suggested;
 
-  // Build feedback record from current item state
   const buildFeedback = (actionType: string, finalForm?: any) => ({
     editorial_item_id: item.id,
     plan_id: item.plan_id,
@@ -168,6 +167,16 @@ export default function EditorialItemCard({ item }: { item: any }) {
 
       {expanded && (
         <CardContent className="border-t pt-4 space-y-4">
+          {/* Suggestion rationale */}
+          {item.suggestion_rationale && (
+            <div className="bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+              <p className="text-xs font-medium text-amber-700 dark:text-amber-300 mb-1 flex items-center gap-1">
+                <Lightbulb className="w-3 h-3" /> Why this is suggested
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400">{item.suggestion_rationale}</p>
+            </div>
+          )}
+
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-1">Key Message</p>
@@ -232,7 +241,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
 
           {item.brand_alignment && (
             <div className="bg-primary/5 border border-primary/10 rounded-lg p-3">
-              <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1"><Info className="w-3 h-3" /> Why this suggestion</p>
+              <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1"><Info className="w-3 h-3" /> Brand alignment</p>
               <p className="text-xs text-muted-foreground">{item.brand_alignment}</p>
             </div>
           )}
