@@ -67,6 +67,7 @@ export type Database = {
       }
       brand_assets: {
         Row: {
+          asset_status: string
           category: string
           created_at: string
           description: string | null
@@ -79,6 +80,7 @@ export type Database = {
           usage_guidelines: string | null
         }
         Insert: {
+          asset_status?: string
           category?: string
           created_at?: string
           description?: string | null
@@ -91,6 +93,7 @@ export type Database = {
           usage_guidelines?: string | null
         }
         Update: {
+          asset_status?: string
           category?: string
           created_at?: string
           description?: string | null
