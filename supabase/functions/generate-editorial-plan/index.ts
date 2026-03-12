@@ -16,6 +16,7 @@ async function buildBrandContext(sb: any): Promise<string> {
     { data: examples },
     { data: bookInfo },
     { data: events },
+    { data: brandAssets },
   ] = await Promise.all([
     sb.from('brand_core').select('*').limit(1).single(),
     sb.from('founder_profile').select('*').limit(1).single(),
@@ -26,6 +27,7 @@ async function buildBrandContext(sb: any): Promise<string> {
     sb.from('example_content').select('*').limit(10),
     sb.from('book_info').select('*').limit(1).single(),
     sb.from('events_workshops').select('*').order('sort_order'),
+    sb.from('brand_assets').select('*'),
   ]);
 
   const sections: string[] = [];
@@ -87,23 +89,57 @@ Vision: ${brandCore.vision || ''}`);
     sections.push(`## EXAMPLE STYLE\n${lines.join('\n')}`);
   }
 
+  if (brandAssets && brandAssets.length > 0) {
+    const lines = brandAssets.map((a: any) => `- [${a.category}] ${a.name}: ${a.description || ''} (${a.file_url || 'no file'})`);
+    sections.push(`## BRAND ASSETS (available for visual suggestions)\n${lines.join('\n')}`);
+  }
+
   return sections.join('\n\n');
+}
+
+async function getVisualConfig(sb: any): Promise<string> {
+  const { data } = await sb.from('visual_config').select('*').limit(1).single();
+  if (!data) return '';
+
+  const parts = [];
+  if (data.preferred_styles?.length) parts.push(`Preferred visual styles: ${data.preferred_styles.join(', ')}`);
+  if (data.formats_by_channel) parts.push(`Format ratios by channel: ${JSON.stringify(data.formats_by_channel)}`);
+  parts.push(`Illustration preference: ${data.illustration_preference}`);
+  parts.push(`Use book visuals: ${data.use_book_visuals}`);
+  parts.push(`Use event visuals: ${data.use_event_visuals}`);
+  parts.push(`Text density: ${data.text_density}`);
+  parts.push(`CTA placement preference: ${data.cta_placement_pref}`);
+  parts.push(`Design simplicity level: ${data.simplicity_level}`);
+  if (data.exclusion_rules?.length) parts.push(`Visual exclusions: ${data.exclusion_rules.join(', ')}`);
+
+  return `\n\n## VISUAL DESIGN RULES\n${parts.join('\n')}`;
 }
 
 async function getRecentItems(sb: any): Promise<string> {
   const { data: recentItems } = await sb
     .from('editorial_items')
-    .select('working_title, channel, content_format, content_pillar, post_angle')
+    .select('working_title, channel, content_format, content_pillar, post_angle, visual_type, visual_concept')
     .order('created_at', { ascending: false })
     .limit(20);
 
   if (!recentItems || recentItems.length === 0) return '';
 
   const lines = recentItems.map((i: any) => 
-    `- "${i.working_title}" [${i.channel}/${i.content_format}] pillar:${i.content_pillar || 'none'}`
+    `- "${i.working_title}" [${i.channel}/${i.content_format}] pillar:${i.content_pillar || 'none'} visual:${i.visual_type || 'none'}`
   );
-  return `\n\n## RECENTLY GENERATED (avoid repeating these themes/angles)\n${lines.join('\n')}`;
+  return `\n\n## RECENTLY GENERATED (avoid repeating these themes/angles/visuals)\n${lines.join('\n')}`;
 }
+
+const VISUAL_FIELDS_SPEC = `
+- visual_type: one of "single_image","carousel","quote_card","framework_card","event_promo","workshop_promo","book_promo","infographic","article_cover","video_storyboard","document_post"
+- visual_concept: 1-2 sentence describing the visual idea
+- visual_layout: describe layout structure (e.g. "headline top, illustration center, CTA bottom")
+- image_direction: what the main image/illustration should depict
+- visual_headline: headline text to appear on the visual
+- visual_subheadline: subheadline if relevant (empty string if none)
+- cta_placement: where CTA should appear on visual
+- format_ratio: aspect ratio for the channel (e.g. "1:1", "4:5", "16:9")
+- recommended_assets: array of strings naming brand assets to use (book cover, SPIRAL icons, illustrations, etc). Use actual existing brand asset names when possible.`;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -119,15 +155,18 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const sb = createClient(supabaseUrl, supabaseKey);
 
-    const brandContext = await buildBrandContext(sb);
-    const recentItems = await getRecentItems(sb);
+    const [brandContext, visualConfig, recentItems] = await Promise.all([
+      buildBrandContext(sb),
+      getVisualConfig(sb),
+      getRecentItems(sb),
+    ]);
 
     const { config, cycleStart, cycleEnd, action } = body;
 
     // Regenerate a single item
     if (action === 'regenerate_item') {
       const { item } = body;
-      const systemPrompt = `You are the AI editorial planner for Spiral Up. ${brandContext}${recentItems}
+      const systemPrompt = `You are the AI editorial planner for Spiral Up. ${brandContext}${visualConfig}${recentItems}
 
 TASK: Regenerate a fresh content suggestion for a ${item.channel} ${item.content_format} scheduled on ${item.publish_date}.
 The previous suggestion was rejected${item.rejection_reason ? ': ' + item.rejection_reason : ''}. Generate a completely different angle.
@@ -144,6 +183,14 @@ Return a JSON object with these fields:
 - key_message: the core message in one sentence
 - suggested_cta: specific CTA text
 - brand_alignment: brief explanation of why this aligns with Spiral Up brand
+${VISUAL_FIELDS_SPEC}
+
+VISUAL RULES:
+- Always suggest a visual that matches the content
+- Prioritize existing brand assets (SPIRAL illustrations, book cover, zone icons)
+- Keep visuals clean, professional, uncluttered
+- Never invent fake brand materials — if no asset exists, describe a concept instead
+- Match format ratio to channel
 
 Return ONLY valid JSON, no markdown.`;
 
@@ -154,7 +201,7 @@ Return ONLY valid JSON, no markdown.`;
           model: 'google/gemini-3-flash-preview',
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: 'Generate a fresh content suggestion.' },
+            { role: 'user', content: 'Generate a fresh content suggestion with visual direction.' },
           ],
         }),
       });
@@ -177,6 +224,60 @@ Return ONLY valid JSON, no markdown.`;
       }
     }
 
+    // Regenerate visual only
+    if (action === 'regenerate_visual') {
+      const { item } = body;
+      const systemPrompt = `You are the AI visual director for Spiral Up. ${brandContext}${visualConfig}
+
+TASK: Generate a new visual direction for this content:
+Title: ${item.working_title}
+Channel: ${item.channel}
+Format: ${item.content_format}
+Key Message: ${item.key_message || ''}
+Draft: ${(item.draft_content || '').slice(0, 500)}
+
+Return a JSON object with ONLY these visual fields:
+${VISUAL_FIELDS_SPEC}
+
+VISUAL RULES:
+- Prioritize existing brand assets
+- Keep visuals clean, professional, uncluttered  
+- Never invent fake brand materials
+- Match format ratio to channel
+- Designs should feel human, direct, practical — not flashy
+
+Return ONLY valid JSON, no markdown.`;
+
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'google/gemini-3-flash-preview',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: 'Generate a visual direction for this content.' },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        if (status === 429) return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        if (status === 402) return new Response(JSON.stringify({ error: 'Payment required' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: 'AI generation failed' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const data = await response.json();
+      let content = data.choices?.[0]?.message?.content || '';
+      content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      try {
+        const parsed = JSON.parse(content);
+        return new Response(JSON.stringify({ visual: parsed }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      } catch {
+        return new Response(JSON.stringify({ error: 'Failed to parse AI response', raw: content }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+    }
+
     // Generate full editorial plan
     const channels = config?.channels || ['linkedin', 'blog', 'email'];
     const postsPerCycle = config?.posts_per_cycle || 5;
@@ -187,9 +288,9 @@ Return ONLY valid JSON, no markdown.`;
     const campaignFocus = config?.campaign_focus || '';
     const exclusionRules = config?.exclusion_rules || [];
 
-    const systemPrompt = `You are the AI editorial planner for Spiral Up. Your role is to create a strategic content plan for the upcoming publication cycle.
+    const systemPrompt = `You are the AI editorial planner for Spiral Up. Your role is to create a strategic content plan with visual directions for the upcoming publication cycle.
 
-${brandContext}${recentItems}
+${brandContext}${visualConfig}${recentItems}
 
 PLANNING CONSTRAINTS:
 - Cycle: ${cycleStart} to ${cycleEnd}
@@ -214,6 +315,15 @@ RULES:
 - Always explain WHY each suggestion aligns with Spiral Up brand
 - Content must be human, direct, pragmatic — never generic AI marketing
 - Spread publish dates across the cycle
+- Each item MUST include a visual direction
+
+VISUAL RULES:
+- Always suggest a visual that matches the content
+- Prioritize existing brand assets (SPIRAL illustrations, book cover, zone icons)
+- Keep visuals clean, professional, uncluttered
+- Never invent fake brand materials — if no asset exists, describe a concept instead
+- Match format ratio to channel
+- Vary visual types across the plan
 
 Return a JSON array of ${postsPerCycle} items. Each item must have:
 - publish_date: YYYY-MM-DD format, within the cycle dates
@@ -230,6 +340,7 @@ Return a JSON array of ${postsPerCycle} items. Each item must have:
 - key_message: the core message in one sentence
 - suggested_cta: specific CTA text
 - brand_alignment: brief explanation of why this aligns with Spiral Up
+${VISUAL_FIELDS_SPEC}
 
 Return ONLY a valid JSON array, no markdown wrapping.`;
 
@@ -240,7 +351,7 @@ Return ONLY a valid JSON array, no markdown wrapping.`;
         model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Generate an editorial plan for the cycle ${cycleStart} to ${cycleEnd}.` },
+          { role: 'user', content: `Generate an editorial plan with visual directions for the cycle ${cycleStart} to ${cycleEnd}.` },
         ],
       }),
     });
@@ -262,7 +373,6 @@ Return ONLY a valid JSON array, no markdown wrapping.`;
       const items = JSON.parse(content);
       if (!Array.isArray(items)) throw new Error('Not an array');
 
-      // Create the plan
       const { data: plan, error: planError } = await sb
         .from('editorial_plans')
         .insert({ cycle_start: cycleStart, cycle_end: cycleEnd, cadence: config?.cadence || 'weekly', status: 'active' })
@@ -271,7 +381,6 @@ Return ONLY a valid JSON array, no markdown wrapping.`;
 
       if (planError) throw planError;
 
-      // Insert items
       const itemsToInsert = items.map((item: any, idx: number) => ({
         plan_id: plan.id,
         publish_date: item.publish_date,
@@ -290,6 +399,17 @@ Return ONLY a valid JSON array, no markdown wrapping.`;
         suggested_cta: item.suggested_cta || '',
         brand_alignment: item.brand_alignment || '',
         sort_order: idx,
+        // Visual fields
+        visual_type: item.visual_type || '',
+        visual_concept: item.visual_concept || '',
+        visual_layout: item.visual_layout || '',
+        image_direction: item.image_direction || '',
+        visual_headline: item.visual_headline || '',
+        visual_subheadline: item.visual_subheadline || '',
+        cta_placement: item.cta_placement || '',
+        format_ratio: item.format_ratio || '',
+        recommended_assets: item.recommended_assets || [],
+        visual_status: item.visual_type ? 'suggested' : 'none',
       }));
 
       const { error: itemsError } = await sb.from('editorial_items').insert(itemsToInsert);
