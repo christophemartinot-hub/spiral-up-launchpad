@@ -73,6 +73,7 @@ export default function PerformanceDashboard() {
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="overview">📊 Overview</TabsTrigger>
+          <TabsTrigger value="outcomes">🎯 Outcome Signals</TabsTrigger>
           <TabsTrigger value="details">📋 Detailed Data</TabsTrigger>
           <TabsTrigger value="learnings">🧠 Learnings</TabsTrigger>
           <TabsTrigger value="config">⚙️ AI Learning Prompt</TabsTrigger>
