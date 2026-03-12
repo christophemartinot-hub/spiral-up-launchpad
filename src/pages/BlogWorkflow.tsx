@@ -113,6 +113,33 @@ Write the full article in markdown with:
 ## INTERNAL LINKING SUGGESTIONS
 - 3 suggested internal links to related topics on the blog
 
+## HERO VISUAL DIRECTION
+For every blog post, suggest a matching hero visual. The blog must never be text-only.
+
+### Primary Visual Concept
+- Visual Type: choose one of: editorial cover image, illustrated article cover, simple framework visual, quote-led cover, book-related visual, event/workshop visual, branded abstract visual
+- Visual Concept: 1-2 sentences describing the primary visual idea
+- Cover Title: the headline to display on the visual
+- Cover Subtitle: optional subtitle (or "none")
+- Layout Guidance: describe the layout (e.g. "headline top-left, illustration center-right, brand mark bottom")
+- Recommended Asset Source: specify which existing Spiral Up assets to use (e.g. "SPIRAL Synergize illustration", "Spiral Up book cover", "zone spiraling-up icon"). If no approved asset fits, describe a neutral placeholder concept.
+- Format: 16:9 (blog hero standard)
+- Visual Rationale: 1-2 sentences explaining why this visual fits the article
+
+### Backup Visual Concept
+- Visual Type: a different type from primary
+- Visual Concept: 1-2 sentences describing an alternative direction
+- Recommended Asset Source: different asset or approach
+- Why: brief reason this backup works
+
+VISUAL QUALITY RULES:
+- Must feel like a thoughtful editorial brand asset, NOT random AI art
+- Avoid glossy, surreal, hyper-polished, or fake stock-photo aesthetics
+- Avoid cliché AI imagery: floating holograms, robotic hands, glowing brains, futuristic dashboards
+- Prefer human, editorial, illustrated, or clean branded look
+- Use official Spiral Up illustrations, book assets, event visuals, or brand shapes first
+- Keep the result credible, modern, warm, and professional
+
 ## REPURPOSED CONTENT
 
 ### LinkedIn Post Version
