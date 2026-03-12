@@ -21,7 +21,7 @@ WRITING STYLE: Clear, structured, thought-provoking. Short paragraphs. Bold open
 CONTENT PILLARS: Systemic Change, Business Agility, Customer Centricity, Leadership Evolution, Healthy Systems & Teams, Thought Leadership.
 
 STRATEGIC THEMES:
-- Transformation is not a project — it's a way of being
+- Transformation is not a project — it is a way of being
 - Start with the system, not the symptom
 - Agility is a means, not an end
 - Leaders must go first
@@ -32,7 +32,7 @@ STRATEGIC THEMES:
 
 OFFERS: Keynote Speaking, Transformation Consulting, Leadership Workshops, Coaching & Advisory, The Spiral Up Book.
 
-AVOID: Generic AI marketing language, startup clichés, empty inspiration, overpromising, corporate jargon, passive language.
+AVOID: Generic AI marketing language, startup cliches, empty inspiration, overpromising, corporate jargon, passive language.
 
 Blog posts are for publication at SpiralingUp.works/blog. Include SEO-friendly titles, meta descriptions, and structured content.`;
 
@@ -46,12 +46,15 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
 
+    const gatewayUrl = 'https://ai.gateway.lovable.dev/v1/chat/completions';
+    const authHeader = 'Bearer ' + LOVABLE_API_KEY;
+
     // Handle streaming chat messages
     if (body.messages) {
-      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const response = await fetch(gatewayUrl, {
         method: 'POST',
         headers: {
-          Authorization: \`Bearer \${LOVABLE_API_KEY}\`,
+          Authorization: authHeader,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -64,20 +67,21 @@ Deno.serve(async (req) => {
       });
 
       if (!response.ok) {
-        if (response.status === 429) {
+        const status = response.status;
+        if (status === 429) {
           return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
             status: 429,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
-        if (response.status === 402) {
+        if (status === 402) {
           return new Response(JSON.stringify({ error: 'Payment required' }), {
             status: 402,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
         const t = await response.text();
-        console.error('AI gateway error:', response.status, t);
+        console.error('AI gateway error:', status, t);
         return new Response(JSON.stringify({ error: 'AI gateway error' }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -90,43 +94,17 @@ Deno.serve(async (req) => {
     }
 
     // Handle structured content generation (non-streaming)
-    const { contentType, pillar, topic, additionalContext } = body;
+    const contentType = body.contentType || 'blog_post';
+    const pillar = body.pillar || 'general';
+    const topic = body.topic || '';
+    const additionalContext = body.additionalContext || '';
 
-    const userPrompt = \`Generate a \${contentType} about "\${topic}" aligned with the "\${pillar}" content pillar.\${additionalContext ? \` Additional context: \${additionalContext}\` : ''}
+    const userPrompt = 'Generate a ' + contentType + ' about "' + topic + '" aligned with the "' + pillar + '" content pillar.' + (additionalContext ? ' Additional context: ' + additionalContext : '') + '\n\nStay unmistakably Spiral Up in voice and positioning.';
 
-Requirements based on content type:
-\${contentType === 'blog_post' ? \`- Create a full blog post for SpiralingUp.works/blog
-- Include: SEO title (under 60 chars), meta description (under 160 chars), excerpt, the full article with headers (H2, H3), a compelling introduction, 3-5 key sections, and a strong conclusion with CTA
-- Suggest internal linking opportunities and related content ideas
-- Format in clean markdown ready for CMS publishing\` : ''}
-\${contentType === 'linkedin_post' ? \`- Create a LinkedIn post (1300 chars max)
-- Start with a bold hook that stops the scroll
-- Use short paragraphs (1-2 sentences each)
-- Include a clear CTA at the end
-- Suggest 3-5 relevant hashtags\` : ''}
-\${contentType === 'newsletter' ? \`- Create a newsletter article
-- Include: subject line, preview text, greeting, main content with clear sections, and CTA
-- Tone should feel personal and conversational
-- Include a "What I'm thinking about" or "One question for you" section\` : ''}
-\${contentType === 'event_promo' ? \`- Create promotional copy for an event/conference
-- Include: headline, description, key takeaways for attendees, speaker bio snippet, and registration CTA\` : ''}
-\${contentType === 'landing_page' ? \`- Create landing page copy
-- Include: headline, subheadline, 3-4 value propositions, social proof placeholder, and primary CTA
-- Focus on one clear conversion goal\` : ''}
-\${contentType === 'lead_magnet' ? \`- Create a lead magnet concept and landing copy
-- Include: title, description, what's inside, who it's for, and download CTA\` : ''}
-\${contentType === 'email_sequence' ? \`- Create a 3-5 email nurture sequence
-- Include subject lines, preview text, and body for each email
-- Build toward a clear conversion goal\` : ''}
-\${contentType === 'campaign_copy' ? \`- Create campaign copy for multiple channels
-- Include: campaign theme, LinkedIn post, newsletter excerpt, blog intro, and email subject line\` : ''}
-
-Remember: Stay unmistakably Spiral Up in voice and positioning.\`;
-
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch(gatewayUrl, {
       method: 'POST',
       headers: {
-        Authorization: \`Bearer \${LOVABLE_API_KEY}\`,
+        Authorization: authHeader,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -138,20 +116,21 @@ Remember: Stay unmistakably Spiral Up in voice and positioning.\`;
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
+      const status = response.status;
+      if (status === 429) {
         return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
           status: 429,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      if (response.status === 402) {
+      if (status === 402) {
         return new Response(JSON.stringify({ error: 'Payment required' }), {
           status: 402,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       const t = await response.text();
-      console.error('AI gateway error:', response.status, t);
+      console.error('AI gateway error:', status, t);
       return new Response(JSON.stringify({ error: 'AI generation failed' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -166,8 +145,9 @@ Remember: Stay unmistakably Spiral Up in voice and positioning.\`;
     });
   } catch (e) {
     console.error('generate-content error:', e);
+    const errorMessage = e instanceof Error ? e.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : 'Unknown error' }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
