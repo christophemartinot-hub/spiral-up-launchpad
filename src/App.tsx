@@ -4,6 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AppLayout from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
+import BrandIntelligence from "@/pages/BrandIntelligence";
+import ContentStudio from "@/pages/ContentStudio";
+import BlogWorkflow from "@/pages/BlogWorkflow";
+import Analytics from "@/pages/Analytics";
 import CalendarView from "@/pages/CalendarView";
 import ContentLibrary from "@/pages/ContentLibrary";
 import CampaignWizard from "@/pages/CampaignWizard";
@@ -21,6 +25,10 @@ const App = () => (
         <AppLayout>
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/brand" element={<BrandIntelligence />} />
+            <Route path="/studio" element={<ContentStudio />} />
+            <Route path="/blog" element={<BlogWorkflow />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/calendar" element={<CalendarView />} />
             <Route path="/content" element={<ContentLibrary />} />
             <Route path="/campaigns/new" element={<CampaignWizard />} />
