@@ -16,6 +16,8 @@ export async function buildBrandContext(): Promise<string> {
     { data: offers },
     { data: pages },
     { data: examples },
+    { data: bookInfo },
+    { data: events },
   ] = await Promise.all([
     supabase.from('brand_core').select('*').limit(1).single(),
     supabase.from('founder_profile').select('*').limit(1).single(),
@@ -25,6 +27,8 @@ export async function buildBrandContext(): Promise<string> {
     supabase.from('offers').select('*').order('sort_order'),
     supabase.from('website_pages').select('*'),
     supabase.from('example_content').select('*').limit(10),
+    supabase.from('book_info').select('*').limit(1).single(),
+    supabase.from('events_workshops').select('*').order('sort_order'),
   ]);
 
   const sections: string[] = [];
@@ -114,6 +118,32 @@ ${(brandCore.key_beliefs as string[] || []).length > 0 ? `Key Beliefs:\n${(brand
       return line;
     });
     sections.push(`## WEBSITE KNOWLEDGE\n${lines.join('\n')}`);
+  }
+
+  // ── Book ──
+  if (bookInfo) {
+    const parts = [];
+    parts.push(`Title: ${bookInfo.title || 'SPIRAL UP'}`);
+    if (bookInfo.subtitle) parts.push(`Subtitle: ${bookInfo.subtitle}`);
+    if (bookInfo.author) parts.push(`Author: ${bookInfo.author}`);
+    if (bookInfo.description) parts.push(`Description: ${bookInfo.description}`);
+    if ((bookInfo.key_discoveries as string[] || []).length > 0) parts.push(`Key Discoveries:\n${(bookInfo.key_discoveries as string[]).map((d: string) => `- ${d}`).join('\n')}`);
+    if ((bookInfo.endorsements as any[] || []).length > 0) {
+      const quotes = (bookInfo.endorsements as any[]).map((e: any) => `- "${e.quote}" — ${e.author}${e.org ? `, ${e.org}` : ''}`);
+      parts.push(`Endorsements:\n${quotes.join('\n')}`);
+    }
+    sections.push(`## THE SPIRAL UP BOOK\n${parts.join('\n')}`);
+  }
+
+  // ── Events & Workshops ──
+  if (events && events.length > 0) {
+    const lines = events.map((e: any) => {
+      let line = `- ${e.event_name} [${e.event_type}] (${e.status})`;
+      if (e.description) line += `: ${e.description}`;
+      if (e.target_audience) line += ` | For: ${e.target_audience}`;
+      return line;
+    });
+    sections.push(`## EVENTS & WORKSHOPS\n${lines.join('\n')}`);
   }
 
   // ── Example Content Style ──

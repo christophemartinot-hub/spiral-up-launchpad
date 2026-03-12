@@ -268,3 +268,62 @@ export function useDeleteExampleContent() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['example-content'] }),
   });
 }
+
+// ─── Book Info ───
+export function useBookInfo() {
+  return useQuery({
+    queryKey: ['book-info'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('book_info').select('*').limit(1).single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+  });
+}
+
+export function useUpdateBookInfo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (updates: Record<string, unknown>) => {
+      const { data: existing } = await supabase.from('book_info').select('id').limit(1).single();
+      if (!existing) throw new Error('No book info row');
+      const { error } = await supabase.from('book_info').update({ ...updates, updated_at: new Date().toISOString() } as any).eq('id', existing.id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['book-info'] }),
+  });
+}
+
+// ─── Events & Workshops ───
+export function useEventsWorkshops() {
+  return useQuery({
+    queryKey: ['events-workshops'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('events_workshops').select('*').order('sort_order');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useUpsertEventWorkshop() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (item: Record<string, unknown>) => {
+      const { error } = await supabase.from('events_workshops').upsert({ ...item, updated_at: new Date().toISOString() } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['events-workshops'] }),
+  });
+}
+
+export function useDeleteEventWorkshop() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('events_workshops').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['events-workshops'] }),
+  });
+}
