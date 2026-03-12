@@ -21,10 +21,12 @@ import {
   Calendar,
   Loader2,
   Info,
+  Palette,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useUpdateEditorialItem, useRegenerateItem } from '@/hooks/use-editorial';
 import { toast } from 'sonner';
+import VisualBriefPanel from './VisualBriefPanel';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   suggested: { label: 'Suggested', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
