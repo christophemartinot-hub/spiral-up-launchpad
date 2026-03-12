@@ -281,6 +281,69 @@ Return ONLY valid JSON, no markdown.`;
       }
     }
 
+    // Generate blog email version
+    if (action === 'generate_blog_email') {
+      const { item } = body;
+      const systemPrompt = `You are the email marketing writer for Spiral Up. ${brandContext}
+
+TASK: Convert this approved blog post into an email campaign for subscribers.
+
+Blog Title: ${item.working_title}
+Key Message: ${item.key_message || ''}
+Content Pillar: ${item.content_pillar || ''}
+Draft Content: ${(item.draft_content || '').slice(0, 2000)}
+CTA: ${item.suggested_cta || item.cta || ''}
+
+Return a JSON object with:
+- subject_line: compelling email subject (under 60 chars, avoid spam triggers)
+- preview_text: email preview text (under 100 chars)
+- intro_text: warm, personal intro (2-3 sentences) that hooks the reader
+- blog_summary: concise summary of the blog's key value points (3-5 bullet points as text)
+- cta_text: specific call to action text
+- cta_url: suggested URL path (e.g. /blog/article-slug)
+- visual_recommendation: describe what header image or visual to use in the email
+- plain_text_fallback: plain text version of the email (no HTML)
+
+RULES:
+- Subject line must be human and specific — no clickbait, no ALL CAPS, no excessive punctuation
+- Intro should feel like a personal note from Christophe Martinot
+- Summary should give enough value that the reader wants to read the full article
+- CTA should be clear and specific
+- Stay on brand: human, direct, practical, credible
+- Visual recommendation should reference existing brand assets when possible
+
+Return ONLY valid JSON, no markdown.`;
+
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'google/gemini-3-flash-preview',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: 'Generate an email version of this blog post.' },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        if (status === 429) return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        if (status === 402) return new Response(JSON.stringify({ error: 'Payment required' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: 'AI generation failed' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const data = await response.json();
+      let content = data.choices?.[0]?.message?.content || '';
+      content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      try {
+        const parsed = JSON.parse(content);
+        return new Response(JSON.stringify({ email: parsed }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      } catch {
+        return new Response(JSON.stringify({ error: 'Failed to parse AI response', raw: content }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+    }
+
     // Generate full editorial plan
     const channels = config?.channels || ['linkedin', 'blog', 'email'];
     const postsPerCycle = config?.posts_per_cycle || 5;
