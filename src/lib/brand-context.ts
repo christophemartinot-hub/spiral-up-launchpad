@@ -16,6 +16,8 @@ export async function buildBrandContext(): Promise<string> {
     { data: offers },
     { data: pages },
     { data: examples },
+    { data: bookInfo },
+    { data: events },
   ] = await Promise.all([
     supabase.from('brand_core').select('*').limit(1).single(),
     supabase.from('founder_profile').select('*').limit(1).single(),
@@ -25,6 +27,8 @@ export async function buildBrandContext(): Promise<string> {
     supabase.from('offers').select('*').order('sort_order'),
     supabase.from('website_pages').select('*'),
     supabase.from('example_content').select('*').limit(10),
+    supabase.from('book_info').select('*').limit(1).single(),
+    supabase.from('events_workshops').select('*').order('sort_order'),
   ]);
 
   const sections: string[] = [];
