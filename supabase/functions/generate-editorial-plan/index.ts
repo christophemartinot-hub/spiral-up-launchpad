@@ -361,7 +361,7 @@ Return ONLY valid JSON, no markdown.`;
     // Regenerate visual only
     if (action === 'regenerate_visual') {
       const { item } = body;
-      const systemPrompt = `You are the AI visual director for Spiral Up. ${brandContext}${visualConfig}
+      const systemPrompt = `You are the AI visual director for Spiral Up. ${brandContext}${visualConfig}${feedbackLearnings}${perfLearnings}
 
 TASK: Generate a new visual direction for this content:
 Title: ${item.working_title}
