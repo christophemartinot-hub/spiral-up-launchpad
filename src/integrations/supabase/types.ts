@@ -201,6 +201,7 @@ export type Database = {
         Row: {
           asset_used: string | null
           audience_segment: string | null
+          blog_clickthroughs: number | null
           channel: string
           click_rate: number | null
           clicks: number | null
@@ -213,10 +214,15 @@ export type Database = {
           editorial_item_id: string | null
           engagement: number | null
           engagement_rate: number | null
+          event_signups: number | null
+          follower_growth: number | null
           id: string
           impressions: number | null
+          meaningful_comments: number | null
+          newsletter_signups: number | null
           notes: string | null
           opens: number | null
+          profile_visits: number | null
           publish_date: string | null
           reach: number | null
           saves: number | null
@@ -229,6 +235,7 @@ export type Database = {
         Insert: {
           asset_used?: string | null
           audience_segment?: string | null
+          blog_clickthroughs?: number | null
           channel?: string
           click_rate?: number | null
           clicks?: number | null
@@ -241,10 +248,15 @@ export type Database = {
           editorial_item_id?: string | null
           engagement?: number | null
           engagement_rate?: number | null
+          event_signups?: number | null
+          follower_growth?: number | null
           id?: string
           impressions?: number | null
+          meaningful_comments?: number | null
+          newsletter_signups?: number | null
           notes?: string | null
           opens?: number | null
+          profile_visits?: number | null
           publish_date?: string | null
           reach?: number | null
           saves?: number | null
@@ -257,6 +269,7 @@ export type Database = {
         Update: {
           asset_used?: string | null
           audience_segment?: string | null
+          blog_clickthroughs?: number | null
           channel?: string
           click_rate?: number | null
           clicks?: number | null
@@ -269,10 +282,15 @@ export type Database = {
           editorial_item_id?: string | null
           engagement?: number | null
           engagement_rate?: number | null
+          event_signups?: number | null
+          follower_growth?: number | null
           id?: string
           impressions?: number | null
+          meaningful_comments?: number | null
+          newsletter_signups?: number | null
           notes?: string | null
           opens?: number | null
+          profile_visits?: number | null
           publish_date?: string | null
           reach?: number | null
           saves?: number | null
@@ -393,6 +411,7 @@ export type Database = {
       }
       editorial_items: {
         Row: {
+          audience_challenge: string
           backup_visual_concept: string | null
           backup_visual_type: string | null
           brand_alignment: string | null
@@ -404,13 +423,17 @@ export type Database = {
           cta: string | null
           cta_placement: string | null
           draft_content: string | null
+          expected_audience_action: string
           format_ratio: string | null
           id: string
           image_direction: string | null
+          insight_delivered: string
           key_message: string | null
           objective: string | null
+          outcome_score: number
           plan_id: string
           post_angle: string | null
+          practical_takeaway: string
           publish_date: string
           recommended_assets: Json | null
           rejection_reason: string | null
@@ -431,6 +454,7 @@ export type Database = {
           working_title: string
         }
         Insert: {
+          audience_challenge?: string
           backup_visual_concept?: string | null
           backup_visual_type?: string | null
           brand_alignment?: string | null
@@ -442,13 +466,17 @@ export type Database = {
           cta?: string | null
           cta_placement?: string | null
           draft_content?: string | null
+          expected_audience_action?: string
           format_ratio?: string | null
           id?: string
           image_direction?: string | null
+          insight_delivered?: string
           key_message?: string | null
           objective?: string | null
+          outcome_score?: number
           plan_id: string
           post_angle?: string | null
+          practical_takeaway?: string
           publish_date: string
           recommended_assets?: Json | null
           rejection_reason?: string | null
@@ -469,6 +497,7 @@ export type Database = {
           working_title?: string
         }
         Update: {
+          audience_challenge?: string
           backup_visual_concept?: string | null
           backup_visual_type?: string | null
           brand_alignment?: string | null
@@ -480,13 +509,17 @@ export type Database = {
           cta?: string | null
           cta_placement?: string | null
           draft_content?: string | null
+          expected_audience_action?: string
           format_ratio?: string | null
           id?: string
           image_direction?: string | null
+          insight_delivered?: string
           key_message?: string | null
           objective?: string | null
+          outcome_score?: number
           plan_id?: string
           post_angle?: string | null
+          practical_takeaway?: string
           publish_date?: string
           recommended_assets?: Json | null
           rejection_reason?: string | null

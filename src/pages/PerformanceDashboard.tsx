@@ -73,6 +73,7 @@ export default function PerformanceDashboard() {
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="overview">📊 Overview</TabsTrigger>
+          <TabsTrigger value="outcomes">🎯 Outcome Signals</TabsTrigger>
           <TabsTrigger value="details">📋 Detailed Data</TabsTrigger>
           <TabsTrigger value="learnings">🧠 Learnings</TabsTrigger>
           <TabsTrigger value="config">⚙️ AI Learning Prompt</TabsTrigger>
@@ -188,6 +189,10 @@ export default function PerformanceDashboard() {
           )}
         </TabsContent>
 
+        <TabsContent value="outcomes">
+          <OutcomeSignals />
+        </TabsContent>
+
         <TabsContent value="details">
           <PerformanceTable />
         </TabsContent>
@@ -267,6 +272,81 @@ export default function PerformanceDashboard() {
   );
 }
 
+// ─── Outcome Signals ───
+function OutcomeSignals() {
+  const { data: items, isLoading } = usePerformanceData();
+
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
+  if (!items || items.length === 0) return (
+    <Card className="shadow-card"><CardContent className="py-12 text-center"><p className="text-sm text-muted-foreground">Add performance data with outcome signals to see insights.</p></CardContent></Card>
+  );
+
+  const totalSaves = items.reduce((s, i: any) => s + (i.saves || 0), 0);
+  const totalShares = items.reduce((s, i: any) => s + (i.shares || 0), 0);
+  const totalMeaningfulComments = items.reduce((s, i: any) => s + (i.meaningful_comments || i.comments || 0), 0);
+  const totalProfileVisits = items.reduce((s, i: any) => s + (i.profile_visits || 0), 0);
+  const totalFollowerGrowth = items.reduce((s, i: any) => s + (i.follower_growth || 0), 0);
+  const totalBlogClicks = items.reduce((s, i: any) => s + (i.blog_clickthroughs || i.clicks || 0), 0);
+  const totalNewsletterSignups = items.reduce((s, i: any) => s + (i.newsletter_signups || 0), 0);
+  const totalEventSignups = items.reduce((s, i: any) => s + (i.event_signups || 0), 0);
+
+  const outcomeMetrics = [
+    { label: 'Saves', value: totalSaves, icon: '💾', desc: 'Content saved for later — indicates high value' },
+    { label: 'Shares', value: totalShares, icon: '🔁', desc: 'Shared with others — indicates trust' },
+    { label: 'Comments', value: totalMeaningfulComments, icon: '💬', desc: 'Meaningful engagement' },
+    { label: 'Profile Visits', value: totalProfileVisits, icon: '👤', desc: 'Curiosity about the author' },
+    { label: 'Follower Growth', value: totalFollowerGrowth, icon: '📈', desc: 'New followers from content' },
+    { label: 'Blog Clicks', value: totalBlogClicks, icon: '🔗', desc: 'Click-throughs to blog' },
+    { label: 'Newsletter Signups', value: totalNewsletterSignups, icon: '✉️', desc: 'Subscribers from content' },
+    { label: 'Event Signups', value: totalEventSignups, icon: '🎤', desc: 'Event registrations from content' },
+  ];
+
+  // Outcome chart data
+  const chartData = outcomeMetrics.filter(m => m.value > 0).map(m => ({ name: m.label, value: m.value }));
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-primary/5 border border-primary/15 rounded-lg p-4">
+        <p className="text-sm font-display font-semibold text-primary mb-1">🎯 Outcome-Driven Metrics</p>
+        <p className="text-xs text-muted-foreground">
+          These metrics measure audience <strong>impact</strong> — not just reach. Saves, shares, and subscriptions indicate your content creates real value for leaders and teams.
+        </p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {outcomeMetrics.map(m => (
+          <Card key={m.label} className="shadow-card">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-lg">{m.icon}</span>
+                <p className="text-xs font-medium text-muted-foreground">{m.label}</p>
+              </div>
+              <p className="text-2xl font-bold">{m.value}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{m.desc}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {chartData.length > 0 && (
+        <Card className="shadow-card">
+          <CardHeader className="pb-2"><CardTitle className="text-sm">Outcome Signal Distribution</CardTitle></CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={chartData}>
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-20} textAnchor="end" height={60} />
+                <YAxis tick={{ fontSize: 11 }} />
+                <Tooltip />
+                <Bar dataKey="value" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 // ─── Performance Table ───
 function PerformanceTable() {
   const { data: items, isLoading } = usePerformanceData();
@@ -288,7 +368,7 @@ function PerformanceTable() {
     });
   };
 
-  const fields = ['channel', 'content_format', 'content_pillar', 'topic', 'visual_type', 'impressions', 'reach', 'clicks', 'engagement', 'saves', 'shares', 'comments', 'conversions'];
+  const fields = ['channel', 'content_format', 'content_pillar', 'topic', 'visual_type', 'impressions', 'reach', 'clicks', 'engagement', 'saves', 'shares', 'comments', 'conversions', 'profile_visits', 'follower_growth', 'blog_clickthroughs', 'newsletter_signups', 'event_signups', 'meaningful_comments'];
 
   return (
     <div className="space-y-4">

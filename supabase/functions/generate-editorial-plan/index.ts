@@ -307,6 +307,23 @@ async function getPerformanceLearnings(sb: any): Promise<string> {
 
   parts.push(`\nIMPORTANT: Use these learnings to improve suggestions but maintain editorial diversity. Don't over-optimize for one pattern. Balance performance with brand strategy. Explain WHY you're suggesting a topic using this data.`);
 
+  // Outcome signals
+  const totalSaves = perf.reduce((s: number, p: any) => s + (p.saves || 0), 0);
+  const totalShares = perf.reduce((s: number, p: any) => s + (p.shares || 0), 0);
+  const totalFollowerGrowth = perf.reduce((s: number, p: any) => s + (p.follower_growth || 0), 0);
+  const totalNewsletterSignups = perf.reduce((s: number, p: any) => s + (p.newsletter_signups || 0), 0);
+  const totalEventSignups = perf.reduce((s: number, p: any) => s + (p.event_signups || 0), 0);
+
+  if (totalSaves > 0 || totalShares > 0 || totalFollowerGrowth > 0) {
+    parts.push(`\nOUTCOME SIGNALS (prioritize creating content that drives these):
+- Saves: ${totalSaves} total (high-value indicator — audience finds it reference-worthy)
+- Shares: ${totalShares} total (trust indicator — audience vouches for content)
+- Follower growth: ${totalFollowerGrowth} (audience growth from content)
+- Newsletter signups: ${totalNewsletterSignups} (conversion from content)
+- Event signups: ${totalEventSignups} (highest-value conversion)
+Prioritize content that drives SAVES, SHARES, and SUBSCRIPTIONS over impressions/likes.`);
+  }
+
   return `\n\n## PERFORMANCE LEARNINGS (from published content data)\n${parts.join('\n')}`;
 }
 
@@ -344,6 +361,31 @@ const SUGGESTION_RATIONALE_SPEC = `
   * "This pillar has been underrepresented (only 2 posts in last 15) — adding it restores editorial balance."
   * "Testing a new angle on a strategically important but underperforming topic based on recent rejection feedback."
   IMPORTANT: Every item MUST have a meaningful suggestion_rationale. Never leave it generic.`;
+
+const OUTCOME_FIELDS_SPEC = `
+## OUTCOME-DRIVEN CONTENT (MANDATORY)
+Every content item MUST be designed for AUDIENCE IMPACT, not just output. The goal is to create meaningful change for leaders and organizations — not just "more posts."
+
+For each item, include these outcome fields:
+- audience_challenge: What real problem, tension, or question the audience faces that this content addresses. Be specific. Example: "Leaders struggle to sustain change after initial transformation excitement fades."
+- insight_delivered: The key idea or shift in thinking the audience will gain. Not a summary — the actual insight. Example: "Transformation fails not because of bad strategy but because leaders focus on tools instead of behaviors."
+- practical_takeaway: What the audience can DO after consuming this content. Be concrete. Example: "A 3-question diagnostic leaders can use in their next team meeting to assess behavioral vs. tool-based change."
+- expected_audience_action: The most likely audience response. One of: "save", "share", "follow", "subscribe", "read_more", "attend_event", "book_call", "reflect"
+- outcome_score: Integer 1-10 rating the potential IMPACT on the audience. Score based on:
+  * Depth of insight (surface = 1-3, reframing = 4-6, paradigm-shifting = 7-10)
+  * Actionability (vague inspiration = low, concrete framework = high)
+  * Shareability (would someone forward this to a colleague?)
+  * Relevance to audience's real challenges
+
+RANKING RULE: Prioritize content by outcome_score. Content that is polished but low-impact (score ≤ 3) should NOT be suggested. Aim for scores of 6+ on every item.
+
+WEAK (do NOT generate):
+- "5 tips for business agility" (generic, no insight, no challenge addressed)
+- "The importance of leadership" (vague, no audience tension)
+
+STRONG (generate this kind):
+- "Why transformation fails when leaders focus on tools instead of behavior" (specific challenge, clear insight, actionable)
+- "The question every leader avoids asking their team — and why it matters" (tension, curiosity, practical)`;
 
 async function storeLearningMemory(sb: any, planId: string, items: any[]) {
   const memories = items.map((item: any) => ({
@@ -417,6 +459,7 @@ Return a JSON object with these fields:
 - suggested_cta: specific CTA text
 - brand_alignment: brief explanation of why this aligns with Spiral Up brand
 ${SUGGESTION_RATIONALE_SPEC}
+${OUTCOME_FIELDS_SPEC}
 ${VISUAL_FIELDS_SPEC}
 
 VISUAL RULES:
@@ -661,6 +704,7 @@ Return a JSON array of ${postsPerCycle} items. Each item must have:
 - suggested_cta: specific CTA text
 - brand_alignment: brief explanation of why this aligns with Spiral Up
 ${SUGGESTION_RATIONALE_SPEC}
+${OUTCOME_FIELDS_SPEC}
 ${VISUAL_FIELDS_SPEC}
 
 Return ONLY a valid JSON array, no markdown wrapping.`;
@@ -734,6 +778,11 @@ Return ONLY a valid JSON array, no markdown wrapping.`;
         format_ratio: item.format_ratio || '',
         recommended_assets: item.recommended_assets || [],
         visual_status: item.visual_type ? 'suggested' : 'none',
+        audience_challenge: item.audience_challenge || '',
+        insight_delivered: item.insight_delivered || '',
+        practical_takeaway: item.practical_takeaway || '',
+        expected_audience_action: item.expected_audience_action || '',
+        outcome_score: item.outcome_score || 0,
       }));
 
       const { error: itemsError } = await sb.from('editorial_items').insert(itemsToInsert);

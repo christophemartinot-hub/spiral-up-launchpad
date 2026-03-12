@@ -151,6 +151,15 @@ export default function EditorialItemCard({ item }: { item: any }) {
                 <Palette className="w-2.5 h-2.5" /> {item.visual_type.replace(/_/g, ' ')}
               </Badge>
             )}
+            {item.outcome_score > 0 && (
+              <Badge className={`text-[10px] ${
+                item.outcome_score >= 7 ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
+                item.outcome_score >= 4 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' :
+                'bg-muted text-muted-foreground'
+              }`}>
+                {item.outcome_score >= 7 ? '🎯 High' : item.outcome_score >= 4 ? '📊 Medium' : '📉 Low'} Impact
+              </Badge>
+            )}
           </div>
           <p className="font-display font-semibold text-sm mt-1 truncate">{item.working_title}</p>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -182,6 +191,60 @@ export default function EditorialItemCard({ item }: { item: any }) {
                 <Lightbulb className="w-3 h-3" /> Why this is suggested
               </p>
               <p className="text-xs text-amber-600 dark:text-amber-400">{item.suggestion_rationale}</p>
+            </div>
+          )}
+
+          {/* Outcome Definition */}
+          {(item.audience_challenge || item.insight_delivered || item.outcome_score > 0 || editing) && (
+            <div className="bg-primary/5 border border-primary/15 rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-display font-semibold text-primary flex items-center gap-1.5">
+                  🎯 Outcome Definition
+                </p>
+                {item.outcome_score > 0 && (
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    item.outcome_score >= 7 ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
+                    item.outcome_score >= 4 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' :
+                    'bg-muted text-muted-foreground'
+                  }`}>
+                    Score: {item.outcome_score}/10
+                  </span>
+                )}
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Audience Challenge</p>
+                  {editing ? (
+                    <Input value={form.audience_challenge || ''} onChange={e => setForm((f: any) => ({ ...f, audience_challenge: e.target.value }))} placeholder="What problem does the audience face?" />
+                  ) : (
+                    <p className="text-xs">{item.audience_challenge || '—'}</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Insight Delivered</p>
+                  {editing ? (
+                    <Input value={form.insight_delivered || ''} onChange={e => setForm((f: any) => ({ ...f, insight_delivered: e.target.value }))} placeholder="Key idea the audience gains" />
+                  ) : (
+                    <p className="text-xs">{item.insight_delivered || '—'}</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Practical Takeaway</p>
+                  {editing ? (
+                    <Input value={form.practical_takeaway || ''} onChange={e => setForm((f: any) => ({ ...f, practical_takeaway: e.target.value }))} placeholder="What can they apply?" />
+                  ) : (
+                    <p className="text-xs">{item.practical_takeaway || '—'}</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Expected Action</p>
+                  {editing ? (
+                    <Input value={form.expected_audience_action || ''} onChange={e => setForm((f: any) => ({ ...f, expected_audience_action: e.target.value }))} placeholder="save, share, follow..." />
+                  ) : (
+                    <p className="text-xs capitalize">{(item.expected_audience_action || '—').replace(/_/g, ' ')}</p>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
