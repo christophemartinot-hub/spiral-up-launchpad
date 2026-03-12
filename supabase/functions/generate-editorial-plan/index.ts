@@ -90,8 +90,19 @@ Vision: ${brandCore.vision || ''}`);
   }
 
   if (brandAssets && brandAssets.length > 0) {
-    const lines = brandAssets.map((a: any) => `- [${a.category}] ${a.name}: ${a.description || ''} (${a.file_url || 'no file'})`);
-    sections.push(`## BRAND ASSETS (available for visual suggestions)\n${lines.join('\n')}`);
+    const lines = brandAssets.map((a: any) => `- [${a.category}] ${a.name}: ${a.description || ''} (${a.file_url || 'no file'})${a.usage_guidelines ? ' | Usage: ' + a.usage_guidelines : ''}`);
+    sections.push(`## BRAND KIT — OFFICIAL ASSETS (MUST USE THESE FIRST)
+CRITICAL: Always check this list before proposing ANY visual concept. If an official asset matches the content, you MUST use it instead of inventing a new concept.
+
+Priority order:
+1. Official uploaded Spiral Up illustrations
+2. Official SPIRAL framework icons (S·P·I·R·A·L principle icons)
+3. Book illustrations by Martin Tognola
+4. Approved brand templates and zone icons
+5. Placeholder visual brief (ONLY if nothing above matches)
+
+Available assets:
+${lines.join('\n')}`);
   }
 
   return sections.join('\n\n');
