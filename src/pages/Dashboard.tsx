@@ -161,9 +161,15 @@ export default function Dashboard() {
 
                 {/* Item list */}
                 <div className="space-y-1.5 max-h-80 overflow-y-auto">
-                  {items?.slice(0, 10).map((item: any) => (
+                  {items?.slice(0, 10).map((item: any) => {
+                    const brandIcon = resolveBrandIcon(item.content_pillar || item.working_title || '');
+                    return (
                     <div key={item.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/30 transition-colors">
-                      <span className="text-sm flex-shrink-0">{CHANNEL_ICONS[item.channel] || '📌'}</span>
+                      {brandIcon ? (
+                        <img src={brandIcon} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
+                      ) : (
+                        <span className="text-sm flex-shrink-0">{CHANNEL_ICONS[item.channel] || '📌'}</span>
+                      )}
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium truncate">{item.working_title}</p>
                         <div className="flex items-center gap-1.5 mt-0.5">
