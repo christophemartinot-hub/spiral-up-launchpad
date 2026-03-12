@@ -244,6 +244,9 @@ export default function EditorialItemCard({ item }: { item: any }) {
             </div>
           )}
 
+          {/* Visual Brief Panel */}
+          <VisualBriefPanel item={item} />
+
           {/* Rejection input */}
           {showRejectInput && (
             <div className="space-y-2 bg-red-50 dark:bg-red-950 p-3 rounded-lg">
