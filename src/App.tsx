@@ -13,6 +13,7 @@ import ContentLibrary from "@/pages/ContentLibrary";
 import CampaignWizard from "@/pages/CampaignWizard";
 import CampaignDetail from "@/pages/CampaignDetail";
 import SettingsPage from "@/pages/SettingsPage";
+import EditorialPlanning from "@/pages/EditorialPlanning";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
