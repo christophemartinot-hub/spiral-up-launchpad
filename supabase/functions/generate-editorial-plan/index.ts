@@ -300,7 +300,7 @@ Deno.serve(async (req) => {
     // Regenerate a single item
     if (action === 'regenerate_item') {
       const { item } = body;
-      const systemPrompt = `You are the AI editorial planner for Spiral Up. ${brandContext}${visualConfig}${recentItems}
+      const systemPrompt = `You are the AI editorial planner for Spiral Up. ${brandContext}${visualConfig}${recentItems}${feedbackLearnings}${perfLearnings}
 
 TASK: Regenerate a fresh content suggestion for a ${item.channel} ${item.content_format} scheduled on ${item.publish_date}.
 The previous suggestion was rejected${item.rejection_reason ? ': ' + item.rejection_reason : ''}. Generate a completely different angle.
