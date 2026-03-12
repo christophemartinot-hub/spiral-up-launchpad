@@ -9,6 +9,8 @@ import BrandKitTab from '@/components/brand/BrandKitTab';
 import WebsiteKBTab from '@/components/brand/WebsiteKBTab';
 import OffersTab from '@/components/brand/OffersTab';
 import ExampleContentTab from '@/components/brand/ExampleContentTab';
+import BookTab from '@/components/brand/BookTab';
+import EventsTab from '@/components/brand/EventsTab';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
@@ -29,6 +31,8 @@ export default function BrandIntelligence() {
           <TabsTrigger value="spiral">SPIRAL</TabsTrigger>
           <TabsTrigger value="voice">Voice & Tone</TabsTrigger>
           <TabsTrigger value="pillars">Content Pillars</TabsTrigger>
+          <TabsTrigger value="book">📖 Book</TabsTrigger>
+          <TabsTrigger value="events">📅 Events</TabsTrigger>
           <TabsTrigger value="brand-kit">Brand Kit</TabsTrigger>
           <TabsTrigger value="website">Website KB</TabsTrigger>
           <TabsTrigger value="offers">Offers</TabsTrigger>
@@ -40,6 +44,8 @@ export default function BrandIntelligence() {
         <TabsContent value="spiral"><SpiralFrameworkTab /></TabsContent>
         <TabsContent value="voice"><VoiceRulesTab /></TabsContent>
         <TabsContent value="pillars"><ContentPillarsTab /></TabsContent>
+        <TabsContent value="book"><BookTab /></TabsContent>
+        <TabsContent value="events"><EventsTab /></TabsContent>
         <TabsContent value="brand-kit"><BrandKitTab /></TabsContent>
         <TabsContent value="website"><WebsiteKBTab /></TabsContent>
         <TabsContent value="offers"><OffersTab /></TabsContent>
