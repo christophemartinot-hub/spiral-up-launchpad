@@ -196,6 +196,8 @@ export type Database = {
       }
       editorial_items: {
         Row: {
+          backup_visual_concept: string | null
+          backup_visual_type: string | null
           brand_alignment: string | null
           carousel_idea: string | null
           channel: string
@@ -224,12 +226,15 @@ export type Database = {
           visual_headline: string | null
           visual_layout: string | null
           visual_notes: string | null
+          visual_rationale: string | null
           visual_status: string
           visual_subheadline: string | null
           visual_type: string
           working_title: string
         }
         Insert: {
+          backup_visual_concept?: string | null
+          backup_visual_type?: string | null
           brand_alignment?: string | null
           carousel_idea?: string | null
           channel?: string
@@ -258,12 +263,15 @@ export type Database = {
           visual_headline?: string | null
           visual_layout?: string | null
           visual_notes?: string | null
+          visual_rationale?: string | null
           visual_status?: string
           visual_subheadline?: string | null
           visual_type?: string
           working_title?: string
         }
         Update: {
+          backup_visual_concept?: string | null
+          backup_visual_type?: string | null
           brand_alignment?: string | null
           carousel_idea?: string | null
           channel?: string
@@ -292,6 +300,7 @@ export type Database = {
           visual_headline?: string | null
           visual_layout?: string | null
           visual_notes?: string | null
+          visual_rationale?: string | null
           visual_status?: string
           visual_subheadline?: string | null
           visual_type?: string

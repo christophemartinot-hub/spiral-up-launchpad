@@ -63,6 +63,9 @@ export default function VisualBriefPanel({ item }: { item: any }) {
       id: item.id,
       visual_type: form.visual_type,
       visual_concept: form.visual_concept,
+      backup_visual_concept: form.backup_visual_concept,
+      backup_visual_type: form.backup_visual_type,
+      visual_rationale: form.visual_rationale,
       visual_layout: form.visual_layout,
       image_direction: form.image_direction,
       visual_headline: form.visual_headline,
@@ -252,6 +255,67 @@ export default function VisualBriefPanel({ item }: { item: any }) {
                   </Badge>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Backup visual concept */}
+          {(item.backup_visual_concept || editing) && (
+            <div className="bg-accent/30 rounded-lg border border-accent/50 p-3">
+              <p className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                🔄 Backup Visual Concept
+              </p>
+              {editing ? (
+                <div className="space-y-2">
+                  <Select value={form.backup_visual_type || ''} onValueChange={v => setForm((f: any) => ({ ...f, backup_visual_type: v }))}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Backup type" /></SelectTrigger>
+                    <SelectContent>
+                      {VISUAL_TYPES.map(t => (
+                        <SelectItem key={t} value={t}>{VISUAL_TYPE_ICONS[t] || '📌'} {t.replace(/_/g, ' ')}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Textarea rows={2} value={form.backup_visual_concept || ''} onChange={e => setForm((f: any) => ({ ...f, backup_visual_concept: e.target.value }))} placeholder="Alternative visual direction..." />
+                </div>
+              ) : (
+                <div>
+                  {item.backup_visual_type && (
+                    <Badge variant="outline" className="text-[10px] mb-1 gap-1">
+                      {VISUAL_TYPE_ICONS[item.backup_visual_type] || '📌'} {item.backup_visual_type.replace(/_/g, ' ')}
+                    </Badge>
+                  )}
+                  <p className="text-sm">{item.backup_visual_concept}</p>
+                </div>
+              )}
+              {!editing && item.backup_visual_concept && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="mt-2 text-xs gap-1"
+                  onClick={() => {
+                    updateItem.mutate({
+                      id: item.id,
+                      visual_concept: item.backup_visual_concept,
+                      visual_type: item.backup_visual_type || item.visual_type,
+                      backup_visual_concept: item.visual_concept,
+                      backup_visual_type: item.visual_type,
+                    }, { onSuccess: () => toast.success('Swapped to backup visual') });
+                  }}
+                >
+                  <RefreshCw className="w-3 h-3" /> Use This Instead
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Visual rationale */}
+          {(item.visual_rationale || editing) && (
+            <div className="bg-primary/5 border border-primary/10 rounded-lg p-3">
+              <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">💡 Visual Rationale</p>
+              {editing ? (
+                <Textarea rows={2} value={form.visual_rationale || ''} onChange={e => setForm((f: any) => ({ ...f, visual_rationale: e.target.value }))} />
+              ) : (
+                <p className="text-xs text-muted-foreground">{item.visual_rationale}</p>
+              )}
             </div>
           )}
 
