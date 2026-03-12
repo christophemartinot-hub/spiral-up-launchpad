@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { brandProfile } from '@/data/brand';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import BrandKitTab from '@/components/brand/BrandKitTab';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
@@ -24,6 +25,7 @@ export default function BrandIntelligence() {
           <TabsTrigger value="pillars">Content Pillars</TabsTrigger>
           <TabsTrigger value="offers">Offers</TabsTrigger>
           <TabsTrigger value="strategy">Strategy</TabsTrigger>
+          <TabsTrigger value="brand-kit">Brand Kit</TabsTrigger>
         </TabsList>
 
         <TabsContent value="positioning" className="space-y-6">
@@ -195,6 +197,10 @@ export default function BrandIntelligence() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="brand-kit">
+          <BrandKitTab />
         </TabsContent>
       </Tabs>
     </div>
