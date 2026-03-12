@@ -289,6 +289,105 @@ export type Database = {
           },
         ]
       }
+      editorial_feedback: {
+        Row: {
+          action_type: string
+          channel: string | null
+          content_changed: boolean | null
+          content_format: string | null
+          created_at: string
+          cta_changed: boolean | null
+          editorial_item_id: string
+          final_content: string | null
+          final_content_pillar: string | null
+          final_cta: string | null
+          final_title: string | null
+          final_visual_type: string | null
+          id: string
+          original_content: string | null
+          original_content_pillar: string | null
+          original_cta: string | null
+          original_title: string | null
+          original_topic: string | null
+          original_visual_type: string | null
+          pillar_changed: boolean | null
+          plan_id: string | null
+          rejection_reason: string | null
+          title_changed: boolean | null
+          tone_adjusted: boolean | null
+          visual_changed: boolean | null
+        }
+        Insert: {
+          action_type?: string
+          channel?: string | null
+          content_changed?: boolean | null
+          content_format?: string | null
+          created_at?: string
+          cta_changed?: boolean | null
+          editorial_item_id: string
+          final_content?: string | null
+          final_content_pillar?: string | null
+          final_cta?: string | null
+          final_title?: string | null
+          final_visual_type?: string | null
+          id?: string
+          original_content?: string | null
+          original_content_pillar?: string | null
+          original_cta?: string | null
+          original_title?: string | null
+          original_topic?: string | null
+          original_visual_type?: string | null
+          pillar_changed?: boolean | null
+          plan_id?: string | null
+          rejection_reason?: string | null
+          title_changed?: boolean | null
+          tone_adjusted?: boolean | null
+          visual_changed?: boolean | null
+        }
+        Update: {
+          action_type?: string
+          channel?: string | null
+          content_changed?: boolean | null
+          content_format?: string | null
+          created_at?: string
+          cta_changed?: boolean | null
+          editorial_item_id?: string
+          final_content?: string | null
+          final_content_pillar?: string | null
+          final_cta?: string | null
+          final_title?: string | null
+          final_visual_type?: string | null
+          id?: string
+          original_content?: string | null
+          original_content_pillar?: string | null
+          original_cta?: string | null
+          original_title?: string | null
+          original_topic?: string | null
+          original_visual_type?: string | null
+          pillar_changed?: boolean | null
+          plan_id?: string | null
+          rejection_reason?: string | null
+          title_changed?: boolean | null
+          tone_adjusted?: boolean | null
+          visual_changed?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_feedback_editorial_item_id_fkey"
+            columns: ["editorial_item_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_feedback_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       editorial_items: {
         Row: {
           backup_visual_concept: string | null
