@@ -59,7 +59,7 @@ export default function VisualBriefPanel({ item }: { item: any }) {
   const hasVisual = item.visual_type && item.visual_type !== '';
 
   const handleSave = () => {
-    const updates: Record<string, unknown> = {
+    const updates: { id: string } & Record<string, unknown> = {
       id: item.id,
       visual_type: form.visual_type,
       visual_concept: form.visual_concept,
