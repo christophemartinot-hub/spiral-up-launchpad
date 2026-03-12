@@ -526,19 +526,28 @@ RULES:
 - Each item MUST include a visual direction
 
 VISUAL RULES:
+- CRITICAL: ALWAYS check the BRAND KIT assets list above FIRST. Never generate, invent, or propose a new icon, illustration, or visual asset if an official one already exists in the Brand Kit.
+- ASSET PRIORITY ORDER (strict):
+  1. Official uploaded Spiral Up illustrations (spiraling-up, spiraling-down, stagnating, act-accept, inspect, learn, provide, respond, synergize)
+  2. Official SPIRAL framework icons (principle icons for each letter)
+  3. Book illustrations by Martin Tognola (book cover, seen-with-book photos)
+  4. Approved brand templates, zone icons, event visuals
+  5. Clean branded layout using approved colors, typography, and shapes
+  6. Neutral placeholder visual brief — ONLY as last resort
+- In recommended_assets, ALWAYS reference actual asset names from the Brand Kit when they match the content theme
 - Every item MUST include a visual direction — no text-only suggestions
 - BLOG POSTS ESPECIALLY must include a hero visual concept. A blog is never just text.
 - For blog_post items, visual_type must be one of: "article_cover", "editorial_cover", "framework_visual", "quote_cover", "book_visual", "event_visual", "branded_abstract"
-- Prioritize existing brand assets: official Spiral Up illustrations first, then book visuals, then event/workshop visuals, then clean branded layouts
 - If no approved asset exists, describe a simple visual brief as a placeholder — do NOT invent off-brand imagery
 - NEVER suggest glossy, surreal, hyper-polished, or fake stock-photo aesthetics
 - NEVER use cliché AI imagery: floating holograms, robotic hands, glowing brains, futuristic dashboards, exaggerated digital effects
+- NEVER auto-generate icons or illustrations — use official brand assets only
 - Visuals must feel human, editorial, illustrated, or clean branded
 - Keep visuals credible, modern, warm, and professional
 - Match format ratio to channel (blog = 16:9, linkedin = 1:1, instagram = 4:5)
 - Vary visual types across the plan
 - backup_visual_concept must be a genuinely different direction, not a minor variation
-- visual_rationale must explain the editorial reasoning behind the visual choice
+- visual_rationale must explain which Brand Kit asset is being used and WHY it fits this content
 
 Return a JSON array of ${postsPerCycle} items. Each item must have:
 - publish_date: YYYY-MM-DD format, within the cycle dates
