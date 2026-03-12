@@ -26,6 +26,7 @@ const navSections = [
   {
     label: 'Plan',
     items: [
+      { path: '/editorial', label: 'Editorial Planning', icon: ClipboardList },
       { path: '/campaigns/new', label: 'Campaign Planner', icon: Rocket },
       { path: '/calendar', label: 'Calendar', icon: Calendar },
     ],

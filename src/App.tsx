@@ -34,6 +34,7 @@ const App = () => (
             <Route path="/content" element={<ContentLibrary />} />
             <Route path="/campaigns/new" element={<CampaignWizard />} />
             <Route path="/campaigns/:id" element={<CampaignDetail />} />
+            <Route path="/editorial" element={<EditorialPlanning />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
