@@ -203,19 +203,30 @@ export type Database = {
           content_pillar: string | null
           created_at: string
           cta: string | null
+          cta_placement: string | null
           draft_content: string | null
+          format_ratio: string | null
           id: string
+          image_direction: string | null
           key_message: string | null
           objective: string | null
           plan_id: string
           post_angle: string | null
           publish_date: string
+          recommended_assets: Json | null
           rejection_reason: string | null
           related_offer: string | null
           sort_order: number
           status: string
           suggested_cta: string | null
           updated_at: string
+          visual_concept: string | null
+          visual_headline: string | null
+          visual_layout: string | null
+          visual_notes: string | null
+          visual_status: string
+          visual_subheadline: string | null
+          visual_type: string
           working_title: string
         }
         Insert: {
@@ -226,19 +237,30 @@ export type Database = {
           content_pillar?: string | null
           created_at?: string
           cta?: string | null
+          cta_placement?: string | null
           draft_content?: string | null
+          format_ratio?: string | null
           id?: string
+          image_direction?: string | null
           key_message?: string | null
           objective?: string | null
           plan_id: string
           post_angle?: string | null
           publish_date: string
+          recommended_assets?: Json | null
           rejection_reason?: string | null
           related_offer?: string | null
           sort_order?: number
           status?: string
           suggested_cta?: string | null
           updated_at?: string
+          visual_concept?: string | null
+          visual_headline?: string | null
+          visual_layout?: string | null
+          visual_notes?: string | null
+          visual_status?: string
+          visual_subheadline?: string | null
+          visual_type?: string
           working_title?: string
         }
         Update: {
@@ -249,19 +271,30 @@ export type Database = {
           content_pillar?: string | null
           created_at?: string
           cta?: string | null
+          cta_placement?: string | null
           draft_content?: string | null
+          format_ratio?: string | null
           id?: string
+          image_direction?: string | null
           key_message?: string | null
           objective?: string | null
           plan_id?: string
           post_angle?: string | null
           publish_date?: string
+          recommended_assets?: Json | null
           rejection_reason?: string | null
           related_offer?: string | null
           sort_order?: number
           status?: string
           suggested_cta?: string | null
           updated_at?: string
+          visual_concept?: string | null
+          visual_headline?: string | null
+          visual_layout?: string | null
+          visual_notes?: string | null
+          visual_status?: string
+          visual_subheadline?: string | null
+          visual_type?: string
           working_title?: string
         }
         Relationships: [
@@ -615,6 +648,51 @@ export type Database = {
           sort_order?: number
           updated_at?: string
           visual_icon?: string | null
+        }
+        Relationships: []
+      }
+      visual_config: {
+        Row: {
+          created_at: string
+          cta_placement_pref: string
+          exclusion_rules: Json
+          formats_by_channel: Json
+          id: string
+          illustration_preference: string
+          preferred_styles: Json
+          simplicity_level: string
+          text_density: string
+          updated_at: string
+          use_book_visuals: boolean
+          use_event_visuals: boolean
+        }
+        Insert: {
+          created_at?: string
+          cta_placement_pref?: string
+          exclusion_rules?: Json
+          formats_by_channel?: Json
+          id?: string
+          illustration_preference?: string
+          preferred_styles?: Json
+          simplicity_level?: string
+          text_density?: string
+          updated_at?: string
+          use_book_visuals?: boolean
+          use_event_visuals?: boolean
+        }
+        Update: {
+          created_at?: string
+          cta_placement_pref?: string
+          exclusion_rules?: Json
+          formats_by_channel?: Json
+          id?: string
+          illustration_preference?: string
+          preferred_styles?: Json
+          simplicity_level?: string
+          text_density?: string
+          updated_at?: string
+          use_book_visuals?: boolean
+          use_event_visuals?: boolean
         }
         Relationships: []
       }

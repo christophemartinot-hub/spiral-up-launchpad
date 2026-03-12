@@ -21,10 +21,12 @@ import {
   Calendar,
   Loader2,
   Info,
+  Palette,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useUpdateEditorialItem, useRegenerateItem } from '@/hooks/use-editorial';
 import { toast } from 'sonner';
+import VisualBriefPanel from './VisualBriefPanel';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   suggested: { label: 'Suggested', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
@@ -130,6 +132,11 @@ export default function EditorialItemCard({ item }: { item: any }) {
             </span>
             <Badge variant="outline" className="text-[10px]">{item.content_format}</Badge>
             {item.content_pillar && <Badge variant="secondary" className="text-[10px]">{item.content_pillar}</Badge>}
+            {item.visual_type && (
+              <Badge variant="outline" className="text-[10px] gap-1">
+                <Palette className="w-2.5 h-2.5" /> {item.visual_type.replace(/_/g, ' ')}
+              </Badge>
+            )}
           </div>
           <p className="font-display font-semibold text-sm mt-1 truncate">{item.working_title}</p>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -236,6 +243,9 @@ export default function EditorialItemCard({ item }: { item: any }) {
               <Badge variant="outline">{item.related_offer}</Badge>
             </div>
           )}
+
+          {/* Visual Brief Panel */}
+          <VisualBriefPanel item={item} />
 
           {/* Rejection input */}
           {showRejectInput && (

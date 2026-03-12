@@ -145,10 +145,10 @@ export function useRegenerateItem() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      // Update the item with new content
       const { error: updateError } = await supabase.from('editorial_items').update({
         ...data.item,
         status: 'suggested',
+        visual_status: data.item.visual_type ? 'suggested' : 'none',
         rejection_reason: '',
         updated_at: new Date().toISOString(),
       } as any).eq('id', item.id);
@@ -160,5 +160,57 @@ export function useRegenerateItem() {
       qc.invalidateQueries({ queryKey: ['editorial-items'] });
       qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
     },
+  });
+}
+
+// ─── Regenerate Visual Only ───
+export function useRegenerateVisual() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (item: any) => {
+      const { data, error } = await supabase.functions.invoke('generate-editorial-plan', {
+        body: { action: 'regenerate_visual', item },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const { error: updateError } = await supabase.from('editorial_items').update({
+        ...data.visual,
+        visual_status: 'suggested',
+        updated_at: new Date().toISOString(),
+      } as any).eq('id', item.id);
+      if (updateError) throw updateError;
+
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['editorial-items'] });
+      qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
+    },
+  });
+}
+
+// ─── Visual Config ───
+export function useVisualConfig() {
+  return useQuery({
+    queryKey: ['visual-config'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('visual_config').select('*').limit(1).single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+  });
+}
+
+export function useUpdateVisualConfig() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (updates: Record<string, unknown>) => {
+      const { data: existing } = await supabase.from('visual_config').select('id').limit(1).single();
+      if (!existing) throw new Error('No visual config');
+      const { error } = await supabase.from('visual_config').update({ ...updates, updated_at: new Date().toISOString() } as any).eq('id', existing.id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['visual-config'] }),
   });
 }
