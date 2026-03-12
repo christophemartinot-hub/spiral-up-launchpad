@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useUpdateEditorialItem, useRegenerateVisual } from '@/hooks/use-editorial';
 import { toast } from 'sonner';
+import { resolveBrandIcon, resolveBrandIllustration } from '@/lib/brand-assets';
 
 const VISUAL_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   none: { label: 'No Visual', color: 'bg-muted text-muted-foreground' },
@@ -49,6 +50,33 @@ const VISUAL_TYPE_ICONS: Record<string, string> = {
   article_cover: '📰', video_storyboard: '🎬', document_post: '📄',
 };
 
+/**
+ * Try to resolve a brand icon from recommended_assets or visual_concept fields.
+ * Scans for SPIRAL principle/zone keywords.
+ */
+function resolveRecommendedAssetIcon(item: any): string | null {
+  const searchFields = [
+    ...(item.recommended_assets || []),
+    item.visual_concept || '',
+    item.image_direction || '',
+    item.working_title || '',
+  ].join(' ').toLowerCase();
+
+  // Check for principle keywords
+  const principleKeywords = ['synergize', 'provide', 'inspect', 'respond', 'act & accept', 'act_accept', 'learn'];
+  for (const kw of principleKeywords) {
+    if (searchFields.includes(kw)) return resolveBrandIcon(kw);
+  }
+
+  // Check for zone keywords
+  const zoneKeywords = ['spiraling_up', 'spiralling up', 'spiraling up', 'spiraling_down', 'spiralling down', 'spiraling down', 'stagnating'];
+  for (const kw of zoneKeywords) {
+    if (searchFields.includes(kw)) return resolveBrandIcon(kw.replace(/\s+/g, '_'));
+  }
+
+  return null;
+}
+
 export default function VisualBriefPanel({ item }: { item: any }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(item);
@@ -57,6 +85,20 @@ export default function VisualBriefPanel({ item }: { item: any }) {
 
   const visualStatus = VISUAL_STATUS_CONFIG[item.visual_status] || VISUAL_STATUS_CONFIG.none;
   const hasVisual = item.visual_type && item.visual_type !== '';
+  const matchedIcon = resolveRecommendedAssetIcon(item);
+  const matchedIllustration = (() => {
+    const fields = [
+      ...(item.recommended_assets || []),
+      item.visual_concept || '',
+      item.working_title || '',
+    ].join(' ').toLowerCase();
+    const keywords = ['synergize', 'provide', 'inspect', 'respond', 'act & accept', 'act_accept', 'learn',
+      'spiraling_up', 'spiraling_down', 'stagnating'];
+    for (const kw of keywords) {
+      if (fields.includes(kw)) return resolveBrandIllustration(kw.replace(/\s+/g, '_'));
+    }
+    return null;
+  })();
 
   const handleSave = () => {
     const updates: { id: string } & Record<string, unknown> = {
@@ -141,6 +183,25 @@ export default function VisualBriefPanel({ item }: { item: any }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Brand asset match indicator */}
+        {matchedIcon && (
+          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3 flex items-center gap-3">
+            <img src={matchedIcon} alt="Official brand asset" className="w-10 h-10 object-contain rounded-lg" />
+            <div>
+              <p className="text-xs font-medium text-green-700 dark:text-green-300">✅ Official Brand Asset Matched</p>
+              <p className="text-[10px] text-muted-foreground">This visual references an official SPIRAL icon from the Brand Kit.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Matched illustration preview */}
+        {matchedIllustration && (
+          <div className="bg-muted/30 rounded-lg p-3">
+            <p className="text-[10px] font-medium text-muted-foreground mb-2">📎 Official Illustration (Martin Tognola)</p>
+            <img src={matchedIllustration} alt="Official illustration" className="rounded-lg max-h-32 object-contain" />
+          </div>
+        )}
+
         {/* Visual Canvas Preview */}
         <div className="bg-muted/30 rounded-lg border p-4 space-y-3">
           {/* Visual type & format */}
@@ -184,7 +245,11 @@ export default function VisualBriefPanel({ item }: { item: any }) {
             </div>
             <div className="flex items-center justify-between mt-3">
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Image className="w-3 h-3" />
+                {matchedIcon ? (
+                  <img src={matchedIcon} alt="" className="w-4 h-4 object-contain" />
+                ) : (
+                  <Image className="w-3 h-3" />
+                )}
                 <span>{item.image_direction ? 'Illustration area' : 'Image placeholder'}</span>
               </div>
               {item.cta_placement && (
@@ -244,16 +309,24 @@ export default function VisualBriefPanel({ item }: { item: any }) {
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-1">Recommended Brand Assets</p>
               <div className="flex flex-wrap gap-1.5">
-                {(editing ? form.recommended_assets : item.recommended_assets || []).map((asset: string, i: number) => (
-                  <Badge key={i} variant="outline" className="text-[10px] gap-1">
-                    🎨 {asset}
-                    {editing && (
-                      <button onClick={() => setForm((f: any) => ({ ...f, recommended_assets: f.recommended_assets.filter((_: any, idx: number) => idx !== i) }))} className="hover:text-destructive">
-                        <X className="w-2.5 h-2.5" />
-                      </button>
-                    )}
-                  </Badge>
-                ))}
+                {(editing ? form.recommended_assets : item.recommended_assets || []).map((asset: string, i: number) => {
+                  const assetIcon = resolveBrandIcon(asset);
+                  return (
+                    <Badge key={i} variant="outline" className="text-[10px] gap-1">
+                      {assetIcon ? (
+                        <img src={assetIcon} alt="" className="w-3 h-3 object-contain" />
+                      ) : (
+                        '🎨'
+                      )}
+                      {asset}
+                      {editing && (
+                        <button onClick={() => setForm((f: any) => ({ ...f, recommended_assets: f.recommended_assets.filter((_: any, idx: number) => idx !== i) }))} className="hover:text-destructive">
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      )}
+                    </Badge>
+                  );
+                })}
               </div>
             </div>
           )}
