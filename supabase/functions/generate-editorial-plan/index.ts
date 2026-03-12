@@ -27,7 +27,7 @@ async function buildBrandContext(sb: any): Promise<string> {
     sb.from('example_content').select('*').limit(10),
     sb.from('book_info').select('*').limit(1).single(),
     sb.from('events_workshops').select('*').order('sort_order'),
-    sb.from('brand_assets').select('*'),
+    sb.from('brand_assets').select('*').order('created_at'),
   ]);
 
   const sections: string[] = [];
