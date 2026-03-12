@@ -761,6 +761,11 @@ Return ONLY a valid JSON array, no markdown wrapping.`;
         format_ratio: item.format_ratio || '',
         recommended_assets: item.recommended_assets || [],
         visual_status: item.visual_type ? 'suggested' : 'none',
+        audience_challenge: item.audience_challenge || '',
+        insight_delivered: item.insight_delivered || '',
+        practical_takeaway: item.practical_takeaway || '',
+        expected_audience_action: item.expected_audience_action || '',
+        outcome_score: item.outcome_score || 0,
       }));
 
       const { error: itemsError } = await sb.from('editorial_items').insert(itemsToInsert);
