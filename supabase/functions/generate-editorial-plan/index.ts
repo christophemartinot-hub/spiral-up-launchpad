@@ -331,11 +331,13 @@ Return a JSON object with these fields:
 ${VISUAL_FIELDS_SPEC}
 
 VISUAL RULES:
-- Always suggest a visual that matches the content
-- Prioritize existing brand assets (SPIRAL illustrations, book cover, zone icons)
+- CRITICAL: Check the BRAND KIT assets list FIRST. Use official assets before inventing anything.
+- Asset priority: 1) Official Spiral Up illustrations 2) SPIRAL icons 3) Book illustrations by Tognola 4) Brand templates 5) Placeholder brief
+- NEVER auto-generate icons or illustrations if official ones exist
 - Keep visuals clean, professional, uncluttered
-- Never invent fake brand materials — if no asset exists, describe a concept instead
+- Never invent fake brand materials — if no asset exists, describe a placeholder brief
 - Match format ratio to channel
+- visual_rationale must reference which Brand Kit asset is used
 
 Return ONLY valid JSON, no markdown.`;
 
