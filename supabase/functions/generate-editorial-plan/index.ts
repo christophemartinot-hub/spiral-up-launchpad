@@ -90,8 +90,19 @@ Vision: ${brandCore.vision || ''}`);
   }
 
   if (brandAssets && brandAssets.length > 0) {
-    const lines = brandAssets.map((a: any) => `- [${a.category}] ${a.name}: ${a.description || ''} (${a.file_url || 'no file'})`);
-    sections.push(`## BRAND ASSETS (available for visual suggestions)\n${lines.join('\n')}`);
+    const lines = brandAssets.map((a: any) => `- [${a.category}] ${a.name}: ${a.description || ''} (${a.file_url || 'no file'})${a.usage_guidelines ? ' | Usage: ' + a.usage_guidelines : ''}`);
+    sections.push(`## BRAND KIT — OFFICIAL ASSETS (MUST USE THESE FIRST)
+CRITICAL: Always check this list before proposing ANY visual concept. If an official asset matches the content, you MUST use it instead of inventing a new concept.
+
+Priority order:
+1. Official uploaded Spiral Up illustrations
+2. Official SPIRAL framework icons (S·P·I·R·A·L principle icons)
+3. Book illustrations by Martin Tognola
+4. Approved brand templates and zone icons
+5. Placeholder visual brief (ONLY if nothing above matches)
+
+Available assets:
+${lines.join('\n')}`);
   }
 
   return sections.join('\n\n');
@@ -320,11 +331,13 @@ Return a JSON object with these fields:
 ${VISUAL_FIELDS_SPEC}
 
 VISUAL RULES:
-- Always suggest a visual that matches the content
-- Prioritize existing brand assets (SPIRAL illustrations, book cover, zone icons)
+- CRITICAL: Check the BRAND KIT assets list FIRST. Use official assets before inventing anything.
+- Asset priority: 1) Official Spiral Up illustrations 2) SPIRAL icons 3) Book illustrations by Tognola 4) Brand templates 5) Placeholder brief
+- NEVER auto-generate icons or illustrations if official ones exist
 - Keep visuals clean, professional, uncluttered
-- Never invent fake brand materials — if no asset exists, describe a concept instead
+- Never invent fake brand materials — if no asset exists, describe a placeholder brief
 - Match format ratio to channel
+- visual_rationale must reference which Brand Kit asset is used
 
 Return ONLY valid JSON, no markdown.`;
 
@@ -374,11 +387,14 @@ Return a JSON object with ONLY these visual fields:
 ${VISUAL_FIELDS_SPEC}
 
 VISUAL RULES:
-- Prioritize existing brand assets
-- Keep visuals clean, professional, uncluttered  
-- Never invent fake brand materials
+- CRITICAL: Check the BRAND KIT assets list FIRST. Use official assets before inventing anything.
+- Asset priority: 1) Official Spiral Up illustrations 2) SPIRAL icons 3) Book illustrations by Tognola 4) Brand templates 5) Placeholder brief
+- NEVER auto-generate icons or illustrations if official ones exist
+- Keep visuals clean, professional, uncluttered
+- Never invent fake brand materials — describe a placeholder brief instead
 - Match format ratio to channel
 - Designs should feel human, direct, practical — not flashy
+- visual_rationale must reference which Brand Kit asset is used
 
 Return ONLY valid JSON, no markdown.`;
 
@@ -515,19 +531,28 @@ RULES:
 - Each item MUST include a visual direction
 
 VISUAL RULES:
+- CRITICAL: ALWAYS check the BRAND KIT assets list above FIRST. Never generate, invent, or propose a new icon, illustration, or visual asset if an official one already exists in the Brand Kit.
+- ASSET PRIORITY ORDER (strict):
+  1. Official uploaded Spiral Up illustrations (spiraling-up, spiraling-down, stagnating, act-accept, inspect, learn, provide, respond, synergize)
+  2. Official SPIRAL framework icons (principle icons for each letter)
+  3. Book illustrations by Martin Tognola (book cover, seen-with-book photos)
+  4. Approved brand templates, zone icons, event visuals
+  5. Clean branded layout using approved colors, typography, and shapes
+  6. Neutral placeholder visual brief — ONLY as last resort
+- In recommended_assets, ALWAYS reference actual asset names from the Brand Kit when they match the content theme
 - Every item MUST include a visual direction — no text-only suggestions
 - BLOG POSTS ESPECIALLY must include a hero visual concept. A blog is never just text.
 - For blog_post items, visual_type must be one of: "article_cover", "editorial_cover", "framework_visual", "quote_cover", "book_visual", "event_visual", "branded_abstract"
-- Prioritize existing brand assets: official Spiral Up illustrations first, then book visuals, then event/workshop visuals, then clean branded layouts
 - If no approved asset exists, describe a simple visual brief as a placeholder — do NOT invent off-brand imagery
 - NEVER suggest glossy, surreal, hyper-polished, or fake stock-photo aesthetics
 - NEVER use cliché AI imagery: floating holograms, robotic hands, glowing brains, futuristic dashboards, exaggerated digital effects
+- NEVER auto-generate icons or illustrations — use official brand assets only
 - Visuals must feel human, editorial, illustrated, or clean branded
 - Keep visuals credible, modern, warm, and professional
 - Match format ratio to channel (blog = 16:9, linkedin = 1:1, instagram = 4:5)
 - Vary visual types across the plan
 - backup_visual_concept must be a genuinely different direction, not a minor variation
-- visual_rationale must explain the editorial reasoning behind the visual choice
+- visual_rationale must explain which Brand Kit asset is being used and WHY it fits this content
 
 Return a JSON array of ${postsPerCycle} items. Each item must have:
 - publish_date: YYYY-MM-DD format, within the cycle dates
