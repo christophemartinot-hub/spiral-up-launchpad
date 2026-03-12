@@ -5,26 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  ChevronDown,
-  ChevronUp,
-  Check,
-  X,
-  RefreshCw,
-  Edit3,
-  Calendar,
-  Loader2,
-  Info,
-  Palette,
+  ChevronDown, ChevronUp, Check, X, RefreshCw, Edit3, Calendar,
+  Loader2, Info, Palette,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useUpdateEditorialItem, useRegenerateItem } from '@/hooks/use-editorial';
+import { useRecordFeedback } from '@/hooks/use-feedback';
 import { toast } from 'sonner';
 import VisualBriefPanel from './VisualBriefPanel';
 
@@ -38,13 +24,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 };
 
 const CHANNEL_ICONS: Record<string, string> = {
-  linkedin: '💼',
-  blog: '📝',
-  email: '✉️',
-  instagram: '📸',
-  twitter: '𝕏',
-  facebook: '👤',
-  youtube: '▶️',
+  linkedin: '💼', blog: '📝', email: '✉️', instagram: '📸',
+  twitter: '𝕏', facebook: '👤', youtube: '▶️',
 };
 
 export default function EditorialItemCard({ item }: { item: any }) {
@@ -56,25 +37,57 @@ export default function EditorialItemCard({ item }: { item: any }) {
 
   const updateItem = useUpdateEditorialItem();
   const regenerate = useRegenerateItem();
+  const recordFeedback = useRecordFeedback();
 
   const statusConf = STATUS_CONFIG[item.status] || STATUS_CONFIG.suggested;
+
+  // Build feedback record from current item state
+  const buildFeedback = (actionType: string, finalForm?: any) => ({
+    editorial_item_id: item.id,
+    plan_id: item.plan_id,
+    action_type: actionType,
+    original_title: item.working_title || '',
+    original_content: (item.draft_content || '').slice(0, 2000),
+    original_cta: item.suggested_cta || item.cta || '',
+    original_visual_type: item.visual_type || '',
+    original_content_pillar: item.content_pillar || '',
+    original_topic: item.key_message || item.working_title || '',
+    final_title: finalForm?.working_title || item.working_title || '',
+    final_content: (finalForm?.draft_content || item.draft_content || '').slice(0, 2000),
+    final_cta: finalForm?.suggested_cta || finalForm?.cta || item.suggested_cta || item.cta || '',
+    final_visual_type: finalForm?.visual_type || item.visual_type || '',
+    final_content_pillar: finalForm?.content_pillar || item.content_pillar || '',
+    title_changed: finalForm ? (finalForm.working_title !== item.working_title) : false,
+    content_changed: finalForm ? (finalForm.draft_content !== item.draft_content) : false,
+    cta_changed: finalForm ? ((finalForm.suggested_cta || finalForm.cta) !== (item.suggested_cta || item.cta)) : false,
+    visual_changed: finalForm ? (finalForm.visual_type !== item.visual_type) : false,
+    pillar_changed: finalForm ? (finalForm.content_pillar !== item.content_pillar) : false,
+    channel: item.channel || '',
+    content_format: item.content_format || '',
+  });
 
   const handleApprove = () => {
     updateItem.mutate(
       { id: item.id, status: 'approved' },
-      { onSuccess: () => toast.success('Content approved ✓') }
+      {
+        onSuccess: () => {
+          recordFeedback.mutate(buildFeedback('approved_clean'));
+          toast.success('Content approved ✓');
+        },
+      }
     );
   };
 
   const handleReject = () => {
-    if (!showRejectInput) {
-      setShowRejectInput(true);
-      return;
-    }
+    if (!showRejectInput) { setShowRejectInput(true); return; }
     updateItem.mutate(
       { id: item.id, status: 'rejected', rejection_reason: rejectionReason },
       {
         onSuccess: () => {
+          recordFeedback.mutate({
+            ...buildFeedback('rejected'),
+            rejection_reason: rejectionReason,
+          });
           toast.success('Content rejected');
           setShowRejectInput(false);
           setRejectionReason('');
@@ -85,7 +98,10 @@ export default function EditorialItemCard({ item }: { item: any }) {
 
   const handleRegenerate = () => {
     regenerate.mutate(item, {
-      onSuccess: () => toast.success('Content regenerated with fresh angle'),
+      onSuccess: () => {
+        recordFeedback.mutate(buildFeedback('regenerated'));
+        toast.success('Content regenerated with fresh angle');
+      },
       onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to regenerate'),
     });
   };
@@ -96,6 +112,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
       { id: item.id, ...fields },
       {
         onSuccess: () => {
+          recordFeedback.mutate(buildFeedback('approved_edited', form));
           toast.success('Edits saved');
           setEditing(false);
         },
@@ -110,16 +127,8 @@ export default function EditorialItemCard({ item }: { item: any }) {
     );
   };
 
-  const handleMoveDate = (newDate: string) => {
-    updateItem.mutate(
-      { id: item.id, publish_date: newDate },
-      { onSuccess: () => toast.success('Date updated') }
-    );
-  };
-
   return (
     <Card className={`shadow-card overflow-hidden transition-all ${item.status === 'approved' ? 'border-green-200 dark:border-green-800' : ''}`}>
-      {/* Collapsed Header */}
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center gap-3 p-4 text-left hover:bg-muted/30 transition-colors"
@@ -127,9 +136,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
         <div className="text-xl flex-shrink-0">{CHANNEL_ICONS[item.channel] || '📌'}</div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${statusConf.color}`}>
-              {statusConf.label}
-            </span>
+            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${statusConf.color}`}>{statusConf.label}</span>
             <Badge variant="outline" className="text-[10px]">{item.content_format}</Badge>
             {item.content_pillar && <Badge variant="secondary" className="text-[10px]">{item.content_pillar}</Badge>}
             {item.visual_type && (
@@ -159,10 +166,8 @@ export default function EditorialItemCard({ item }: { item: any }) {
         </div>
       </button>
 
-      {/* Expanded Content */}
       {expanded && (
         <CardContent className="border-t pt-4 space-y-4">
-          {/* Key message & objective */}
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-1">Key Message</p>
@@ -182,7 +187,6 @@ export default function EditorialItemCard({ item }: { item: any }) {
             </div>
           </div>
 
-          {/* Post angle */}
           {(item.post_angle || editing) && (
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-1">Post Angle / Hook</p>
@@ -194,7 +198,6 @@ export default function EditorialItemCard({ item }: { item: any }) {
             </div>
           )}
 
-          {/* Draft content */}
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-1">Draft Content</p>
             {editing ? (
@@ -206,7 +209,6 @@ export default function EditorialItemCard({ item }: { item: any }) {
             )}
           </div>
 
-          {/* CTA & carousel idea */}
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-1">Suggested CTA</p>
@@ -228,7 +230,6 @@ export default function EditorialItemCard({ item }: { item: any }) {
             )}
           </div>
 
-          {/* Brand alignment */}
           {item.brand_alignment && (
             <div className="bg-primary/5 border border-primary/10 rounded-lg p-3">
               <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1"><Info className="w-3 h-3" /> Why this suggestion</p>
@@ -236,7 +237,6 @@ export default function EditorialItemCard({ item }: { item: any }) {
             </div>
           )}
 
-          {/* Related offer */}
           {item.related_offer && (
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-1">Related Offer</p>
@@ -244,19 +244,12 @@ export default function EditorialItemCard({ item }: { item: any }) {
             </div>
           )}
 
-          {/* Visual Brief Panel */}
           <VisualBriefPanel item={item} />
 
-          {/* Rejection input */}
           {showRejectInput && (
             <div className="space-y-2 bg-red-50 dark:bg-red-950 p-3 rounded-lg">
               <p className="text-xs font-medium text-red-700 dark:text-red-300">Reason for rejection (helps AI improve)</p>
-              <Textarea
-                rows={2}
-                value={rejectionReason}
-                onChange={e => setRejectionReason(e.target.value)}
-                placeholder="e.g. Too generic, already covered this topic..."
-              />
+              <Textarea rows={2} value={rejectionReason} onChange={e => setRejectionReason(e.target.value)} placeholder="e.g. Too generic, already covered this topic..." />
               <div className="flex gap-2">
                 <Button size="sm" variant="destructive" onClick={handleReject}>Reject</Button>
                 <Button size="sm" variant="ghost" onClick={() => setShowRejectInput(false)}>Cancel</Button>
@@ -264,19 +257,13 @@ export default function EditorialItemCard({ item }: { item: any }) {
             </div>
           )}
 
-          {/* Date picker for moving */}
           {editing && (
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-1">Publication Date</p>
-              <Input
-                type="date"
-                value={form.publish_date || ''}
-                onChange={e => setForm((f: any) => ({ ...f, publish_date: e.target.value }))}
-              />
+              <Input type="date" value={form.publish_date || ''} onChange={e => setForm((f: any) => ({ ...f, publish_date: e.target.value }))} />
             </div>
           )}
 
-          {/* Action buttons */}
           <div className="flex flex-wrap gap-2 pt-2 border-t">
             {editing ? (
               <>
