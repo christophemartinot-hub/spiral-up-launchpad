@@ -442,6 +442,7 @@ Return a JSON object with these fields:
 - suggested_cta: specific CTA text
 - brand_alignment: brief explanation of why this aligns with Spiral Up brand
 ${SUGGESTION_RATIONALE_SPEC}
+${OUTCOME_FIELDS_SPEC}
 ${VISUAL_FIELDS_SPEC}
 
 VISUAL RULES:
