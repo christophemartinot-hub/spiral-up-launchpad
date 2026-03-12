@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      book_info: {
+        Row: {
+          author: string | null
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          endorsements: Json | null
+          expert_contributors: Json | null
+          id: string
+          key_discoveries: Json | null
+          press_mentions: Json | null
+          purchase_links: Json | null
+          seen_with_book: Json | null
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          endorsements?: Json | null
+          expert_contributors?: Json | null
+          id?: string
+          key_discoveries?: Json | null
+          press_mentions?: Json | null
+          purchase_links?: Json | null
+          seen_with_book?: Json | null
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          endorsements?: Json | null
+          expert_contributors?: Json | null
+          id?: string
+          key_discoveries?: Json | null
+          press_mentions?: Json | null
+          purchase_links?: Json | null
+          seen_with_book?: Json | null
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       brand_assets: {
         Row: {
           category: string
@@ -140,6 +191,60 @@ export type Database = {
           updated_at?: string
           vision?: string | null
           website?: string | null
+        }
+        Relationships: []
+      }
+      events_workshops: {
+        Row: {
+          created_at: string
+          date: string | null
+          description: string | null
+          end_date: string | null
+          event_name: string
+          event_type: string
+          id: string
+          image_url: string | null
+          key_outcomes: Json | null
+          location: string | null
+          sort_order: number
+          status: string
+          target_audience: string | null
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          end_date?: string | null
+          event_name?: string
+          event_type?: string
+          id?: string
+          image_url?: string | null
+          key_outcomes?: Json | null
+          location?: string | null
+          sort_order?: number
+          status?: string
+          target_audience?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          end_date?: string | null
+          event_name?: string
+          event_type?: string
+          id?: string
+          image_url?: string | null
+          key_outcomes?: Json | null
+          location?: string | null
+          sort_order?: number
+          status?: string
+          target_audience?: string | null
+          updated_at?: string
+          url?: string | null
         }
         Relationships: []
       }
