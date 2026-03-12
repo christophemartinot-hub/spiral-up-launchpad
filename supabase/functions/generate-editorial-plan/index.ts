@@ -387,11 +387,14 @@ Return a JSON object with ONLY these visual fields:
 ${VISUAL_FIELDS_SPEC}
 
 VISUAL RULES:
-- Prioritize existing brand assets
-- Keep visuals clean, professional, uncluttered  
-- Never invent fake brand materials
+- CRITICAL: Check the BRAND KIT assets list FIRST. Use official assets before inventing anything.
+- Asset priority: 1) Official Spiral Up illustrations 2) SPIRAL icons 3) Book illustrations by Tognola 4) Brand templates 5) Placeholder brief
+- NEVER auto-generate icons or illustrations if official ones exist
+- Keep visuals clean, professional, uncluttered
+- Never invent fake brand materials — describe a placeholder brief instead
 - Match format ratio to channel
 - Designs should feel human, direct, practical — not flashy
+- visual_rationale must reference which Brand Kit asset is used
 
 Return ONLY valid JSON, no markdown.`;
 
