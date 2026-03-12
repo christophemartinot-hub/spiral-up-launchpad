@@ -198,6 +198,10 @@ export default function BrandIntelligence() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="brand-kit">
+          <BrandKitTab />
+        </TabsContent>
       </Tabs>
     </div>
   );
