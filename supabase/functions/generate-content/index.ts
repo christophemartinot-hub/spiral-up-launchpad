@@ -1,40 +1,117 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const BRAND_CONTEXT = `You are the AI content engine for Spiral Up, a consulting and thought leadership brand founded by Christophe Martinot.
+async function buildBrandContext(): Promise<string> {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const sb = createClient(supabaseUrl, supabaseKey);
 
-BRAND POSITIONING: Spiral Up enables leaders and organizations to transform sustainably through systemic change, business agility, and human-centered approaches. The brand combines deep systemic thinking with pragmatic consulting.
+  const [
+    { data: brandCore },
+    { data: founder },
+    { data: principles },
+    { data: voice },
+    { data: pillars },
+    { data: offers },
+    { data: pages },
+    { data: examples },
+  ] = await Promise.all([
+    sb.from('brand_core').select('*').limit(1).single(),
+    sb.from('founder_profile').select('*').limit(1).single(),
+    sb.from('spiral_principles').select('*').order('sort_order'),
+    sb.from('voice_rules').select('*').limit(1).single(),
+    sb.from('brand_content_pillars').select('*').order('sort_order'),
+    sb.from('offers').select('*').order('sort_order'),
+    sb.from('website_pages').select('*'),
+    sb.from('example_content').select('*').limit(10),
+  ]);
 
-THE SPIRAL FRAMEWORK:
-- S: Systemic Thinking — See the whole system, not just parts
-- P: Purpose & Positioning — Align around why before how
-- I: Iterative Progress — Small experiments, rapid learning
-- R: Resilience Building — Develop adaptive capacity
-- A: Alignment & Autonomy — Balance direction with empowerment
-- L: Leadership Evolution — Grow leaders who grow others
+  const sections: string[] = [];
 
-TONE OF VOICE: Human, direct, pragmatic, strategic, energizing, professional.
-WRITING STYLE: Clear, structured, thought-provoking. Short paragraphs. Bold opening statements. Questions that make the reader think. Stories before frameworks. Data to support intuition.
+  if (brandCore) {
+    sections.push(`## BRAND IDENTITY
+Brand: ${brandCore.brand_name || 'Spiral Up'}
+Tagline: ${brandCore.tagline || ''}
+Founder: ${brandCore.founder || ''} (${brandCore.company || ''})
+Website: ${brandCore.website || ''}
+Mission: ${brandCore.mission || 'Not defined'}
+Vision: ${brandCore.vision || 'Not defined'}
+${brandCore.short_description ? `Short Description: ${brandCore.short_description}` : ''}
+${brandCore.long_description ? `Full Description: ${brandCore.long_description}` : ''}
+${(brandCore.key_beliefs || []).length > 0 ? `Key Beliefs:\n${brandCore.key_beliefs.map((b: string) => `- ${b}`).join('\n')}` : ''}`);
+  }
 
-CONTENT PILLARS: Systemic Change, Business Agility, Customer Centricity, Leadership Evolution, Healthy Systems & Teams, Thought Leadership.
+  if (founder) {
+    const parts = [];
+    if (founder.short_bio) parts.push(`Short Bio: ${founder.short_bio}`);
+    if (founder.long_bio) parts.push(`Full Bio: ${founder.long_bio}`);
+    if ((founder.expertise_areas || []).length > 0) parts.push(`Expertise: ${founder.expertise_areas.join(', ')}`);
+    if ((founder.speaking_topics || []).length > 0) parts.push(`Speaking Topics: ${founder.speaking_topics.join(', ')}`);
+    if (founder.personal_tone_guidelines) parts.push(`Personal Tone: ${founder.personal_tone_guidelines}`);
+    if (parts.length > 0) sections.push(`## FOUNDER PROFILE\n${parts.join('\n')}`);
+  }
 
-STRATEGIC THEMES:
-- Transformation is not a project — it is a way of being
-- Start with the system, not the symptom
-- Agility is a means, not an end
-- Leaders must go first
-- Sustainable change beats fast change
-- Complexity requires curiosity, not control
-- Customer value is the ultimate compass
-- Healthy systems produce healthy outcomes
+  if (principles && principles.length > 0) {
+    const defined = principles.filter((p: any) => p.principle_name);
+    if (defined.length > 0) {
+      const lines = defined.map((p: any) => {
+        let line = `- ${p.letter}: ${p.principle_name}`;
+        if (p.short_description) line += ` — ${p.short_description}`;
+        if (p.long_explanation) line += `\n  ${p.long_explanation}`;
+        return line;
+      });
+      sections.push(`## THE SPIRAL FRAMEWORK\n${lines.join('\n')}`);
+    }
+  }
 
-OFFERS: Keynote Speaking, Transformation Consulting, Leadership Workshops, Coaching & Advisory, The Spiral Up Book.
+  if (voice) {
+    const parts = [];
+    if (voice.tone_description) parts.push(`Tone: ${voice.tone_description}`);
+    if ((voice.words_to_avoid || []).length > 0) parts.push(`AVOID: ${voice.words_to_avoid.join(', ')}`);
+    if ((voice.words_to_prefer || []).length > 0) parts.push(`PREFER: ${voice.words_to_prefer.join(', ')}`);
+    if ((voice.writing_style_rules || []).length > 0) parts.push(`Rules:\n${voice.writing_style_rules.map((r: string) => `- ${r}`).join('\n')}`);
+    if (parts.length > 0) sections.push(`## VOICE & TONE\n${parts.join('\n')}`);
+  }
 
-AVOID: Generic AI marketing language, startup cliches, empty inspiration, overpromising, corporate jargon, passive language.
+  if (pillars && pillars.length > 0) {
+    const lines = pillars.map((p: any) => {
+      let line = `- ${p.emoji || '📌'} ${p.title}: ${p.description || ''}`;
+      if ((p.keywords || []).length > 0) line += ` [${p.keywords.join(', ')}]`;
+      return line;
+    });
+    sections.push(`## CONTENT PILLARS\n${lines.join('\n')}`);
+  }
 
-Blog posts are for publication at SpiralingUp.works/blog. Include SEO-friendly titles, meta descriptions, and structured content.`;
+  if (offers && offers.length > 0) {
+    const lines = offers.map((o: any) => `- ${o.icon || '🎯'} ${o.offer_name}: ${o.description || ''}`);
+    sections.push(`## OFFERS\n${lines.join('\n')}`);
+  }
+
+  if (pages && pages.length > 0) {
+    const lines = pages.slice(0, 5).map((p: any) => `- ${p.title || p.url}: ${(p.page_text || '').slice(0, 300)}`);
+    sections.push(`## WEBSITE KNOWLEDGE\n${lines.join('\n')}`);
+  }
+
+  if (examples && examples.length > 0) {
+    const lines = examples.slice(0, 3).map((e: any) => `- [${e.content_type}] "${e.title}": ${(e.content || '').slice(0, 200)}...`);
+    sections.push(`## EXAMPLE STYLE\n${lines.join('\n')}`);
+  }
+
+  return `You are the AI content engine for Spiral Up. Every piece of content must align with this brand intelligence.
+
+${sections.join('\n\n')}
+
+RULES:
+- Stay unmistakably Spiral Up in voice and positioning
+- Never use generic AI marketing language
+- Be human, direct, pragmatic, and energizing
+- Short paragraphs, bold openings, thought-provoking questions
+- Blog posts are for SpiralingUp.works/blog — include SEO titles and meta descriptions`;
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -46,6 +123,9 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
 
+    // Build dynamic brand context from database
+    const brandContext = await buildBrandContext();
+
     const gatewayUrl = 'https://ai.gateway.lovable.dev/v1/chat/completions';
     const authHeader = 'Bearer ' + LOVABLE_API_KEY;
 
@@ -53,44 +133,23 @@ Deno.serve(async (req) => {
     if (body.messages) {
       const response = await fetch(gatewayUrl, {
         method: 'POST',
-        headers: {
-          Authorization: authHeader,
-          'Content-Type': 'application/json',
-        },
+        headers: { Authorization: authHeader, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [
-            { role: 'system', content: BRAND_CONTEXT },
-            ...body.messages,
-          ],
+          messages: [{ role: 'system', content: brandContext }, ...body.messages],
           stream: true,
         }),
       });
 
       if (!response.ok) {
         const status = response.status;
-        if (status === 429) {
-          return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
-            status: 429,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-        if (status === 402) {
-          return new Response(JSON.stringify({ error: 'Payment required' }), {
-            status: 402,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
+        if (status === 429) return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        if (status === 402) return new Response(JSON.stringify({ error: 'Payment required' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         const t = await response.text();
         console.error('AI gateway error:', status, t);
-        return new Response(JSON.stringify({ error: 'AI gateway error' }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return new Response(JSON.stringify({ error: 'AI gateway error' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      return new Response(response.body, {
-        headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
-      });
+      return new Response(response.body, { headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' } });
     }
 
     // Handle structured content generation (non-streaming)
@@ -99,56 +158,30 @@ Deno.serve(async (req) => {
     const topic = body.topic || '';
     const additionalContext = body.additionalContext || '';
 
-    const userPrompt = 'Generate a ' + contentType + ' about "' + topic + '" aligned with the "' + pillar + '" content pillar.' + (additionalContext ? ' Additional context: ' + additionalContext : '') + '\n\nStay unmistakably Spiral Up in voice and positioning.';
+    const userPrompt = `Generate a ${contentType} about "${topic}" aligned with the "${pillar}" content pillar.${additionalContext ? ' Additional context: ' + additionalContext : ''}\n\nStay unmistakably Spiral Up in voice and positioning.`;
 
     const response = await fetch(gatewayUrl, {
       method: 'POST',
-      headers: {
-        Authorization: authHeader,
-        'Content-Type': 'application/json',
-      },
+      headers: { Authorization: authHeader, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        messages: [
-          { role: 'system', content: BRAND_CONTEXT },
-          { role: 'user', content: userPrompt },
-        ],
+        messages: [{ role: 'system', content: brandContext }, { role: 'user', content: userPrompt }],
       }),
     });
 
     if (!response.ok) {
       const status = response.status;
-      if (status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
-          status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: 'Payment required' }), {
-          status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      const t = await response.text();
-      console.error('AI gateway error:', status, t);
-      return new Response(JSON.stringify({ error: 'AI generation failed' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      if (status === 429) return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      if (status === 402) return new Response(JSON.stringify({ error: 'Payment required' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      console.error('AI gateway error:', status);
+      return new Response(JSON.stringify({ error: 'AI generation failed' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || '';
-
-    return new Response(JSON.stringify({ content }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(JSON.stringify({ content }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (e) {
     console.error('generate-content error:', e);
     const errorMessage = e instanceof Error ? e.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ error: errorMessage }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 });
