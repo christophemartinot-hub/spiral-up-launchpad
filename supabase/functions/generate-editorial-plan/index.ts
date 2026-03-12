@@ -345,6 +345,31 @@ const SUGGESTION_RATIONALE_SPEC = `
   * "Testing a new angle on a strategically important but underperforming topic based on recent rejection feedback."
   IMPORTANT: Every item MUST have a meaningful suggestion_rationale. Never leave it generic.`;
 
+const OUTCOME_FIELDS_SPEC = `
+## OUTCOME-DRIVEN CONTENT (MANDATORY)
+Every content item MUST be designed for AUDIENCE IMPACT, not just output. The goal is to create meaningful change for leaders and organizations — not just "more posts."
+
+For each item, include these outcome fields:
+- audience_challenge: What real problem, tension, or question the audience faces that this content addresses. Be specific. Example: "Leaders struggle to sustain change after initial transformation excitement fades."
+- insight_delivered: The key idea or shift in thinking the audience will gain. Not a summary — the actual insight. Example: "Transformation fails not because of bad strategy but because leaders focus on tools instead of behaviors."
+- practical_takeaway: What the audience can DO after consuming this content. Be concrete. Example: "A 3-question diagnostic leaders can use in their next team meeting to assess behavioral vs. tool-based change."
+- expected_audience_action: The most likely audience response. One of: "save", "share", "follow", "subscribe", "read_more", "attend_event", "book_call", "reflect"
+- outcome_score: Integer 1-10 rating the potential IMPACT on the audience. Score based on:
+  * Depth of insight (surface = 1-3, reframing = 4-6, paradigm-shifting = 7-10)
+  * Actionability (vague inspiration = low, concrete framework = high)
+  * Shareability (would someone forward this to a colleague?)
+  * Relevance to audience's real challenges
+
+RANKING RULE: Prioritize content by outcome_score. Content that is polished but low-impact (score ≤ 3) should NOT be suggested. Aim for scores of 6+ on every item.
+
+WEAK (do NOT generate):
+- "5 tips for business agility" (generic, no insight, no challenge addressed)
+- "The importance of leadership" (vague, no audience tension)
+
+STRONG (generate this kind):
+- "Why transformation fails when leaders focus on tools instead of behavior" (specific challenge, clear insight, actionable)
+- "The question every leader avoids asking their team — and why it matters" (tension, curiosity, practical)`;
+
 async function storeLearningMemory(sb: any, planId: string, items: any[]) {
   const memories = items.map((item: any) => ({
     cycle_id: planId,
