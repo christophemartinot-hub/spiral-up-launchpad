@@ -13,6 +13,7 @@ const navSections = [
     items: [
       { path: '/', label: 'Command Center', icon: LayoutDashboard },
       { path: '/brand', label: 'Brand Intelligence', icon: Brain },
+      { path: '/performance', label: 'Performance', icon: TrendingUp },
       { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     ],
   },
@@ -30,6 +31,12 @@ const navSections = [
       { path: '/editorial', label: 'Editorial Planning', icon: ClipboardList },
       { path: '/campaigns/new', label: 'Campaign Planner', icon: Rocket },
       { path: '/calendar', label: 'Calendar', icon: Calendar },
+    ],
+  },
+  {
+    label: 'Distribute',
+    items: [
+      { path: '/email', label: 'Email Distribution', icon: Mail },
     ],
   },
   {
