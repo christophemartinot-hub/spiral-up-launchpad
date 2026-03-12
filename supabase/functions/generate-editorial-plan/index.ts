@@ -130,6 +130,135 @@ async function getRecentItems(sb: any): Promise<string> {
   return `\n\n## RECENTLY GENERATED (avoid repeating these themes/angles/visuals)\n${lines.join('\n')}`;
 }
 
+async function getFeedbackLearnings(sb: any): Promise<string> {
+  const { data: feedback } = await sb
+    .from('editorial_feedback')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  if (!feedback || feedback.length === 0) return '';
+
+  const total = feedback.length;
+  const approved = feedback.filter((f: any) => f.action_type === 'approved_clean').length;
+  const approvedEdited = feedback.filter((f: any) => f.action_type === 'approved_edited').length;
+  const rejected = feedback.filter((f: any) => f.action_type === 'rejected').length;
+
+  // Topic patterns
+  const topicApprovals: Record<string, number> = {};
+  const topicRejections: Record<string, number> = {};
+  const titleEdits = feedback.filter((f: any) => f.title_changed).length;
+  const ctaEdits = feedback.filter((f: any) => f.cta_changed).length;
+  const visualEdits = feedback.filter((f: any) => f.visual_changed).length;
+  const rejectionReasons = feedback.filter((f: any) => f.rejection_reason).map((f: any) => f.rejection_reason).slice(0, 5);
+
+  for (const f of feedback) {
+    const topic = f.original_topic || 'unknown';
+    if (f.action_type?.startsWith('approved')) topicApprovals[topic] = (topicApprovals[topic] || 0) + 1;
+    if (f.action_type === 'rejected') topicRejections[topic] = (topicRejections[topic] || 0) + 1;
+  }
+
+  const topApproved = Object.entries(topicApprovals).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const topRejected = Object.entries(topicRejections).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  const parts: string[] = [];
+  parts.push(`Review stats: ${total} items reviewed, ${approved} approved clean, ${approvedEdited} approved after edits, ${rejected} rejected.`);
+  parts.push(`Approval rate: ${Math.round(((approved + approvedEdited) / total) * 100)}%`);
+
+  if (topApproved.length > 0) {
+    parts.push(`Most approved topics: ${topApproved.map(([t, c]) => `"${t}" (${c}x)`).join(', ')}. Suggest MORE content like these.`);
+  }
+  if (topRejected.length > 0) {
+    parts.push(`Most rejected topics: ${topRejected.map(([t, c]) => `"${t}" (${c}x)`).join(', ')}. AVOID these themes or try completely new angles.`);
+  }
+  if (titleEdits > total * 0.3) {
+    parts.push(`Headlines are edited ${Math.round((titleEdits / total) * 100)}% of the time. Use more direct, specific, human headlines.`);
+  }
+  if (ctaEdits > total * 0.3) {
+    parts.push(`CTAs are changed ${Math.round((ctaEdits / total) * 100)}% of the time. Use simpler, more action-oriented CTAs.`);
+  }
+  if (visualEdits > total * 0.2) {
+    parts.push(`Visuals are modified ${Math.round((visualEdits / total) * 100)}% of the time. Prefer brand illustrations over AI-generated concepts.`);
+  }
+  if (rejectionReasons.length > 0) {
+    parts.push(`Recent rejection reasons: ${rejectionReasons.join('; ')}`);
+  }
+
+  return `\n\n## EDITORIAL LEARNING (from user behavior)\n${parts.join('\n')}`;
+}
+
+async function getPerformanceLearnings(sb: any): Promise<string> {
+  const { data: perf } = await sb
+    .from('content_performance')
+    .select('*')
+    .order('publish_date', { ascending: false })
+    .limit(50);
+
+  if (!perf || perf.length === 0) return '';
+
+  const { data: perfConfig } = await sb.from('performance_config').select('*').limit(1).single();
+
+  // Aggregate by topic, channel, format, visual
+  const byChannel: Record<string, { count: number; eng: number }> = {};
+  const byFormat: Record<string, { count: number; eng: number }> = {};
+  const byVisual: Record<string, { count: number; eng: number }> = {};
+  const byPillar: Record<string, { count: number; eng: number }> = {};
+
+  for (const p of perf) {
+    const ch = p.channel || 'unknown';
+    if (!byChannel[ch]) byChannel[ch] = { count: 0, eng: 0 };
+    byChannel[ch].count++; byChannel[ch].eng += p.engagement || 0;
+
+    const fmt = p.content_format || 'unknown';
+    if (!byFormat[fmt]) byFormat[fmt] = { count: 0, eng: 0 };
+    byFormat[fmt].count++; byFormat[fmt].eng += p.engagement || 0;
+
+    const vt = p.visual_type || 'none';
+    if (vt !== 'none') {
+      if (!byVisual[vt]) byVisual[vt] = { count: 0, eng: 0 };
+      byVisual[vt].count++; byVisual[vt].eng += p.engagement || 0;
+    }
+
+    const pl = p.content_pillar || 'none';
+    if (!byPillar[pl]) byPillar[pl] = { count: 0, eng: 0 };
+    byPillar[pl].count++; byPillar[pl].eng += p.engagement || 0;
+  }
+
+  const parts: string[] = [];
+  parts.push(`Performance data from ${perf.length} published items.`);
+
+  const topChannels = Object.entries(byChannel).sort((a, b) => b[1].eng - a[1].eng).slice(0, 3);
+  if (topChannels.length > 0) {
+    parts.push(`Best channels: ${topChannels.map(([c, v]) => `${c} (${v.eng} eng, ${v.count} posts)`).join(', ')}`);
+  }
+
+  const topFormats = Object.entries(byFormat).sort((a, b) => b[1].eng - a[1].eng).slice(0, 3);
+  if (topFormats.length > 0) {
+    parts.push(`Best formats: ${topFormats.map(([f, v]) => `${f} (${v.eng} eng)`).join(', ')}`);
+  }
+
+  const topVisuals = Object.entries(byVisual).sort((a, b) => b[1].eng - a[1].eng).slice(0, 3);
+  if (topVisuals.length > 0) {
+    parts.push(`Best visual types: ${topVisuals.map(([v, d]) => `${v} (${d.eng} eng)`).join(', ')}`);
+  }
+
+  const underusedPillars = Object.entries(byPillar).sort((a, b) => a[1].count - b[1].count).slice(0, 2);
+  if (underusedPillars.length > 0) {
+    parts.push(`Underused pillars: ${underusedPillars.map(([p, v]) => `${p} (${v.count} posts)`).join(', ')} — increase coverage.`);
+  }
+
+  if (perfConfig) {
+    parts.push(`\nWeight config: engagement=${perfConfig.engagement_weight}, conversion=${perfConfig.conversion_weight}, strategic=${perfConfig.strategic_weight}`);
+    parts.push(`Repetition limit: ${perfConfig.repetition_limit} (don't repeat same pattern more than this)`);
+    if (perfConfig.favored_patterns?.length > 0) parts.push(`Favored patterns: ${perfConfig.favored_patterns.join(', ')}`);
+    if (perfConfig.deprioritized_types?.length > 0) parts.push(`Deprioritized: ${perfConfig.deprioritized_types.join(', ')}`);
+  }
+
+  parts.push(`\nIMPORTANT: Use these learnings to improve suggestions but maintain editorial diversity. Don't over-optimize for one pattern. Balance performance with brand strategy. Explain WHY you're suggesting a topic using this data.`);
+
+  return `\n\n## PERFORMANCE LEARNINGS (from published content data)\n${parts.join('\n')}`;
+}
+
 const VISUAL_FIELDS_SPEC = `
 - visual_type: one of "single_image","carousel","quote_card","framework_card","event_promo","workshop_promo","book_promo","infographic","article_cover","video_storyboard","document_post"
 - visual_concept: 1-2 sentence describing the PRIMARY visual idea (this is the main creative direction)
@@ -158,10 +287,12 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const sb = createClient(supabaseUrl, supabaseKey);
 
-    const [brandContext, visualConfig, recentItems] = await Promise.all([
+    const [brandContext, visualConfig, recentItems, feedbackLearnings, perfLearnings] = await Promise.all([
       buildBrandContext(sb),
       getVisualConfig(sb),
       getRecentItems(sb),
+      getFeedbackLearnings(sb),
+      getPerformanceLearnings(sb),
     ]);
 
     const { config, cycleStart, cycleEnd, action } = body;
@@ -169,7 +300,7 @@ Deno.serve(async (req) => {
     // Regenerate a single item
     if (action === 'regenerate_item') {
       const { item } = body;
-      const systemPrompt = `You are the AI editorial planner for Spiral Up. ${brandContext}${visualConfig}${recentItems}
+      const systemPrompt = `You are the AI editorial planner for Spiral Up. ${brandContext}${visualConfig}${recentItems}${feedbackLearnings}${perfLearnings}
 
 TASK: Regenerate a fresh content suggestion for a ${item.channel} ${item.content_format} scheduled on ${item.publish_date}.
 The previous suggestion was rejected${item.rejection_reason ? ': ' + item.rejection_reason : ''}. Generate a completely different angle.
@@ -230,7 +361,7 @@ Return ONLY valid JSON, no markdown.`;
     // Regenerate visual only
     if (action === 'regenerate_visual') {
       const { item } = body;
-      const systemPrompt = `You are the AI visual director for Spiral Up. ${brandContext}${visualConfig}
+      const systemPrompt = `You are the AI visual director for Spiral Up. ${brandContext}${visualConfig}${feedbackLearnings}${perfLearnings}
 
 TASK: Generate a new visual direction for this content:
 Title: ${item.working_title}
@@ -356,7 +487,7 @@ Return ONLY valid JSON, no markdown.`;
 
     const systemPrompt = `You are the AI editorial planner for Spiral Up. Your role is to create a strategic content plan with visual directions for the upcoming publication cycle.
 
-${brandContext}${visualConfig}${recentItems}
+${brandContext}${visualConfig}${recentItems}${feedbackLearnings}${perfLearnings}
 
 PLANNING CONSTRAINTS:
 - Cycle: ${cycleStart} to ${cycleEnd}
