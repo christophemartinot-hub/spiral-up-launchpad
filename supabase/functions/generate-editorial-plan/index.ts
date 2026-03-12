@@ -405,6 +405,9 @@ Return ONLY a valid JSON array, no markdown wrapping.`;
         // Visual fields
         visual_type: item.visual_type || '',
         visual_concept: item.visual_concept || '',
+        backup_visual_concept: item.backup_visual_concept || '',
+        backup_visual_type: item.backup_visual_type || '',
+        visual_rationale: item.visual_rationale || '',
         visual_layout: item.visual_layout || '',
         image_direction: item.image_direction || '',
         visual_headline: item.visual_headline || '',
