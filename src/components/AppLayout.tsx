@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Sparkles, FileText, PenTool, Calendar,
+  LayoutDashboard, Sparkles, FileText, PenTool, Calendar, ClipboardList,
   BarChart3, FolderOpen, Settings, Menu, X, ChevronRight, Brain, Rocket
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,6 +26,7 @@ const navSections = [
   {
     label: 'Plan',
     items: [
+      { path: '/editorial', label: 'Editorial Planning', icon: ClipboardList },
       { path: '/campaigns/new', label: 'Campaign Planner', icon: Rocket },
       { path: '/calendar', label: 'Calendar', icon: Calendar },
     ],

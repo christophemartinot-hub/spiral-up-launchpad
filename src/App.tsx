@@ -13,6 +13,7 @@ import ContentLibrary from "@/pages/ContentLibrary";
 import CampaignWizard from "@/pages/CampaignWizard";
 import CampaignDetail from "@/pages/CampaignDetail";
 import SettingsPage from "@/pages/SettingsPage";
+import EditorialPlanning from "@/pages/EditorialPlanning";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/content" element={<ContentLibrary />} />
             <Route path="/campaigns/new" element={<CampaignWizard />} />
             <Route path="/campaigns/:id" element={<CampaignDetail />} />
+            <Route path="/editorial" element={<EditorialPlanning />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

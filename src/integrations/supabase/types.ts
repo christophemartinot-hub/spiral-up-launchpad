@@ -194,6 +194,122 @@ export type Database = {
         }
         Relationships: []
       }
+      editorial_items: {
+        Row: {
+          brand_alignment: string | null
+          carousel_idea: string | null
+          channel: string
+          content_format: string
+          content_pillar: string | null
+          created_at: string
+          cta: string | null
+          draft_content: string | null
+          id: string
+          key_message: string | null
+          objective: string | null
+          plan_id: string
+          post_angle: string | null
+          publish_date: string
+          rejection_reason: string | null
+          related_offer: string | null
+          sort_order: number
+          status: string
+          suggested_cta: string | null
+          updated_at: string
+          working_title: string
+        }
+        Insert: {
+          brand_alignment?: string | null
+          carousel_idea?: string | null
+          channel?: string
+          content_format?: string
+          content_pillar?: string | null
+          created_at?: string
+          cta?: string | null
+          draft_content?: string | null
+          id?: string
+          key_message?: string | null
+          objective?: string | null
+          plan_id: string
+          post_angle?: string | null
+          publish_date: string
+          rejection_reason?: string | null
+          related_offer?: string | null
+          sort_order?: number
+          status?: string
+          suggested_cta?: string | null
+          updated_at?: string
+          working_title?: string
+        }
+        Update: {
+          brand_alignment?: string | null
+          carousel_idea?: string | null
+          channel?: string
+          content_format?: string
+          content_pillar?: string | null
+          created_at?: string
+          cta?: string | null
+          draft_content?: string | null
+          id?: string
+          key_message?: string | null
+          objective?: string | null
+          plan_id?: string
+          post_angle?: string | null
+          publish_date?: string
+          rejection_reason?: string | null
+          related_offer?: string | null
+          sort_order?: number
+          status?: string
+          suggested_cta?: string | null
+          updated_at?: string
+          working_title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_items_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      editorial_plans: {
+        Row: {
+          cadence: string
+          created_at: string
+          cycle_end: string
+          cycle_start: string
+          generated_at: string | null
+          id: string
+          notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cadence?: string
+          created_at?: string
+          cycle_end: string
+          cycle_start: string
+          generated_at?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cadence?: string
+          created_at?: string
+          cycle_end?: string
+          cycle_start?: string
+          generated_at?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       events_workshops: {
         Row: {
           created_at: string
@@ -367,6 +483,54 @@ export type Database = {
           target_clients?: string | null
           updated_at?: string
           use_cases?: Json | null
+        }
+        Relationships: []
+      }
+      planning_config: {
+        Row: {
+          auto_publish: boolean
+          cadence: string
+          campaign_focus: string | null
+          channels: Json
+          created_at: string
+          cta_preferences: Json | null
+          exclusion_rules: Json | null
+          id: string
+          posts_per_cycle: number
+          preferred_formats: Json | null
+          priority_topics: Json | null
+          target_audience: string | null
+          updated_at: string
+        }
+        Insert: {
+          auto_publish?: boolean
+          cadence?: string
+          campaign_focus?: string | null
+          channels?: Json
+          created_at?: string
+          cta_preferences?: Json | null
+          exclusion_rules?: Json | null
+          id?: string
+          posts_per_cycle?: number
+          preferred_formats?: Json | null
+          priority_topics?: Json | null
+          target_audience?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auto_publish?: boolean
+          cadence?: string
+          campaign_focus?: string | null
+          channels?: Json
+          created_at?: string
+          cta_preferences?: Json | null
+          exclusion_rules?: Json | null
+          id?: string
+          posts_per_cycle?: number
+          preferred_formats?: Json | null
+          priority_topics?: Json | null
+          target_audience?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
