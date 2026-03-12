@@ -1,0 +1,1 @@
+ALTER TABLE public.brand_assets ADD COLUMN IF NOT EXISTS asset_status text NOT NULL DEFAULT 'approved';
