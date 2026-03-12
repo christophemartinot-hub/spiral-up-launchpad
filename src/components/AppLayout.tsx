@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Sparkles, FileText, PenTool, Calendar, ClipboardList,
-  BarChart3, FolderOpen, Settings, Menu, X, ChevronRight, Brain, Rocket
+  BarChart3, FolderOpen, Settings, Menu, X, ChevronRight, Brain, Rocket,
+  TrendingUp, Mail
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
