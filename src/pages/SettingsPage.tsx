@@ -3,11 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { CHANNEL_CONFIG, ChannelType } from '@/data/types';
-import { ExternalLink, RefreshCw, CheckCircle2, XCircle, Users, Loader2, Plus, Save, Trash2, Edit2 } from 'lucide-react';
+import { ExternalLink, RefreshCw, CheckCircle2, XCircle, Users, Loader2, Plus, Save, Trash2, Edit2, Brain } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { usePlanningConfig, useUpdatePlanningConfig } from '@/hooks/use-editorial';
 
 type SocialConn = {
   id: string;
@@ -30,13 +32,24 @@ function useSocialConnections() {
   });
 }
 
+const INTELLIGENCE_MODES = [
+  { value: 'assist', label: '💡 Assist', description: 'Suggestions only — based on brand knowledge and pillars. No learning from behavior.' },
+  { value: 'learning', label: '🧠 Learning', description: 'Suggestions improve from your approvals, edits, rejections, and performance data.' },
+  { value: 'strategic', label: '🎯 Strategic', description: 'Prioritizes brand strategy and long-term positioning over short-term engagement.' },
+];
+
 export default function SettingsPage() {
   const qc = useQueryClient();
   const { data: connections, isLoading } = useSocialConnections();
+  const { data: config, isLoading: configLoading } = usePlanningConfig();
+  const updateConfig = useUpdatePlanningConfig();
   const [editing, setEditing] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ account_name: '', profile_url: '', followers: '' });
   const [adding, setAdding] = useState(false);
   const [newConn, setNewConn] = useState({ channel: 'linkedin', account_name: '', profile_url: '' });
+
+  const currentMode = (config as any)?.intelligence_mode || 'learning';
+  const topicCooldown = (config as any)?.topic_cooldown_cycles || 3;
 
   const toggleMut = useMutation({
     mutationFn: async ({ id, connected }: { id: string; connected: boolean }) => {
@@ -76,8 +89,8 @@ export default function SettingsPage() {
 
   const toggleConnection = (conn: SocialConn) => {
     const newConnected = !conn.connected;
-    const config = CHANNEL_CONFIG[conn.channel as ChannelType];
-    toast.success(newConnected ? `Connected to ${config?.label || conn.channel}` : `Disconnected from ${config?.label || conn.channel}`);
+    const cfg = CHANNEL_CONFIG[conn.channel as ChannelType];
+    toast.success(newConnected ? `Connected to ${cfg?.label || conn.channel}` : `Disconnected from ${cfg?.label || conn.channel}`);
     toggleMut.mutate({ id: conn.id, connected: newConnected });
   };
 
@@ -91,15 +104,75 @@ export default function SettingsPage() {
     toast.success('Account updated');
   };
 
+  const handleModeChange = (mode: string) => {
+    updateConfig.mutate({ intelligence_mode: mode } as any, {
+      onSuccess: () => toast.success(`Intelligence mode set to ${mode}`),
+    });
+  };
+
+  const handleCooldownChange = (value: number) => {
+    updateConfig.mutate({ topic_cooldown_cycles: value } as any, {
+      onSuccess: () => toast.success(`Topic cooldown set to ${value} cycles`),
+    });
+  };
+
   const availableChannels = Object.keys(CHANNEL_CONFIG) as ChannelType[];
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl md:text-3xl font-display font-bold">Settings</h1>
-        <p className="text-muted-foreground mt-1">Manage your social accounts and preferences.</p>
+        <p className="text-muted-foreground mt-1">Manage intelligence mode, social accounts, and preferences.</p>
       </div>
 
+      {/* Editorial Intelligence Mode */}
+      <Card className="shadow-card">
+        <CardHeader>
+          <CardTitle className="font-display flex items-center gap-2">
+            <Brain className="w-5 h-5" /> Editorial Intelligence Mode
+          </CardTitle>
+          <CardDescription>Control how the AI learns and generates content suggestions.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {configLoading ? (
+            <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+          ) : (
+            <>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {INTELLIGENCE_MODES.map(mode => (
+                  <button
+                    key={mode.value}
+                    onClick={() => handleModeChange(mode.value)}
+                    className={`p-4 rounded-xl border-2 text-left transition-all ${
+                      currentMode === mode.value
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/30'
+                    }`}
+                  >
+                    <p className="font-display font-semibold text-sm">{mode.label}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{mode.description}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-4 pt-2">
+                <Label className="text-sm font-medium whitespace-nowrap">Topic Cooldown</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={topicCooldown}
+                  onChange={e => handleCooldownChange(parseInt(e.target.value) || 3)}
+                  className="w-20"
+                />
+                <span className="text-xs text-muted-foreground">cycles before a topic can repeat</span>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Social Connections */}
       <Card className="shadow-card">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -141,17 +214,17 @@ export default function SettingsPage() {
           ) : (
             <div className="divide-y divide-border">
               {(connections || []).map(conn => {
-                const config = CHANNEL_CONFIG[conn.channel as ChannelType] || { label: conn.channel, color: 'hsl(0 0% 50%)', icon: '🔗' };
+                const cfg = CHANNEL_CONFIG[conn.channel as ChannelType] || { label: conn.channel, color: 'hsl(0 0% 50%)', icon: '🔗' };
                 const isEditing = editing === conn.id;
 
                 return (
                   <div key={conn.id} className="py-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl" style={{ backgroundColor: `${config.color}15` }}>
-                        {config.icon}
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl" style={{ backgroundColor: `${cfg.color}15` }}>
+                        {cfg.icon}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold">{config.label}</p>
+                        <p className="text-sm font-semibold">{cfg.label}</p>
                         <p className="text-xs text-muted-foreground">{conn.account_name}</p>
                         {conn.connected && conn.followers && (
                           <div className="flex items-center gap-1 mt-0.5">

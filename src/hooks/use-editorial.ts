@@ -130,6 +130,7 @@ export function useGenerateEditorialPlan() {
       qc.invalidateQueries({ queryKey: ['editorial-plans'] });
       qc.invalidateQueries({ queryKey: ['editorial-items'] });
       qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
+      qc.invalidateQueries({ queryKey: ['learning-memory'] });
     },
   });
 }
@@ -212,5 +213,34 @@ export function useUpdateVisualConfig() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['visual-config'] }),
+  });
+}
+
+// ─── Learning Memory ───
+export function useLearningMemory() {
+  return useQuery({
+    queryKey: ['learning-memory'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('learning_memory').select('*').order('created_at', { ascending: false }).limit(100);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+// ─── Cycle Completion Check ───
+export function useCycleCompletionStatus(planId: string | null) {
+  return useQuery({
+    queryKey: ['cycle-completion', planId],
+    enabled: !!planId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('editorial_items').select('status').eq('plan_id', planId!);
+      if (error) throw error;
+      const items = data ?? [];
+      if (items.length === 0) return { complete: false, total: 0, decided: 0, pct: 0 };
+      const decided = items.filter(i => ['approved', 'rejected', 'scheduled', 'published'].includes(i.status)).length;
+      const pct = Math.round((decided / items.length) * 100);
+      return { complete: pct >= 80, total: items.length, decided, pct };
+    },
   });
 }

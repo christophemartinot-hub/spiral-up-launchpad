@@ -2,12 +2,14 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Sparkles, Brain, PenTool, BarChart3, ArrowRight, FileText,
-  TrendingUp, Calendar, Rocket, Eye
+  TrendingUp, Calendar, Rocket, Eye, Lightbulb, Loader2,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { brandProfile } from '@/data/brand';
+import { useFeedbackSummary } from '@/hooks/use-feedback';
+import { usePerformanceSummary } from '@/hooks/use-performance';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
@@ -18,23 +20,24 @@ const quickActions = [
   { label: 'Analytics', icon: BarChart3, path: '/analytics', color: 'bg-accent' },
 ];
 
-const recentActivity = [
-  { action: 'Blog post generated', detail: '"Why Most Transformations Fail"', time: '2 hours ago', icon: FileText },
-  { action: 'LinkedIn post published', detail: 'Leadership evolution series #3', time: '5 hours ago', icon: TrendingUp },
-  { action: 'Campaign created', detail: 'Q2 Thought Leadership Sprint', time: '1 day ago', icon: Rocket },
-  { action: 'Newsletter sent', detail: 'SPIRAL Framework Deep Dive', time: '2 days ago', icon: Eye },
-];
-
 const strategicLoop = [
   { step: '1', label: 'Analyze', description: 'Ingest brand assets & learn', active: true },
   { step: '2', label: 'Strategize', description: 'Define content strategy', active: true },
   { step: '3', label: 'Generate', description: 'AI-powered content creation', active: true },
-  { step: '4', label: 'Publish', description: 'Schedule across channels', active: false },
-  { step: '5', label: 'Track', description: 'Measure performance', active: false },
-  { step: '6', label: 'Optimize', description: 'Learn & improve', active: false },
+  { step: '4', label: 'Publish', description: 'Schedule across channels', active: true },
+  { step: '5', label: 'Track', description: 'Measure performance', active: true },
+  { step: '6', label: 'Optimize', description: 'Learn & improve', active: true },
 ];
 
 export default function Dashboard() {
+  const { data: feedback, isLoading: fbLoading } = useFeedbackSummary();
+  const { data: perf, isLoading: perfLoading } = usePerformanceSummary();
+
+  // Derive intelligence insights
+  const topTopics = feedback?.topApproved?.slice(0, 3) || [];
+  const rejectedThemes = feedback?.topRejected?.slice(0, 2) || [];
+  const topChannel = perf ? Object.entries(perf.byChannel).sort((a, b) => b[1].totalEngagement - a[1].totalEngagement)[0] : null;
+
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
       {/* Header */}
@@ -69,17 +72,13 @@ export default function Dashboard() {
         {/* Strategic Loop */}
         <Card className="shadow-card lg:col-span-2">
           <CardHeader>
-            <CardTitle className="font-display text-base">Strategic Content Loop</CardTitle>
+            <CardTitle className="font-display text-base">Continuous Content Loop</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
               {strategicLoop.map((item) => (
-                <div key={item.step} className={`text-center p-3 rounded-xl border-2 transition-colors ${
-                  item.active ? 'border-primary bg-primary/5' : 'border-border'
-                }`}>
-                  <div className={`w-8 h-8 rounded-full mx-auto flex items-center justify-center text-xs font-display font-bold ${
-                    item.active ? 'gradient-brand text-primary-foreground' : 'bg-muted text-muted-foreground'
-                  }`}>
+                <div key={item.step} className="text-center p-3 rounded-xl border-2 border-primary bg-primary/5">
+                  <div className="w-8 h-8 rounded-full mx-auto flex items-center justify-center text-xs font-display font-bold gradient-brand text-primary-foreground">
                     {item.step}
                   </div>
                   <p className="text-xs font-display font-semibold mt-2">{item.label}</p>
@@ -90,24 +89,69 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
+        {/* Content Intelligence */}
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="font-display text-base">Recent Activity</CardTitle>
+            <CardTitle className="font-display text-base flex items-center gap-2">
+              <Lightbulb className="w-4 h-4 text-amber-500" /> Content Intelligence
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recentActivity.map((item, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <item.icon className="w-3.5 h-3.5 text-muted-foreground" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">{item.action}</p>
-                  <p className="text-xs text-muted-foreground truncate">{item.detail}</p>
-                  <p className="text-[10px] text-muted-foreground/60">{item.time}</p>
-                </div>
-              </div>
-            ))}
+            {fbLoading || perfLoading ? (
+              <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>
+            ) : (
+              <>
+                {feedback && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Approval Rate</span>
+                      <span className="font-semibold text-green-600">{feedback.approvalRate}%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Items Reviewed</span>
+                      <span className="font-semibold">{feedback.total}</span>
+                    </div>
+                  </div>
+                )}
+
+                {topTopics.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-medium text-green-600 mb-1">✅ Top Themes</p>
+                    {topTopics.map((t: any, i: number) => (
+                      <p key={i} className="text-xs text-muted-foreground truncate">• {t.topic}</p>
+                    ))}
+                  </div>
+                )}
+
+                {rejectedThemes.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-medium text-red-500 mb-1">❌ Avoid</p>
+                    {rejectedThemes.map((t: any, i: number) => (
+                      <p key={i} className="text-xs text-muted-foreground truncate">• {t.topic}</p>
+                    ))}
+                  </div>
+                )}
+
+                {topChannel && (
+                  <div>
+                    <p className="text-[10px] font-medium text-blue-600 mb-1">📊 Best Channel</p>
+                    <p className="text-xs text-muted-foreground">{topChannel[0]} — {topChannel[1].totalEngagement} engagement</p>
+                  </div>
+                )}
+
+                {!feedback && !perf && (
+                  <p className="text-xs text-muted-foreground text-center py-2">
+                    Start reviewing content to activate intelligence.
+                  </p>
+                )}
+
+                <Link to="/editorial">
+                  <Button variant="ghost" size="sm" className="w-full text-xs gap-1 mt-1">
+                    <Brain className="w-3 h-3" /> View Full Intelligence
+                  </Button>
+                </Link>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
