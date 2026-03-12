@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { useEditorialPlans, useEditorialItems, useCycleCompletionStatus, useLearningMemory } from '@/hooks/use-editorial';
 import { useFeedbackSummary } from '@/hooks/use-feedback';
 import { usePerformanceSummary } from '@/hooks/use-performance';
+import { resolveBrandIcon } from '@/lib/brand-assets';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 const stagger = { show: { transition: { staggerChildren: 0.06 } } };
