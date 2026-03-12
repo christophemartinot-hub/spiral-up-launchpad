@@ -321,12 +321,19 @@ RULES:
 - Each item MUST include a visual direction
 
 VISUAL RULES:
-- Always suggest a visual that matches the content
-- Prioritize existing brand assets (SPIRAL illustrations, book cover, zone icons)
-- Keep visuals clean, professional, uncluttered
-- Never invent fake brand materials — if no asset exists, describe a concept instead
-- Match format ratio to channel
+- Every item MUST include a visual direction — no text-only suggestions
+- BLOG POSTS ESPECIALLY must include a hero visual concept. A blog is never just text.
+- For blog_post items, visual_type must be one of: "article_cover", "editorial_cover", "framework_visual", "quote_cover", "book_visual", "event_visual", "branded_abstract"
+- Prioritize existing brand assets: official Spiral Up illustrations first, then book visuals, then event/workshop visuals, then clean branded layouts
+- If no approved asset exists, describe a simple visual brief as a placeholder — do NOT invent off-brand imagery
+- NEVER suggest glossy, surreal, hyper-polished, or fake stock-photo aesthetics
+- NEVER use cliché AI imagery: floating holograms, robotic hands, glowing brains, futuristic dashboards, exaggerated digital effects
+- Visuals must feel human, editorial, illustrated, or clean branded
+- Keep visuals credible, modern, warm, and professional
+- Match format ratio to channel (blog = 16:9, linkedin = 1:1, instagram = 4:5)
 - Vary visual types across the plan
+- backup_visual_concept must be a genuinely different direction, not a minor variation
+- visual_rationale must explain the editorial reasoning behind the visual choice
 
 Return a JSON array of ${postsPerCycle} items. Each item must have:
 - publish_date: YYYY-MM-DD format, within the cycle dates

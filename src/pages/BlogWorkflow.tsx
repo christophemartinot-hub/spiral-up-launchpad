@@ -300,6 +300,7 @@ Voice: Human, direct, pragmatic. No corporate jargon. No empty inspiration.`;
                 {[
                   { icon: FileText, label: 'Full blog post', desc: 'SEO-optimized, CMS-ready markdown' },
                   { icon: Hash, label: 'SEO metadata', desc: 'Title, meta description, keywords' },
+                  { icon: '🎨', label: 'Hero visual direction', desc: 'Primary + backup visual concept with asset recommendations' },
                   { icon: Link2, label: 'Internal linking', desc: 'Suggested links to related blog content' },
                   { icon: '💼', label: 'LinkedIn post', desc: 'Standalone post derived from the blog' },
                   { icon: '📧', label: 'Newsletter version', desc: 'Intro that drives readers to the full post' },
