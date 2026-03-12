@@ -7,11 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Save, Plus, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useSpiralPrinciples, useUpdateSpiralPrinciple } from '@/hooks/use-brand-data';
 import { toast } from 'sonner';
-
-const LETTER_COLORS: Record<string, string> = {
-  S: 'bg-primary', P: 'bg-secondary', I: 'bg-accent',
-  R: 'bg-warning text-warning-foreground', A: 'bg-info', L: 'bg-success',
-};
+import { PRINCIPLE_ASSETS, ZONE_ASSETS, resolveBrandIcon } from '@/lib/brand-assets';
 
 export default function SpiralFrameworkTab() {
   const { data: principles, isLoading } = useSpiralPrinciples();
@@ -25,6 +21,24 @@ export default function SpiralFrameworkTab() {
       <p className="text-sm text-muted-foreground">
         Define each SPIRAL principle. These definitions feed the AI engine for consistent content generation.
       </p>
+
+      {/* Zones overview */}
+      <div>
+        <h3 className="text-sm font-display font-semibold mb-3">SPIRAL Zones</h3>
+        <div className="grid grid-cols-3 gap-3">
+          {Object.entries(ZONE_ASSETS).map(([key, zone]) => (
+            <Card key={key} className="shadow-card">
+              <CardContent className="p-4 flex items-center gap-3">
+                <img src={zone.icon} alt={zone.label} className="w-12 h-12 object-contain flex-shrink-0" />
+                <div>
+                  <p className="font-display font-semibold text-sm">{zone.label}</p>
+                  <p className="text-[10px] text-muted-foreground">Official icon</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
 
       <div className="space-y-4">
         {(principles || []).map((p: any) => (
@@ -60,16 +74,25 @@ function PrincipleEditor({ principle, isExpanded, onToggle, onSave, isSaving }: 
     setForm((f: any) => ({ ...f, [field]: (f[field] || []).filter((_: any, idx: number) => idx !== i) }));
   };
 
-  const colorClass = LETTER_COLORS[principle.letter] || 'bg-muted';
+  const asset = PRINCIPLE_ASSETS[principle.letter];
+  const officialIcon = asset?.icon;
+  const officialIllustration = asset?.illustration;
 
   return (
     <Card className="shadow-card overflow-hidden">
       <button onClick={onToggle} className="w-full flex items-center gap-4 p-5 text-left hover:bg-muted/30 transition-colors">
-        <div className={`w-12 h-12 rounded-xl ${colorClass} flex items-center justify-center text-primary-foreground font-display font-bold text-xl flex-shrink-0`}>
-          {principle.letter}
-        </div>
+        {officialIcon ? (
+          <img src={officialIcon} alt={`${principle.letter} — ${asset?.label}`} className="w-12 h-12 object-contain rounded-xl flex-shrink-0" />
+        ) : (
+          <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-display font-bold text-xl flex-shrink-0">
+            {principle.letter}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
-          <p className="font-display font-semibold">{form.principle_name || `(${principle.letter} — not yet defined)`}</p>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-display font-bold text-primary">{principle.letter}</span>
+            <p className="font-display font-semibold">{form.principle_name || `(${principle.letter} — not yet defined)`}</p>
+          </div>
           <p className="text-sm text-muted-foreground truncate">{form.short_description || 'Click to expand and define this principle'}</p>
         </div>
         {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
@@ -77,14 +100,23 @@ function PrincipleEditor({ principle, isExpanded, onToggle, onSave, isSaving }: 
 
       {isExpanded && (
         <CardContent className="border-t pt-5 space-y-5">
+          {/* Official illustration */}
+          {officialIllustration && (
+            <div className="bg-muted/30 rounded-lg p-3">
+              <p className="text-[10px] font-medium text-muted-foreground mb-2">Official Illustration (Martin Tognola)</p>
+              <img src={officialIllustration} alt={`${asset?.label} illustration`} className="rounded-lg max-h-40 object-contain" />
+            </div>
+          )}
+
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Principle Name</label>
               <Input value={form.principle_name || ''} onChange={e => setForm((f: any) => ({ ...f, principle_name: e.target.value }))} placeholder="e.g. Systemic Thinking" />
             </div>
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Visual Icon (emoji)</label>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Visual Icon (emoji fallback)</label>
               <Input value={form.visual_icon || ''} onChange={e => setForm((f: any) => ({ ...f, visual_icon: e.target.value }))} placeholder="🔄" />
+              <p className="text-[9px] text-muted-foreground mt-0.5">Official icon is used automatically when available.</p>
             </div>
           </div>
 

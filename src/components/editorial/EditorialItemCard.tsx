@@ -13,6 +13,7 @@ import { useUpdateEditorialItem, useRegenerateItem } from '@/hooks/use-editorial
 import { useRecordFeedback } from '@/hooks/use-feedback';
 import { toast } from 'sonner';
 import VisualBriefPanel from './VisualBriefPanel';
+import { resolveBrandIcon } from '@/lib/brand-assets';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   suggested: { label: 'Suggested', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
@@ -132,7 +133,14 @@ export default function EditorialItemCard({ item }: { item: any }) {
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center gap-3 p-4 text-left hover:bg-muted/30 transition-colors"
       >
-        <div className="text-xl flex-shrink-0">{CHANNEL_ICONS[item.channel] || '📌'}</div>
+        {(() => {
+          const brandIcon = resolveBrandIcon(item.content_pillar || item.working_title || '');
+          return brandIcon ? (
+            <img src={brandIcon} alt="" className="w-8 h-8 object-contain flex-shrink-0 rounded" />
+          ) : (
+            <div className="text-xl flex-shrink-0">{CHANNEL_ICONS[item.channel] || '📌'}</div>
+          );
+        })()}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${statusConf.color}`}>{statusConf.label}</span>
