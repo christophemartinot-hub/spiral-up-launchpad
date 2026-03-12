@@ -60,7 +60,7 @@ export default function SettingsPage() {
 
   const addMut = useMutation({
     mutationFn: async (conn: Record<string, any>) => {
-      const { error } = await supabase.from('social_connections').insert(conn);
+      const { error } = await supabase.from('social_connections').insert(conn as any);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['social-connections'] }); setAdding(false); setNewConn({ channel: 'linkedin', account_name: '', profile_url: '' }); toast.success('Account added'); },
