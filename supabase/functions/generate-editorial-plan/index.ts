@@ -307,6 +307,23 @@ async function getPerformanceLearnings(sb: any): Promise<string> {
 
   parts.push(`\nIMPORTANT: Use these learnings to improve suggestions but maintain editorial diversity. Don't over-optimize for one pattern. Balance performance with brand strategy. Explain WHY you're suggesting a topic using this data.`);
 
+  // Outcome signals
+  const totalSaves = perf.reduce((s: number, p: any) => s + (p.saves || 0), 0);
+  const totalShares = perf.reduce((s: number, p: any) => s + (p.shares || 0), 0);
+  const totalFollowerGrowth = perf.reduce((s: number, p: any) => s + (p.follower_growth || 0), 0);
+  const totalNewsletterSignups = perf.reduce((s: number, p: any) => s + (p.newsletter_signups || 0), 0);
+  const totalEventSignups = perf.reduce((s: number, p: any) => s + (p.event_signups || 0), 0);
+
+  if (totalSaves > 0 || totalShares > 0 || totalFollowerGrowth > 0) {
+    parts.push(`\nOUTCOME SIGNALS (prioritize creating content that drives these):
+- Saves: ${totalSaves} total (high-value indicator — audience finds it reference-worthy)
+- Shares: ${totalShares} total (trust indicator — audience vouches for content)
+- Follower growth: ${totalFollowerGrowth} (audience growth from content)
+- Newsletter signups: ${totalNewsletterSignups} (conversion from content)
+- Event signups: ${totalEventSignups} (highest-value conversion)
+Prioritize content that drives SAVES, SHARES, and SUBSCRIPTIONS over impressions/likes.`);
+  }
+
   return `\n\n## PERFORMANCE LEARNINGS (from published content data)\n${parts.join('\n')}`;
 }
 

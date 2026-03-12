@@ -368,7 +368,7 @@ function PerformanceTable() {
     });
   };
 
-  const fields = ['channel', 'content_format', 'content_pillar', 'topic', 'visual_type', 'impressions', 'reach', 'clicks', 'engagement', 'saves', 'shares', 'comments', 'conversions'];
+  const fields = ['channel', 'content_format', 'content_pillar', 'topic', 'visual_type', 'impressions', 'reach', 'clicks', 'engagement', 'saves', 'shares', 'comments', 'conversions', 'profile_visits', 'follower_growth', 'blog_clickthroughs', 'newsletter_signups', 'event_signups', 'meaningful_comments'];
 
   return (
     <div className="space-y-4">
