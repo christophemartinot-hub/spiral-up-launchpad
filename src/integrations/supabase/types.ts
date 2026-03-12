@@ -265,6 +265,45 @@ export type Database = {
         }
         Relationships: []
       }
+      social_connections: {
+        Row: {
+          access_token: string | null
+          account_name: string
+          channel: string
+          connected: boolean
+          created_at: string
+          followers: number | null
+          id: string
+          last_sync: string | null
+          profile_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string | null
+          account_name?: string
+          channel: string
+          connected?: boolean
+          created_at?: string
+          followers?: number | null
+          id?: string
+          last_sync?: string | null
+          profile_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string | null
+          account_name?: string
+          channel?: string
+          connected?: boolean
+          created_at?: string
+          followers?: number | null
+          id?: string
+          last_sync?: string | null
+          profile_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       spiral_principles: {
         Row: {
           created_at: string
