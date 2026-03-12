@@ -194,6 +194,101 @@ export type Database = {
         }
         Relationships: []
       }
+      content_performance: {
+        Row: {
+          asset_used: string | null
+          audience_segment: string | null
+          channel: string
+          click_rate: number | null
+          clicks: number | null
+          comments: number | null
+          content_format: string
+          content_pillar: string | null
+          conversions: number | null
+          created_at: string
+          cta: string | null
+          editorial_item_id: string | null
+          engagement: number | null
+          engagement_rate: number | null
+          id: string
+          impressions: number | null
+          notes: string | null
+          opens: number | null
+          publish_date: string | null
+          reach: number | null
+          saves: number | null
+          shares: number | null
+          topic: string | null
+          unsubscribe_rate: number | null
+          updated_at: string
+          visual_type: string | null
+        }
+        Insert: {
+          asset_used?: string | null
+          audience_segment?: string | null
+          channel?: string
+          click_rate?: number | null
+          clicks?: number | null
+          comments?: number | null
+          content_format?: string
+          content_pillar?: string | null
+          conversions?: number | null
+          created_at?: string
+          cta?: string | null
+          editorial_item_id?: string | null
+          engagement?: number | null
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          notes?: string | null
+          opens?: number | null
+          publish_date?: string | null
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          topic?: string | null
+          unsubscribe_rate?: number | null
+          updated_at?: string
+          visual_type?: string | null
+        }
+        Update: {
+          asset_used?: string | null
+          audience_segment?: string | null
+          channel?: string
+          click_rate?: number | null
+          clicks?: number | null
+          comments?: number | null
+          content_format?: string
+          content_pillar?: string | null
+          conversions?: number | null
+          created_at?: string
+          cta?: string | null
+          editorial_item_id?: string | null
+          engagement?: number | null
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          notes?: string | null
+          opens?: number | null
+          publish_date?: string | null
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          topic?: string | null
+          unsubscribe_rate?: number | null
+          updated_at?: string
+          visual_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_performance_editorial_item_id_fkey"
+            columns: ["editorial_item_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       editorial_items: {
         Row: {
           backup_visual_concept: string | null
@@ -351,6 +446,95 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      email_campaigns: {
+        Row: {
+          blog_summary: string | null
+          click_rate: number | null
+          created_at: string
+          cta_text: string | null
+          cta_url: string | null
+          editorial_item_id: string | null
+          header_image_url: string | null
+          id: string
+          intro_text: string | null
+          open_rate: number | null
+          plain_text_fallback: string | null
+          preview_text: string | null
+          recipient_count: number | null
+          recipient_segment: string | null
+          scheduled_send_date: string | null
+          sent_at: string | null
+          status: string
+          subject_line: string
+          total_clicked: number | null
+          total_opened: number | null
+          total_sent: number | null
+          unsubscribe_rate: number | null
+          updated_at: string
+          visual_recommendation: string | null
+        }
+        Insert: {
+          blog_summary?: string | null
+          click_rate?: number | null
+          created_at?: string
+          cta_text?: string | null
+          cta_url?: string | null
+          editorial_item_id?: string | null
+          header_image_url?: string | null
+          id?: string
+          intro_text?: string | null
+          open_rate?: number | null
+          plain_text_fallback?: string | null
+          preview_text?: string | null
+          recipient_count?: number | null
+          recipient_segment?: string | null
+          scheduled_send_date?: string | null
+          sent_at?: string | null
+          status?: string
+          subject_line?: string
+          total_clicked?: number | null
+          total_opened?: number | null
+          total_sent?: number | null
+          unsubscribe_rate?: number | null
+          updated_at?: string
+          visual_recommendation?: string | null
+        }
+        Update: {
+          blog_summary?: string | null
+          click_rate?: number | null
+          created_at?: string
+          cta_text?: string | null
+          cta_url?: string | null
+          editorial_item_id?: string | null
+          header_image_url?: string | null
+          id?: string
+          intro_text?: string | null
+          open_rate?: number | null
+          plain_text_fallback?: string | null
+          preview_text?: string | null
+          recipient_count?: number | null
+          recipient_segment?: string | null
+          scheduled_send_date?: string | null
+          sent_at?: string | null
+          status?: string
+          subject_line?: string
+          total_clicked?: number | null
+          total_opened?: number | null
+          total_sent?: number | null
+          unsubscribe_rate?: number | null
+          updated_at?: string
+          visual_recommendation?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaigns_editorial_item_id_fkey"
+            columns: ["editorial_item_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       events_workshops: {
         Row: {
@@ -528,6 +712,54 @@ export type Database = {
         }
         Relationships: []
       }
+      performance_config: {
+        Row: {
+          blog_success_signals: Json
+          conversion_weight: number
+          created_at: string
+          deprioritized_types: Json
+          email_success_signals: Json
+          engagement_weight: number
+          favored_patterns: Json
+          id: string
+          primary_metrics: Json
+          repetition_limit: number
+          social_success_signals: Json
+          strategic_weight: number
+          updated_at: string
+        }
+        Insert: {
+          blog_success_signals?: Json
+          conversion_weight?: number
+          created_at?: string
+          deprioritized_types?: Json
+          email_success_signals?: Json
+          engagement_weight?: number
+          favored_patterns?: Json
+          id?: string
+          primary_metrics?: Json
+          repetition_limit?: number
+          social_success_signals?: Json
+          strategic_weight?: number
+          updated_at?: string
+        }
+        Update: {
+          blog_success_signals?: Json
+          conversion_weight?: number
+          created_at?: string
+          deprioritized_types?: Json
+          email_success_signals?: Json
+          engagement_weight?: number
+          favored_patterns?: Json
+          id?: string
+          primary_metrics?: Json
+          repetition_limit?: number
+          social_success_signals?: Json
+          strategic_weight?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       planning_config: {
         Row: {
           auto_publish: boolean
@@ -657,6 +889,45 @@ export type Database = {
           sort_order?: number
           updated_at?: string
           visual_icon?: string | null
+        }
+        Relationships: []
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          metadata: Json | null
+          name: string | null
+          segment: string | null
+          status: string
+          subscribed_at: string
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          metadata?: Json | null
+          name?: string | null
+          segment?: string | null
+          status?: string
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          metadata?: Json | null
+          name?: string | null
+          segment?: string | null
+          status?: string
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
