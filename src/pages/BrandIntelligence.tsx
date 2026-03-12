@@ -25,6 +25,7 @@ export default function BrandIntelligence() {
           <TabsTrigger value="pillars">Content Pillars</TabsTrigger>
           <TabsTrigger value="offers">Offers</TabsTrigger>
           <TabsTrigger value="strategy">Strategy</TabsTrigger>
+          <TabsTrigger value="brand-kit">Brand Kit</TabsTrigger>
         </TabsList>
 
         <TabsContent value="positioning" className="space-y-6">
