@@ -45,12 +45,12 @@ export const brandProfile = {
     name: 'The SPIRAL Framework',
     description: 'A systemic approach to organizational transformation that addresses change at multiple levels.',
     pillars: [
-      { letter: 'S', name: 'Systemic Thinking', description: 'See the whole system, not just parts' },
-      { letter: 'P', name: 'Purpose & Positioning', description: 'Align around why before how' },
-      { letter: 'I', name: 'Iterative Progress', description: 'Small experiments, rapid learning' },
-      { letter: 'R', name: 'Resilience Building', description: 'Develop adaptive capacity' },
-      { letter: 'A', name: 'Alignment & Autonomy', description: 'Balance direction with empowerment' },
-      { letter: 'L', name: 'Leadership Evolution', description: 'Grow leaders who grow others' },
+      { letter: 'S', name: 'Synergize', description: 'How people connect, collaborate, and build trust' },
+      { letter: 'P', name: 'Provide', description: 'How value is delivered to customers and stakeholders' },
+      { letter: 'I', name: 'Inspect', description: 'How reality is checked through feedback and reflection' },
+      { letter: 'R', name: 'Respond', description: 'How teams adapt to change and new information' },
+      { letter: 'A', name: 'Act & Accept', description: 'How decisions are made and risks are owned' },
+      { letter: 'L', name: 'Learn', description: 'How improvement becomes continuous and shared' },
     ],
   },
 
