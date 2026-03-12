@@ -13,6 +13,7 @@ import { useUpdateEditorialItem, useRegenerateItem } from '@/hooks/use-editorial
 import { useRecordFeedback } from '@/hooks/use-feedback';
 import { toast } from 'sonner';
 import VisualBriefPanel from './VisualBriefPanel';
+import { resolveBrandIcon } from '@/lib/brand-assets';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   suggested: { label: 'Suggested', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
