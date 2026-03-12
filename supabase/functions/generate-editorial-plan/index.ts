@@ -287,10 +287,12 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const sb = createClient(supabaseUrl, supabaseKey);
 
-    const [brandContext, visualConfig, recentItems] = await Promise.all([
+    const [brandContext, visualConfig, recentItems, feedbackLearnings, perfLearnings] = await Promise.all([
       buildBrandContext(sb),
       getVisualConfig(sb),
       getRecentItems(sb),
+      getFeedbackLearnings(sb),
+      getPerformanceLearnings(sb),
     ]);
 
     const { config, cycleStart, cycleEnd, action } = body;
