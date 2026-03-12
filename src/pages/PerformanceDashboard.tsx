@@ -189,6 +189,10 @@ export default function PerformanceDashboard() {
           )}
         </TabsContent>
 
+        <TabsContent value="outcomes">
+          <OutcomeSignals />
+        </TabsContent>
+
         <TabsContent value="details">
           <PerformanceTable />
         </TabsContent>
