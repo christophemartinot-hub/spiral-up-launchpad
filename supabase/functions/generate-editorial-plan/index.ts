@@ -487,7 +487,7 @@ Return ONLY valid JSON, no markdown.`;
 
     const systemPrompt = `You are the AI editorial planner for Spiral Up. Your role is to create a strategic content plan with visual directions for the upcoming publication cycle.
 
-${brandContext}${visualConfig}${recentItems}
+${brandContext}${visualConfig}${recentItems}${feedbackLearnings}${perfLearnings}
 
 PLANNING CONSTRAINTS:
 - Cycle: ${cycleStart} to ${cycleEnd}
