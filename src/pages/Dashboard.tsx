@@ -49,6 +49,8 @@ export default function Dashboard() {
   const { data: perf, isLoading: perfLoading } = usePerformanceSummary();
   const { data: memories } = useLearningMemory();
   const { data: commentCounts } = useCommentCounts();
+  const { data: strategicCycles = [] } = useStrategicCycles();
+  const { data: approvedIdeas = [] } = useLatestApprovedIdeas();
 
   const loading = plansLoading || itemsLoading;
 
