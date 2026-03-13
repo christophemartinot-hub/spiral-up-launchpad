@@ -718,8 +718,9 @@ ${AUDIENCE_VALUE_FILTER}
 ${brandContext}${visualConfig}${recentItems}${feedbackLearnings}${perfLearnings}${intelligenceModeInstructions}${balanceStr}
 
 PLANNING CONSTRAINTS:
+- Today's date: ${new Date().toISOString().split('T')[0]}
 - Cycle: ${cycleStart} to ${cycleEnd}
-- Channels: ${channels.join(', ')}
+- IMPORTANT: Only schedule content on dates from TODAY onward. Never schedule on past dates.
 - Number of posts: ${postsPerCycle}
 - Preferred formats: ${preferredFormats.join(', ')}
 ${targetAudience ? `- Target audience: ${targetAudience}` : ''}
@@ -763,7 +764,7 @@ VISUAL RULES:
 - visual_rationale must explain which Brand Kit asset is being used and WHY
 
 Return a JSON array of ${postsPerCycle} items. Each item must have:
-- publish_date: YYYY-MM-DD format, within the cycle dates
+- publish_date: YYYY-MM-DD format, within the cycle dates and NOT before today's date
 - channel: one of the allowed channels
 - content_format: appropriate format for the channel
 - working_title: compelling title
