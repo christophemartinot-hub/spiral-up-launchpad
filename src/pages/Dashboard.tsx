@@ -93,7 +93,8 @@ export default function Dashboard() {
           { label: 'Blog Draft', icon: PenTool, path: '/blog', color: 'gradient-warm' },
           { label: 'Social Post', icon: FileText, path: '/studio', color: 'gradient-cool' },
           { label: 'Newsletter', icon: Mail, path: '/email', color: 'bg-accent' },
-          { label: 'Visual Concept', icon: Palette, path: '/editorial', color: 'bg-secondary' },
+          { label: 'Comment Replies', icon: MessageSquare, path: '/comments', color: 'bg-secondary' },
+          { label: 'Visual Concept', icon: Palette, path: '/editorial', color: 'bg-muted' },
         ].map(a => (
           <motion.div key={a.label} variants={fadeIn}>
             <Link to={a.path}>
