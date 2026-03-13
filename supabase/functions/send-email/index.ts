@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
               from: "Spiral Up <connect@spiralingup.works>",
               to: [sub.email],
               subject: campaign.subject_line,
-              html: htmlBody.replace("{{name}}", sub.name || "there"),
+              html: htmlBody.replace("{{name}}", "there"),
               text: campaign.plain_text_fallback || undefined,
             }),
           });
