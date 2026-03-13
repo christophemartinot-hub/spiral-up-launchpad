@@ -1,217 +1,400 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Plus, Wand2, Filter } from 'lucide-react';
-import { ContentStatusBadge } from '@/components/StatusBadge';
-import { demoContent, demoCampaigns } from '@/data/demo';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  ChevronLeft, ChevronRight, Plus, Filter, CheckCircle2, XCircle,
+  Palette, Image as ImageIcon, Eye, Pencil, Clock, Sparkles,
+} from 'lucide-react';
 import { ChannelType, CHANNEL_CONFIG } from '@/data/types';
-import { useEditorialItems } from '@/hooks/use-editorial';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { useEditorialItems, useUpdateEditorialItem } from '@/hooks/use-editorial';
+import { resolveBrandIcon } from '@/lib/brand-assets';
+import { toast } from 'sonner';
 
 // ─── Helpers ───
 function startOfWeek(date: Date): Date {
   const d = new Date(date);
-  const day = d.getDay();
-  d.setDate(d.getDate() - day);
+  d.setDate(d.getDate() - d.getDay());
   d.setHours(0, 0, 0, 0);
   return d;
 }
-
 function addDays(date: Date, n: number): Date {
   const d = new Date(date);
   d.setDate(d.getDate() + n);
   return d;
 }
-
 function formatDateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
-
-function formatDayHeader(d: Date): { dayName: string; dayNum: number; monthShort: string } {
-  const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-  const monthShort = d.toLocaleDateString('en-US', { month: 'short' });
-  return { dayName, dayNum: d.getDate(), monthShort };
+function formatDayHeader(d: Date) {
+  return {
+    dayName: d.toLocaleDateString('en-US', { weekday: 'short' }),
+    dayNum: d.getDate(),
+    monthShort: d.toLocaleDateString('en-US', { month: 'short' }),
+  };
 }
 
-const CHANNEL_ICONS: Record<ChannelType, string[]> = {
-  linkedin: ['in'],
-  instagram: ['📷'],
-  facebook: ['f'],
-  twitter: ['𝕏'],
-  tiktok: ['♪'],
-  youtube: ['▶'],
-  email: ['📧'],
+const CHANNEL_COLORS: Record<string, string> = {
+  linkedin: 'bg-[hsl(210,80%,45%)]',
+  instagram: 'bg-gradient-to-br from-[hsl(330,70%,55%)] to-[hsl(30,90%,55%)]',
+  facebook: 'bg-[hsl(220,70%,50%)]',
+  twitter: 'bg-foreground',
+  youtube: 'bg-[hsl(0,80%,50%)]',
+  email: 'bg-[hsl(35,90%,55%)]',
+  blog: 'bg-[hsl(200,70%,50%)]',
 };
 
-// Channel icon pills (small colored circles like in the reference)
-function ChannelIconPills({ channels }: { channels: ChannelType[] }) {
-  const colors: Record<ChannelType, string> = {
-    linkedin: 'bg-[hsl(210,80%,45%)]',
-    instagram: 'bg-gradient-to-br from-[hsl(330,70%,55%)] to-[hsl(30,90%,55%)]',
-    facebook: 'bg-[hsl(220,70%,50%)]',
-    twitter: 'bg-foreground',
-    tiktok: 'bg-foreground',
-    youtube: 'bg-[hsl(0,80%,50%)]',
-    email: 'bg-[hsl(35,90%,55%)]',
-  };
-  return (
-    <div className="flex -space-x-1">
-      {channels.map((ch) => (
-        <div
-          key={ch}
-          className={`w-5 h-5 rounded-full ${colors[ch]} flex items-center justify-center text-[9px] text-white font-bold ring-2 ring-background`}
-          title={CHANNEL_CONFIG[ch].label}
-        >
-          {ch === 'linkedin' ? 'in' : ch === 'facebook' ? 'f' : ch === 'email' ? '✉' : ch === 'youtube' ? '▶' : ch === 'instagram' ? '📷' : ch === 'twitter' ? '𝕏' : '♪'}
-        </div>
-      ))}
-    </div>
-  );
-}
+const STATUS_STYLES: Record<string, string> = {
+  suggested: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  under_review: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+  approved: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
+  rejected: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+  scheduled: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
+  published: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+};
 
-// ─── Content card inside the calendar ───
-function CalendarContentCard({ item, campaign }: { item: typeof demoContent[0]; campaign?: typeof demoCampaigns[0] }) {
-  const config = CHANNEL_CONFIG[item.channel];
-  const typeLabel = item.type === 'email' ? 'Email' : item.type === 'reel' ? 'Story' : item.type === 'carousel' ? 'Carousel' : item.type === 'video' ? 'Video' : 'Post';
+const VISUAL_STATUS_STYLES: Record<string, { label: string; color: string }> = {
+  suggested: { label: 'Awaiting Approval', color: 'text-amber-600' },
+  approved: { label: 'Ready', color: 'text-green-600' },
+  rejected: { label: 'Needs Redesign', color: 'text-red-600' },
+  none: { label: 'No Visual', color: 'text-muted-foreground' },
+};
 
-  // Determine accent color
-  const accentMap: Record<string, string> = {
-    email: 'border-l-[hsl(35,90%,55%)]',
-    post: 'border-l-primary',
-    reel: 'border-l-[hsl(280,70%,60%)]',
-    story: 'border-l-[hsl(280,70%,60%)]',
-    carousel: 'border-l-[hsl(200,70%,50%)]',
-    video: 'border-l-[hsl(0,80%,50%)]',
-  };
+const ACCENT_MAP: Record<string, string> = {
+  email: 'border-l-[hsl(35,90%,55%)]',
+  blog: 'border-l-[hsl(200,70%,50%)]',
+  linkedin: 'border-l-primary',
+  instagram: 'border-l-[hsl(330,70%,55%)]',
+};
+
+// ─── Calendar Card ───
+function CalendarEditorialCard({ item, onClick }: { item: any; onClick: () => void }) {
+  const channel = item.channel as string;
+  const brandIcon = resolveBrandIcon(item.content_pillar || item.working_title || '');
+  const vs = VISUAL_STATUS_STYLES[item.visual_status] || VISUAL_STATUS_STYLES.none;
+  const hasVisual = item.visual_status && item.visual_status !== 'none';
 
   return (
     <div
-      className={`group rounded-xl bg-card border border-border shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden border-l-4 ${accentMap[item.type] || 'border-l-primary'}`}
+      onClick={onClick}
+      className={`group rounded-xl bg-card border border-border shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden border-l-4 ${ACCENT_MAP[channel] || 'border-l-primary'}`}
     >
-      {/* Header row */}
-      <div className="px-3 pt-2.5 pb-1.5 flex items-center justify-between">
+      {/* Header */}
+      <div className="px-3 pt-2.5 pb-1 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <ChannelIconPills channels={[item.channel]} />
-          <span className="text-xs font-medium text-muted-foreground">{typeLabel}</span>
+          <div className={`w-5 h-5 rounded-full ${CHANNEL_COLORS[channel] || 'bg-primary'} flex items-center justify-center text-[9px] text-white font-bold`}>
+            {channel === 'linkedin' ? 'in' : channel === 'email' ? '✉' : channel === 'blog' ? '📝' : channel[0]?.toUpperCase()}
+          </div>
+          <span className="text-[10px] font-medium text-muted-foreground">{item.content_format || 'Post'}</span>
         </div>
-        <span className="text-[11px] text-muted-foreground font-medium">10:00am</span>
+        {brandIcon && <img src={brandIcon} alt="" className="w-4 h-4 object-contain opacity-60" />}
       </div>
 
       {/* Title */}
-      <div className="px-3 pb-2">
-        <p className="text-sm font-semibold leading-snug line-clamp-2">{item.title}</p>
+      <div className="px-3 pb-1.5">
+        <p className="text-xs font-semibold leading-snug line-clamp-2">{item.working_title}</p>
       </div>
 
-      {/* Body preview */}
-      <div className="px-3 pb-2">
-        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{item.body}</p>
-      </div>
-
-      {/* Footer */}
-      <div className="px-3 pb-2.5 flex items-center justify-between">
-        <ContentStatusBadge status={item.status} />
-        <button className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-          Connect
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─── Editorial item card ───
-function CalendarEditorialCard({ item }: { item: any }) {
-  const typeLabel = item.content_format || 'Post';
-  const channel = item.channel as ChannelType;
-  const config = CHANNEL_CONFIG[channel] || CHANNEL_CONFIG.linkedin;
-
-  const statusMap: Record<string, string> = {
-    approved: 'bg-success/15 text-success',
-    pending: 'bg-warning/15 text-warning',
-    rejected: 'bg-destructive/15 text-destructive',
-    draft: 'bg-muted text-muted-foreground',
-  };
-
-  const accentMap: Record<string, string> = {
-    email: 'border-l-[hsl(35,90%,55%)]',
-    blog: 'border-l-[hsl(200,70%,50%)]',
-  };
-
-  return (
-    <div className={`group rounded-xl bg-card border border-border shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden border-l-4 ${accentMap[channel] || 'border-l-primary'}`}>
-      <div className="px-3 pt-2.5 pb-1.5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <ChannelIconPills channels={[channel]} />
-          <span className="text-xs font-medium text-muted-foreground">{typeLabel}</span>
-        </div>
-        <span className="text-[11px] text-muted-foreground font-medium">
-          {item.publish_date ? new Date(item.publish_date + 'T12:00:00').toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : ''}
-        </span>
-      </div>
-      <div className="px-3 pb-2">
-        <p className="text-sm font-semibold leading-snug line-clamp-2">{item.working_title}</p>
-      </div>
-      {item.key_message && (
-        <div className="px-3 pb-2">
-          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{item.key_message}</p>
+      {/* Visual indicator */}
+      {hasVisual && (
+        <div className="px-3 pb-1.5 flex items-center gap-1.5">
+          <Palette className="w-3 h-3 text-muted-foreground" />
+          <span className="text-[9px] text-muted-foreground">{item.visual_type?.replace(/_/g, ' ')}</span>
+          <span className={`text-[9px] font-medium ${vs.color}`}>· {vs.label}</span>
         </div>
       )}
-      <div className="px-3 pb-2.5 flex items-center justify-between">
-        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${statusMap[item.status] || statusMap.draft}`}>
+
+      {/* Footer */}
+      <div className="px-3 pb-2 flex items-center justify-between">
+        <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded-full ${STATUS_STYLES[item.status] || ''}`}>
           {item.status}
         </span>
-        <button className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-          Connect
-        </button>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Pencil className="w-3 h-3 text-muted-foreground" />
+          <span className="text-[9px] text-primary font-medium">Edit</span>
+        </div>
       </div>
     </div>
   );
 }
 
-// ─── Main component ───
+// ─── Detail / Edit Dialog ───
+function ItemDetailDialog({ item, open, onOpenChange }: { item: any; open: boolean; onOpenChange: (v: boolean) => void }) {
+  const updateItem = useUpdateEditorialItem();
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<any>({});
+
+  const startEdit = () => {
+    setForm({
+      working_title: item.working_title,
+      key_message: item.key_message || '',
+      cta: item.cta || '',
+      visual_type: item.visual_type || '',
+      visual_concept: item.visual_concept || '',
+      visual_headline: item.visual_headline || '',
+      publish_date: item.publish_date || '',
+      draft_content: item.draft_content || '',
+    });
+    setEditing(true);
+  };
+
+  const save = async () => {
+    try {
+      await updateItem.mutateAsync({ id: item.id, ...form });
+      toast.success('Item updated');
+      setEditing(false);
+    } catch {
+      toast.error('Failed to save');
+    }
+  };
+
+  const approve = async (field: 'status' | 'visual_status') => {
+    try {
+      await updateItem.mutateAsync({ id: item.id, [field]: 'approved' });
+      toast.success(field === 'status' ? 'Content approved' : 'Visual approved');
+    } catch {
+      toast.error('Failed to approve');
+    }
+  };
+
+  const reject = async (field: 'status' | 'visual_status') => {
+    try {
+      await updateItem.mutateAsync({ id: item.id, [field]: 'rejected' });
+      toast.success(field === 'status' ? 'Content rejected' : 'Visual rejected');
+    } catch {
+      toast.error('Failed to reject');
+    }
+  };
+
+  const brandIcon = resolveBrandIcon(item.content_pillar || item.working_title || '');
+  const vs = VISUAL_STATUS_STYLES[item.visual_status] || VISUAL_STATUS_STYLES.none;
+  const hasVisual = item.visual_status && item.visual_status !== 'none';
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            {brandIcon && <img src={brandIcon} alt="" className="w-6 h-6 object-contain" />}
+            <DialogTitle className="font-display text-lg">{item.working_title}</DialogTitle>
+          </div>
+        </DialogHeader>
+
+        <div className="space-y-5">
+          {/* Status + Channel */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className={STATUS_STYLES[item.status]}>{item.status}</Badge>
+            <Badge variant="outline">{item.channel}</Badge>
+            <Badge variant="outline">{item.content_format}</Badge>
+            {item.content_pillar && <Badge variant="secondary">{item.content_pillar}</Badge>}
+            {item.outcome_score > 0 && (
+              <Badge variant="outline" className="gap-1">
+                <Sparkles className="w-3 h-3" /> Score: {item.outcome_score}
+              </Badge>
+            )}
+          </div>
+
+          {/* Content Actions */}
+          <div className="flex gap-2">
+            {item.status !== 'approved' && item.status !== 'published' && (
+              <Button size="sm" className="gap-1.5" onClick={() => approve('status')}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> Approve Content
+              </Button>
+            )}
+            {item.status !== 'rejected' && item.status !== 'published' && (
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => reject('status')}>
+                <XCircle className="w-3.5 h-3.5" /> Reject
+              </Button>
+            )}
+            {!editing && (
+              <Button size="sm" variant="ghost" className="gap-1.5" onClick={startEdit}>
+                <Pencil className="w-3.5 h-3.5" /> Edit
+              </Button>
+            )}
+          </div>
+
+          {/* Outcome Framework */}
+          {(item.audience_challenge || item.insight_delivered || item.practical_takeaway) && (
+            <div className="bg-muted/40 rounded-lg p-4 space-y-2">
+              <p className="text-[10px] font-semibold uppercase text-muted-foreground">Outcome Framework</p>
+              {item.audience_challenge && (
+                <div><span className="text-[10px] font-medium text-muted-foreground">Challenge:</span> <span className="text-xs">{item.audience_challenge}</span></div>
+              )}
+              {item.insight_delivered && (
+                <div><span className="text-[10px] font-medium text-muted-foreground">Insight:</span> <span className="text-xs">{item.insight_delivered}</span></div>
+              )}
+              {item.practical_takeaway && (
+                <div><span className="text-[10px] font-medium text-muted-foreground">Takeaway:</span> <span className="text-xs">{item.practical_takeaway}</span></div>
+              )}
+              {item.expected_audience_action && (
+                <div><span className="text-[10px] font-medium text-muted-foreground">Expected action:</span> <span className="text-xs">{item.expected_audience_action}</span></div>
+              )}
+            </div>
+          )}
+
+          {/* ─── Visual Package ─── */}
+          {hasVisual && (
+            <div className="border rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-display font-semibold flex items-center gap-2">
+                  <Palette className="w-4 h-4 text-primary" /> Visual Package
+                </p>
+                <span className={`text-xs font-medium ${vs.color}`}>{vs.label}</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                {item.visual_type && (
+                  <div><span className="text-muted-foreground">Type:</span> <span className="font-medium">{item.visual_type.replace(/_/g, ' ')}</span></div>
+                )}
+                {item.format_ratio && (
+                  <div><span className="text-muted-foreground">Format:</span> <span className="font-medium">{item.format_ratio}</span></div>
+                )}
+                {item.visual_headline && (
+                  <div className="col-span-2"><span className="text-muted-foreground">Headline:</span> <span className="font-medium">{item.visual_headline}</span></div>
+                )}
+                {item.visual_subheadline && (
+                  <div className="col-span-2"><span className="text-muted-foreground">Subheadline:</span> <span className="font-medium">{item.visual_subheadline}</span></div>
+                )}
+              </div>
+
+              {item.visual_concept && (
+                <div className="bg-muted/30 rounded-lg p-3">
+                  <p className="text-[10px] font-medium text-muted-foreground mb-1">Concept</p>
+                  <p className="text-xs">{item.visual_concept}</p>
+                </div>
+              )}
+
+              {item.visual_rationale && (
+                <div className="bg-muted/30 rounded-lg p-3">
+                  <p className="text-[10px] font-medium text-muted-foreground mb-1">Rationale</p>
+                  <p className="text-xs">{item.visual_rationale}</p>
+                </div>
+              )}
+
+              {item.backup_visual_concept && (
+                <div className="bg-muted/30 rounded-lg p-3 border-l-2 border-muted-foreground/20">
+                  <p className="text-[10px] font-medium text-muted-foreground mb-1">Backup Concept</p>
+                  <p className="text-xs">{item.backup_visual_concept}</p>
+                  {item.backup_visual_type && <p className="text-[10px] text-muted-foreground mt-1">Type: {item.backup_visual_type.replace(/_/g, ' ')}</p>}
+                </div>
+              )}
+
+              {/* Visual Actions */}
+              <div className="flex gap-2 pt-1">
+                {item.visual_status !== 'approved' && (
+                  <Button size="sm" variant="outline" className="gap-1.5 text-green-600 border-green-200 hover:bg-green-50" onClick={() => approve('visual_status')}>
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Approve Visual
+                  </Button>
+                )}
+                {item.visual_status !== 'rejected' && (
+                  <Button size="sm" variant="outline" className="gap-1.5 text-red-600 border-red-200 hover:bg-red-50" onClick={() => reject('visual_status')}>
+                    <XCircle className="w-3.5 h-3.5" /> Reject Visual
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ─── Edit Form ─── */}
+          {editing && (
+            <div className="border rounded-lg p-4 space-y-4 bg-muted/20">
+              <p className="text-sm font-display font-semibold">Edit Item</p>
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs">Title</Label>
+                  <Input value={form.working_title} onChange={e => setForm({ ...form, working_title: e.target.value })} />
+                </div>
+                <div>
+                  <Label className="text-xs">Key Message</Label>
+                  <Textarea value={form.key_message} onChange={e => setForm({ ...form, key_message: e.target.value })} rows={2} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">CTA</Label>
+                    <Input value={form.cta} onChange={e => setForm({ ...form, cta: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Publish Date</Label>
+                    <Input type="date" value={form.publish_date} onChange={e => setForm({ ...form, publish_date: e.target.value })} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Visual Type</Label>
+                    <Input value={form.visual_type} onChange={e => setForm({ ...form, visual_type: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Visual Headline</Label>
+                    <Input value={form.visual_headline} onChange={e => setForm({ ...form, visual_headline: e.target.value })} />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Visual Concept</Label>
+                  <Textarea value={form.visual_concept} onChange={e => setForm({ ...form, visual_concept: e.target.value })} rows={2} />
+                </div>
+                <div>
+                  <Label className="text-xs">Draft Content</Label>
+                  <Textarea value={form.draft_content} onChange={e => setForm({ ...form, draft_content: e.target.value })} rows={4} />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={save} disabled={updateItem.isPending}>Save Changes</Button>
+                <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+              </div>
+            </div>
+          )}
+
+          {/* Key message / draft preview when not editing */}
+          {!editing && item.key_message && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase text-muted-foreground mb-1">Key Message</p>
+              <p className="text-sm">{item.key_message}</p>
+            </div>
+          )}
+          {!editing && item.draft_content && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase text-muted-foreground mb-1">Draft Content</p>
+              <p className="text-sm whitespace-pre-wrap">{item.draft_content}</p>
+            </div>
+          )}
+
+          {item.suggestion_rationale && (
+            <div className="bg-primary/5 rounded-lg p-3">
+              <p className="text-[10px] font-medium text-primary mb-1">Why this was suggested</p>
+              <p className="text-xs">{item.suggestion_rationale}</p>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Main ───
 export default function CalendarView() {
-  const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 2, 13)); // Today: March 13 2026
+  const [currentDate, setCurrentDate] = useState(new Date());
   const { data: editorialItems } = useEditorialItems(null);
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
 
   const weekStart = startOfWeek(currentDate);
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  const todayKey = formatDateKey(new Date(2026, 2, 13));
+  const todayKey = formatDateKey(new Date());
 
-  // Index demo content by date
-  const contentByDate = useMemo(() => {
-    const map: Record<string, typeof demoContent> = {};
-    demoContent.forEach((item) => {
-      if (!item.publishDate) return;
-      if (!map[item.publishDate]) map[item.publishDate] = [];
-      map[item.publishDate].push(item);
-    });
-    return map;
-  }, []);
-
-  // Index editorial items by date
   const editorialByDate = useMemo(() => {
     const map: Record<string, any[]> = {};
     (editorialItems || []).forEach((item: any) => {
       if (!item.publish_date) return;
-      const key = item.publish_date;
-      if (!map[key]) map[key] = [];
-      map[key].push(item);
+      if (!map[item.publish_date]) map[item.publish_date] = [];
+      map[item.publish_date].push(item);
     });
     return map;
   }, [editorialItems]);
 
-  const goToday = () => setCurrentDate(new Date(2026, 2, 13));
+  const goToday = () => setCurrentDate(new Date());
   const prev = () => setCurrentDate(addDays(currentDate, -7));
   const next = () => setCurrentDate(addDays(currentDate, 7));
 
@@ -232,26 +415,11 @@ export default function CalendarView() {
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
+          <span className="text-sm text-muted-foreground font-medium ml-2">
+            {weekDays[0].toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </span>
         </div>
-
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <Plus className="w-3.5 h-3.5" />
-            Create
-          </Button>
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <Wand2 className="w-3.5 h-3.5" />
-            Improve
-          </Button>
-          <Select value={viewMode} onValueChange={(v) => setViewMode(v as 'week' | 'month')}>
-            <SelectTrigger className="w-24 h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="week">Week</SelectItem>
-              <SelectItem value="month">Month</SelectItem>
-            </SelectContent>
-          </Select>
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Filter className="w-3.5 h-3.5" />
           </Button>
@@ -264,33 +432,26 @@ export default function CalendarView() {
           const dateKey = formatDateKey(day);
           const { dayName, dayNum, monthShort } = formatDayHeader(day);
           const isToday = dateKey === todayKey;
-          const items = contentByDate[dateKey] || [];
           const editorials = editorialByDate[dateKey] || [];
-          const hasContent = items.length > 0 || editorials.length > 0;
 
           return (
             <div
               key={dateKey}
               className={`flex flex-col ${idx < 6 ? 'border-r border-border' : ''} ${isToday ? 'bg-primary/[0.03]' : 'bg-background'}`}
             >
-              {/* Day header */}
               <div className={`px-3 py-2.5 text-center border-b border-border sticky top-0 z-10 ${isToday ? 'bg-primary/[0.06]' : 'bg-muted/50'}`}>
-                <div className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">{monthShort} {dayNum} {dayName}</div>
-                {isToday && <div className="w-1.5 h-1.5 rounded-full bg-primary mx-auto mt-1" />}
+                <div className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">{dayName}</div>
+                <div className={`text-sm font-bold ${isToday ? 'text-primary' : ''}`}>{dayNum}</div>
+                {isToday && <div className="w-1.5 h-1.5 rounded-full bg-primary mx-auto mt-0.5" />}
               </div>
 
-              {/* Cards */}
-              <div className="flex-1 p-2 space-y-2 overflow-y-auto">
-                {items.map((item) => {
-                  const campaign = demoCampaigns.find((c) => c.id === item.campaignId);
-                  return <CalendarContentCard key={item.id} item={item} campaign={campaign} />;
-                })}
+              <div className="flex-1 p-1.5 space-y-1.5 overflow-y-auto">
                 {editorials.map((item: any) => (
-                  <CalendarEditorialCard key={item.id} item={item} />
+                  <CalendarEditorialCard key={item.id} item={item} onClick={() => setSelectedItem(item)} />
                 ))}
-                {!hasContent && (
-                  <div className="flex items-center justify-center h-20 text-xs text-muted-foreground/50 italic">
-                    No posts
+                {editorials.length === 0 && (
+                  <div className="flex items-center justify-center h-20 text-[10px] text-muted-foreground/40 italic">
+                    —
                   </div>
                 )}
               </div>
@@ -298,6 +459,15 @@ export default function CalendarView() {
           );
         })}
       </div>
+
+      {/* Detail Dialog */}
+      {selectedItem && (
+        <ItemDetailDialog
+          item={selectedItem}
+          open={!!selectedItem}
+          onOpenChange={(v) => { if (!v) setSelectedItem(null); }}
+        />
+      )}
     </div>
   );
 }
