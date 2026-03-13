@@ -313,15 +313,49 @@ async function getPerformanceLearnings(sb: any): Promise<string> {
   const totalFollowerGrowth = perf.reduce((s: number, p: any) => s + (p.follower_growth || 0), 0);
   const totalNewsletterSignups = perf.reduce((s: number, p: any) => s + (p.newsletter_signups || 0), 0);
   const totalEventSignups = perf.reduce((s: number, p: any) => s + (p.event_signups || 0), 0);
+  const totalMeaningfulComments = perf.reduce((s: number, p: any) => s + (p.meaningful_comments || 0), 0);
+  const totalProfileVisits = perf.reduce((s: number, p: any) => s + (p.profile_visits || 0), 0);
+  const totalBlogClicks = perf.reduce((s: number, p: any) => s + (p.blog_clickthroughs || 0), 0);
 
   if (totalSaves > 0 || totalShares > 0 || totalFollowerGrowth > 0) {
     parts.push(`\nOUTCOME SIGNALS (prioritize creating content that drives these):
-- Saves: ${totalSaves} total (high-value indicator — audience finds it reference-worthy)
-- Shares: ${totalShares} total (trust indicator — audience vouches for content)
+- Saves: ${totalSaves} (high-value — audience finds it reference-worthy)
+- Shares: ${totalShares} (trust — audience vouches for content)
+- Meaningful comments: ${totalMeaningfulComments} (depth — content provokes thought)
+- Profile visits: ${totalProfileVisits} (curiosity — content makes people want to know more)
 - Follower growth: ${totalFollowerGrowth} (audience growth from content)
+- Blog click-throughs: ${totalBlogClicks} (content drives deeper engagement)
 - Newsletter signups: ${totalNewsletterSignups} (conversion from content)
 - Event signups: ${totalEventSignups} (highest-value conversion)
-Prioritize content that drives SAVES, SHARES, and SUBSCRIPTIONS over impressions/likes.`);
+PRIORITY: Saves > Shares > Follower Growth > Newsletter Signups > Meaningful Comments > Blog Clicks > Profile Visits > Event Signups
+DO NOT optimize for impressions or likes alone.`);
+  }
+
+  // Outcome pattern detection — identify what content TYPES drive the best outcomes
+  const outcomePatterns: Record<string, { saves: number; shares: number; growth: number; count: number }> = {};
+  for (const p of perf) {
+    const key = `${p.channel}/${p.content_format}/${p.content_pillar || 'none'}`;
+    if (!outcomePatterns[key]) outcomePatterns[key] = { saves: 0, shares: 0, growth: 0, count: 0 };
+    outcomePatterns[key].saves += p.saves || 0;
+    outcomePatterns[key].shares += p.shares || 0;
+    outcomePatterns[key].growth += p.follower_growth || 0;
+    outcomePatterns[key].count++;
+  }
+
+  const sortedPatterns = Object.entries(outcomePatterns)
+    .map(([k, v]) => ({ pattern: k, score: v.saves * 3 + v.shares * 2 + v.growth * 5, ...v }))
+    .filter(p => p.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  if (sortedPatterns.length > 0) {
+    const topPatterns = sortedPatterns.slice(0, 5);
+    const weakPatterns = sortedPatterns.filter(p => p.score === 0 && p.count >= 2).slice(0, 3);
+    parts.push(`\nOUTCOME PATTERN DETECTION (learn from what works):
+HIGH-OUTCOME PATTERNS (create MORE content like these):
+${topPatterns.map(p => `- ${p.pattern}: ${p.saves} saves, ${p.shares} shares, ${p.growth} follower growth (${p.count} posts)`).join('\n')}
+${weakPatterns.length > 0 ? `\nLOW-OUTCOME PATTERNS (deprioritize or find new angles):
+${weakPatterns.map(p => `- ${p.pattern}: no outcome signals despite ${p.count} posts`).join('\n')}` : ''}
+Use these patterns to INFORM (not dictate) suggestions. Maintain topic diversity.`);
   }
 
   return `\n\n## PERFORMANCE LEARNINGS (from published content data)\n${parts.join('\n')}`;
