@@ -139,7 +139,7 @@ export default function StrategicIdeas() {
                   : 'border-border hover:border-primary/30 text-muted-foreground'
               }`}
             >
-              {format(new Date(cycle.cycle_start), 'MMM d')} — {format(new Date(cycle.cycle_end), 'MMM d')}
+              {format(parseISO(cycle.cycle_start), 'MMM d')} — {format(parseISO(cycle.cycle_end), 'MMM d')}
             </button>
           ))}
         </div>
