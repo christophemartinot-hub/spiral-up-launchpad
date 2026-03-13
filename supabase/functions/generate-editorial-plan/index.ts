@@ -764,7 +764,7 @@ VISUAL RULES:
 - visual_rationale must explain which Brand Kit asset is being used and WHY
 
 Return a JSON array of ${postsPerCycle} items. Each item must have:
-- publish_date: YYYY-MM-DD format, within the cycle dates
+- publish_date: YYYY-MM-DD format, within the cycle dates and NOT before today's date
 - channel: one of the allowed channels
 - content_format: appropriate format for the channel
 - working_title: compelling title
