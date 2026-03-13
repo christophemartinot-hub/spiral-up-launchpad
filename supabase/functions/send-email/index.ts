@@ -19,10 +19,22 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Internal Supabase client (this project – for campaigns table)
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // External Supabase client (spiralingup.works – for subscribers)
+    const WEBSITE_URL = Deno.env.get("SPIRALUP_WEBSITE_SUPABASE_URL");
+    const WEBSITE_KEY = Deno.env.get("SPIRALUP_WEBSITE_SERVICE_ROLE_KEY");
+    if (!WEBSITE_URL || !WEBSITE_KEY) {
+      return new Response(JSON.stringify({ error: "External Supabase credentials not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const websiteDb = createClient(WEBSITE_URL, WEBSITE_KEY);
 
     const { campaignId } = await req.json();
     if (!campaignId) {
@@ -32,7 +44,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch campaign
+    // Fetch campaign from internal DB
     const { data: campaign, error: campErr } = await supabase
       .from("email_campaigns")
       .select("*")
@@ -46,9 +58,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch active subscribers
+    // Fetch active subscribers from external spiralingup.works DB
     const segment = campaign.recipient_segment || "all";
-    let query = supabase.from("subscribers").select("email, name").eq("status", "active");
+    let query = websiteDb.from("subscribers").select("email, name").eq("status", "active");
     if (segment !== "all") {
       query = query.eq("segment", segment);
     }
