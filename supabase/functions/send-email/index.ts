@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
     const { data: subscribers, error: subErr } = await query;
 
     if (subErr || !subscribers || subscribers.length === 0) {
-      return new Response(JSON.stringify({ error: "No active subscribers found" }), {
+      return new Response(JSON.stringify({ error: "No subscribers found in book_leads", details: subErr?.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
