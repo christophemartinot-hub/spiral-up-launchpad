@@ -39,7 +39,7 @@ export default function EditorialAgenda({ activePlanId, onPlanChange }: Props) {
     const activePlan = plans?.find(p => p.id === activePlanId);
     
     // If there's an active plan, start next cycle after it ends
-    const baseDate = activePlan ? new Date(activePlan.cycle_end) : now;
+    const baseDate = activePlan ? parseISO(activePlan.cycle_end) : now;
     const nextStart = addDays(baseDate, 1);
     const cycleStart = format(startOfWeek(nextStart, { weekStartsOn: 1 }), 'yyyy-MM-dd');
     const cycleEnd = cadence === 'weekly'
