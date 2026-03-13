@@ -99,7 +99,7 @@ export default function EditorialAgenda({ activePlanId, onPlanChange }: Props) {
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-medium">
-                {format(new Date(activePlan.cycle_start), 'MMM d')} — {format(new Date(activePlan.cycle_end), 'MMM d, yyyy')}
+                {format(parseISO(activePlan.cycle_start), 'MMM d')} — {format(parseISO(activePlan.cycle_end), 'MMM d, yyyy')}
               </span>
               <Badge variant="outline" className="text-xs">{activePlan.cadence}</Badge>
               {config?.intelligence_mode && (
