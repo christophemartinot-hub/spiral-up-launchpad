@@ -293,7 +293,7 @@ Return ONLY valid JSON. No markdown, no explanation outside the JSON.`;
           { role: 'user', content: `Generate strategic ideas for the editorial cycle ${cycleStart} to ${cycleEnd}. Analyze all the brand intelligence, performance data, and editorial history provided. Think deeply about what conversations Spiral Up should lead this cycle.` },
         ],
         temperature: 0.7,
-        max_tokens: 8000,
+        max_tokens: 16000,
       }),
     });
 
