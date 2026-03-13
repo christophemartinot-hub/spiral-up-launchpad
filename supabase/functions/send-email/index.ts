@@ -58,11 +58,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch active subscribers from external spiralingup.works DB
+    // Fetch subscribers from external spiralingup.works DB (book_leads table)
     const segment = campaign.recipient_segment || "all";
-    let query = websiteDb.from("subscribers").select("email, name").eq("status", "active");
+    let query = websiteDb.from("book_leads").select("email, source").eq("updates", true);
     if (segment !== "all") {
-      query = query.eq("segment", segment);
+      query = query.eq("source", segment);
     }
     const { data: subscribers, error: subErr } = await query;
 
