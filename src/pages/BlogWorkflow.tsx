@@ -139,7 +139,7 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
 
         // Save as draft
         try {
-          const { data } = await createPost.mutateAsync({
+          const result = await createPost.mutateAsync({
             title: parsedTitle,
             slug: parsedSlug,
             content,
