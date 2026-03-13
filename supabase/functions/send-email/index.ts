@@ -58,16 +58,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch active subscribers from external spiralingup.works DB
+    // Fetch subscribers from external spiralingup.works DB (book_leads table)
     const segment = campaign.recipient_segment || "all";
-    let query = websiteDb.from("subscribers").select("email, name").eq("status", "active");
+    let query = websiteDb.from("book_leads").select("email, source").eq("updates", true);
     if (segment !== "all") {
-      query = query.eq("segment", segment);
+      query = query.eq("source", segment);
     }
     const { data: subscribers, error: subErr } = await query;
 
     if (subErr || !subscribers || subscribers.length === 0) {
-      return new Response(JSON.stringify({ error: "No active subscribers found" }), {
+      return new Response(JSON.stringify({ error: "No subscribers found in book_leads", details: subErr?.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
               from: "Spiral Up <connect@spiralingup.works>",
               to: [sub.email],
               subject: campaign.subject_line,
-              html: htmlBody.replace("{{name}}", sub.name || "there"),
+              html: htmlBody.replace("{{name}}", "there"),
               text: campaign.plain_text_fallback || undefined,
             }),
           });
