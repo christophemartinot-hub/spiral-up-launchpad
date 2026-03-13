@@ -312,7 +312,11 @@ Return ONLY valid JSON. No markdown, no explanation outside the JSON.`;
     // Parse JSON from response (handle markdown code blocks)
     let parsed;
     try {
-      const jsonStr = rawContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      // Extract JSON - find first { and last }
+      const firstBrace = rawContent.indexOf('{');
+      const lastBrace = rawContent.lastIndexOf('}');
+      if (firstBrace === -1 || lastBrace === -1) throw new Error('No JSON found');
+      const jsonStr = rawContent.slice(firstBrace, lastBrace + 1);
       parsed = JSON.parse(jsonStr);
     } catch (e) {
       console.error('Failed to parse AI response:', rawContent.slice(0, 500));
