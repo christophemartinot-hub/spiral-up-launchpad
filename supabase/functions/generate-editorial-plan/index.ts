@@ -362,6 +362,33 @@ const SUGGESTION_RATIONALE_SPEC = `
   * "Testing a new angle on a strategically important but underperforming topic based on recent rejection feedback."
   IMPORTANT: Every item MUST have a meaningful suggestion_rationale. Never leave it generic.`;
 
+const AUDIENCE_VALUE_FILTER = `
+## AUDIENCE VALUE FILTER (MANDATORY PRE-CHECK)
+Before proposing ANY content item, you MUST evaluate it against these 4 gates. If the answer is NO to any, DO NOT propose the item — find a better topic.
+
+1. Does this content help leaders or teams understand something important about transformation, leadership, agility, resilience, or customer centricity?
+2. Does it address a REAL tension, challenge, or question the audience actually faces — not a hypothetical or generic concern?
+3. Does it provide a useful idea, reflection, framework, or lesson the audience can apply?
+4. Does it feel credible and human — grounded in real experience — rather than generic AI advice?
+
+CONTENT TO PRIORITIZE (drives audience growth):
+- Leadership insights that challenge conventional thinking
+- Transformation lessons from real organizational tensions
+- Framework explanations with practical application (SPIRAL, zones, principles)
+- Myth-busting posts that confront popular but wrong assumptions
+- Opinion pieces grounded in experience
+- Blog insights with depth and nuance
+- Practical takeaways people want to save and share
+
+CONTENT TO REJECT (low value, does NOT grow audience):
+- Generic motivational content ("Believe in yourself!")
+- Empty inspiration without substance
+- Repetitive thought leadership ("Leadership matters")
+- Vague advice without concrete application ("Be agile")
+- Listicles without depth ("5 tips for...")
+- Content that sounds like every other LinkedIn post
+- Anything that wouldn't make someone stop scrolling`;
+
 const OUTCOME_FIELDS_SPEC = `
 ## OUTCOME-DRIVEN CONTENT (MANDATORY)
 Every content item MUST be designed for AUDIENCE IMPACT, not just output. The goal is to create meaningful change for leaders and organizations — not just "more posts."
@@ -376,17 +403,28 @@ For each item, include these outcome fields:
   * Actionability (vague inspiration = low, concrete framework = high)
   * Shareability (would someone forward this to a colleague?)
   * Relevance to audience's real challenges
+  * Follower growth potential (would this make someone follow the account?)
 
-RANKING RULE: Prioritize content by outcome_score. Content that is polished but low-impact (score ≤ 3) should NOT be suggested. Aim for scores of 6+ on every item.
+RANKING RULE: Prioritize content by outcome_score. Content that is polished but low-impact (score ≤ 3) MUST NOT be suggested. Aim for scores of 6+ on every item.
+
+FOLLOWER GROWTH RANKING: After scoring, re-rank items considering:
+1. Audience value (does this deliver genuine insight?)
+2. Outcome strength (score 6+ required)
+3. Strategic relevance (aligned with brand mission and pillars)
+4. Follower growth potential (would this make someone follow, subscribe, or share?)
+5. Pillar variety (don't cluster on one pillar)
 
 WEAK (do NOT generate):
 - "5 tips for business agility" (generic, no insight, no challenge addressed)
 - "The importance of leadership" (vague, no audience tension)
+- "Why mindset matters" (empty, no practical value)
+- "10 things great leaders do" (listicle, no depth)
 
 STRONG (generate this kind):
 - "Why transformation fails when leaders focus on tools instead of behavior" (specific challenge, clear insight, actionable)
-- "The question every leader avoids asking their team — and why it matters" (tension, curiosity, practical)`;
-
+- "The question every leader avoids asking their team — and why it matters" (tension, curiosity, practical)
+- "What happens when organizations confuse motion with progress" (real tension, myth-busting)
+- "The hidden cost of skipping the diagnostic phase in transformation" (specific, experience-grounded)`;
 async function storeLearningMemory(sb: any, planId: string, items: any[]) {
   const memories = items.map((item: any) => ({
     cycle_id: planId,
