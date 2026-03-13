@@ -367,10 +367,10 @@ export default function EmailDistribution() {
             )}
 
             {/* Email provider notice */}
-            <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-              <p className="text-xs text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5" />
-                Email sending is ready for integration. Connect a delivery provider (Resend, SendGrid, etc.) to enable live sending.
+            <div className="bg-accent/30 border border-border rounded-lg p-3">
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Send className="w-3.5 h-3.5" />
+                Emails are sent via Resend from <span className="font-medium text-foreground">connect@spiralingup.works</span>
               </p>
             </div>
           </CardContent>
