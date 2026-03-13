@@ -13,7 +13,7 @@ import {
 import { format } from 'date-fns';
 import {
   useEmailCampaigns, useCreateEmailCampaign, useUpdateEmailCampaign,
-  useDeleteEmailCampaign, useGenerateBlogEmail, useSubscriberCount,
+  useDeleteEmailCampaign, useGenerateBlogEmail, useSubscriberCount, useSendCampaign,
 } from '@/hooks/use-performance';
 import { useEditorialItems, useEditorialPlans } from '@/hooks/use-editorial';
 import { toast } from 'sonner';
