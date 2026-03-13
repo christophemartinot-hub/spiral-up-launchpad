@@ -37,6 +37,7 @@ const navSections = [
     label: 'Distribute',
     items: [
       { path: '/email', label: 'Email Distribution', icon: Mail },
+      { path: '/comments', label: 'Comment Response', icon: MessageSquare },
     ],
   },
   {

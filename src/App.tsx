@@ -40,6 +40,7 @@ const App = () => (
             <Route path="/editorial" element={<EditorialPlanning />} />
             <Route path="/performance" element={<PerformanceDashboard />} />
             <Route path="/email" element={<EmailDistribution />} />
+            <Route path="/comments" element={<CommentResponse />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
