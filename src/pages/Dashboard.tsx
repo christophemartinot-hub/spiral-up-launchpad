@@ -185,7 +185,7 @@ export default function Dashboard() {
             </div>
             {activePlan && (
               <p className="text-xs text-muted-foreground">
-                {format(new Date(activePlan.cycle_start), 'MMM d')} — {format(new Date(activePlan.cycle_end), 'MMM d, yyyy')}
+                {format(parseISO(activePlan.cycle_start), 'MMM d')} — {format(parseISO(activePlan.cycle_end), 'MMM d, yyyy')}
                 <Badge variant="outline" className="ml-2 text-[10px]">{activePlan.cadence}</Badge>
               </p>
             )}
