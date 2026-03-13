@@ -115,6 +115,59 @@ export default function Dashboard() {
         ))}
       </motion.div>
 
+      {/* ─── STRATEGIC IDEAS BLOCK ─── */}
+      {(approvedIdeas.length > 0 || strategicCycles.length > 0) && (
+        <Card className="shadow-card border-primary/10">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="font-display text-base flex items-center gap-2">
+                <Brain className="w-4 h-4 text-primary" /> Strategic Ideas
+              </CardTitle>
+              <Link to="/strategy">
+                <Button variant="ghost" size="sm" className="text-xs gap-1">
+                  View All <ArrowRight className="w-3 h-3" />
+                </Button>
+              </Link>
+            </div>
+            {strategicCycles[0]?.recommended_focus && (
+              <p className="text-xs text-muted-foreground italic mt-1">{strategicCycles[0].recommended_focus}</p>
+            )}
+          </CardHeader>
+          <CardContent>
+            {approvedIdeas.length > 0 ? (
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {approvedIdeas.slice(0, 6).map((idea: any) => {
+                  const typeEmojis: Record<string, string> = {
+                    tension: '⚡', opportunity: '🎯', myth: '💥', lesson: '📖', conversion: '💰',
+                  };
+                  return (
+                    <div key={idea.id} className="p-3 rounded-lg border border-border hover:border-primary/30 transition-all bg-card">
+                      <div className="flex items-start gap-2">
+                        <span className="text-sm">{typeEmojis[idea.idea_type] || '🎯'}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold line-clamp-2">{idea.title}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{idea.description}</p>
+                          <div className="flex items-center gap-1.5 mt-1.5">
+                            <Badge variant="secondary" className="text-[9px]">{idea.idea_type}</Badge>
+                            {idea.related_pillar && <span className="text-[9px] text-muted-foreground">{idea.related_pillar}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <Brain className="w-8 h-8 mx-auto text-primary/30 mb-2" />
+                <p className="text-xs text-muted-foreground">Generate strategic ideas to lead conversations.</p>
+                <Link to="/strategy"><Button size="sm" className="mt-2 gap-1.5 text-xs"><Sparkles className="w-3 h-3" /> Generate Ideas</Button></Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Main Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* ─── EDITORIAL AGENDA (2 cols) ─── */}
