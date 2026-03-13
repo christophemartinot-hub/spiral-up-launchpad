@@ -4,6 +4,7 @@ import {
   Sparkles, Brain, PenTool, BarChart3, ArrowRight, Calendar,
   Loader2, Lightbulb, CheckCircle2, Clock, AlertCircle, Eye, Palette,
   Mail, Zap, TrendingUp, FileText, RefreshCw, Image as ImageIcon,
+  MessageSquare,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { format } from 'date-fns';
 import { useEditorialPlans, useEditorialItems, useCycleCompletionStatus, useLearningMemory } from '@/hooks/use-editorial';
 import { useFeedbackSummary } from '@/hooks/use-feedback';
 import { usePerformanceSummary } from '@/hooks/use-performance';
+import { useCommentCounts } from '@/hooks/use-comments';
 import { resolveBrandIcon } from '@/lib/brand-assets';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
