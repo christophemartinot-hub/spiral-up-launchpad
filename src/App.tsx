@@ -44,6 +44,7 @@ function AuthenticatedApp() {
     <AppLayout user={auth.user} profile={auth.profile} roles={auth.roles} onSignOut={auth.signOut} isAdmin={auth.isAdmin} isEditor={auth.isEditor}>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/strategy" element={<StrategicIdeas />} />
         <Route path="/brand" element={<BrandIntelligence />} />
         <Route path="/studio" element={<ContentStudio />} />
         <Route path="/blog" element={<BlogWorkflow />} />
