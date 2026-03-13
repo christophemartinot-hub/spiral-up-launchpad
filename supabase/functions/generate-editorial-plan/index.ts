@@ -718,8 +718,9 @@ ${AUDIENCE_VALUE_FILTER}
 ${brandContext}${visualConfig}${recentItems}${feedbackLearnings}${perfLearnings}${intelligenceModeInstructions}${balanceStr}
 
 PLANNING CONSTRAINTS:
+- Today's date: ${new Date().toISOString().split('T')[0]}
 - Cycle: ${cycleStart} to ${cycleEnd}
-- Channels: ${channels.join(', ')}
+- IMPORTANT: Only schedule content on dates from TODAY onward. Never schedule on past dates.
 - Number of posts: ${postsPerCycle}
 - Preferred formats: ${preferredFormats.join(', ')}
 ${targetAudience ? `- Target audience: ${targetAudience}` : ''}
