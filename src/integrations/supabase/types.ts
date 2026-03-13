@@ -1444,6 +1444,161 @@ export type Database = {
         }
         Relationships: []
       }
+      strategic_cycles: {
+        Row: {
+          created_at: string
+          cycle_end: string
+          cycle_start: string
+          generated_at: string | null
+          id: string
+          notes: string | null
+          recommended_focus: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cycle_end: string
+          cycle_start: string
+          generated_at?: string | null
+          id?: string
+          notes?: string | null
+          recommended_focus?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cycle_end?: string
+          cycle_start?: string
+          generated_at?: string | null
+          id?: string
+          notes?: string | null
+          recommended_focus?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      strategic_ideas: {
+        Row: {
+          audience_value_score: number
+          brand_relevance_score: number
+          business_relevance: string | null
+          content_potential: string | null
+          converted_item_id: string | null
+          converted_to: string | null
+          created_at: string
+          cycle_id: string
+          description: string
+          diversity_score: number
+          follower_growth_potential: string | null
+          growth_potential_score: number
+          id: string
+          idea_type: string
+          intended_outcome: string | null
+          offer_relevance_score: number
+          outcome_potential_score: number
+          overall_rank: number
+          performance_learning_score: number
+          pinned: boolean
+          rejection_reason: string | null
+          related_offer: string | null
+          related_pillar: string | null
+          sort_order: number
+          status: string
+          tension_statement: string | null
+          title: string
+          updated_at: string
+          who_affected: string | null
+          why_fits_spiral_up: string | null
+          why_matters_now: string | null
+          why_now: string | null
+          why_relevant_to_audience: string | null
+          why_supports_growth: string | null
+        }
+        Insert: {
+          audience_value_score?: number
+          brand_relevance_score?: number
+          business_relevance?: string | null
+          content_potential?: string | null
+          converted_item_id?: string | null
+          converted_to?: string | null
+          created_at?: string
+          cycle_id: string
+          description?: string
+          diversity_score?: number
+          follower_growth_potential?: string | null
+          growth_potential_score?: number
+          id?: string
+          idea_type?: string
+          intended_outcome?: string | null
+          offer_relevance_score?: number
+          outcome_potential_score?: number
+          overall_rank?: number
+          performance_learning_score?: number
+          pinned?: boolean
+          rejection_reason?: string | null
+          related_offer?: string | null
+          related_pillar?: string | null
+          sort_order?: number
+          status?: string
+          tension_statement?: string | null
+          title?: string
+          updated_at?: string
+          who_affected?: string | null
+          why_fits_spiral_up?: string | null
+          why_matters_now?: string | null
+          why_now?: string | null
+          why_relevant_to_audience?: string | null
+          why_supports_growth?: string | null
+        }
+        Update: {
+          audience_value_score?: number
+          brand_relevance_score?: number
+          business_relevance?: string | null
+          content_potential?: string | null
+          converted_item_id?: string | null
+          converted_to?: string | null
+          created_at?: string
+          cycle_id?: string
+          description?: string
+          diversity_score?: number
+          follower_growth_potential?: string | null
+          growth_potential_score?: number
+          id?: string
+          idea_type?: string
+          intended_outcome?: string | null
+          offer_relevance_score?: number
+          outcome_potential_score?: number
+          overall_rank?: number
+          performance_learning_score?: number
+          pinned?: boolean
+          rejection_reason?: string | null
+          related_offer?: string | null
+          related_pillar?: string | null
+          sort_order?: number
+          status?: string
+          tension_statement?: string | null
+          title?: string
+          updated_at?: string
+          who_affected?: string | null
+          why_fits_spiral_up?: string | null
+          why_matters_now?: string | null
+          why_now?: string | null
+          why_relevant_to_audience?: string | null
+          why_supports_growth?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategic_ideas_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "strategic_cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscribers: {
         Row: {
           created_at: string

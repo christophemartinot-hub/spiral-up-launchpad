@@ -19,6 +19,7 @@ import EditorialPlanning from "@/pages/EditorialPlanning";
 import PerformanceDashboard from "@/pages/PerformanceDashboard";
 import EmailDistribution from "@/pages/EmailDistribution";
 import CommentResponse from "@/pages/CommentResponse";
+import StrategicIdeas from "@/pages/StrategicIdeas";
 import NotFound from "./pages/NotFound.tsx";
 import { Loader2 } from "lucide-react";
 
@@ -43,6 +44,7 @@ function AuthenticatedApp() {
     <AppLayout user={auth.user} profile={auth.profile} roles={auth.roles} onSignOut={auth.signOut} isAdmin={auth.isAdmin} isEditor={auth.isEditor}>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/strategy" element={<StrategicIdeas />} />
         <Route path="/brand" element={<BrandIntelligence />} />
         <Route path="/studio" element={<ContentStudio />} />
         <Route path="/blog" element={<BlogWorkflow />} />

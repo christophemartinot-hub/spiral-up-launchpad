@@ -4,7 +4,7 @@ import {
   Sparkles, Brain, PenTool, BarChart3, ArrowRight, Calendar,
   Loader2, Lightbulb, CheckCircle2, Clock, AlertCircle, Eye, Palette,
   Mail, Zap, TrendingUp, FileText, RefreshCw, Image as ImageIcon,
-  MessageSquare,
+  MessageSquare, Target, BookOpen, AlertTriangle,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { useEditorialPlans, useEditorialItems, useCycleCompletionStatus, useLear
 import { useFeedbackSummary } from '@/hooks/use-feedback';
 import { usePerformanceSummary } from '@/hooks/use-performance';
 import { useCommentCounts } from '@/hooks/use-comments';
+import { useLatestApprovedIdeas, useStrategicCycles } from '@/hooks/use-strategic';
 import { resolveBrandIcon } from '@/lib/brand-assets';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
@@ -48,6 +49,8 @@ export default function Dashboard() {
   const { data: perf, isLoading: perfLoading } = usePerformanceSummary();
   const { data: memories } = useLearningMemory();
   const { data: commentCounts } = useCommentCounts();
+  const { data: strategicCycles = [] } = useStrategicCycles();
+  const { data: approvedIdeas = [] } = useLatestApprovedIdeas();
 
   const loading = plansLoading || itemsLoading;
 
@@ -89,12 +92,12 @@ export default function Dashboard() {
       <motion.div initial="hidden" animate="show" variants={stagger}
         className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: 'New Editorial Cycle', icon: Sparkles, path: '/editorial', color: 'gradient-brand' },
-          { label: 'Blog Draft', icon: PenTool, path: '/blog', color: 'gradient-warm' },
-          { label: 'Social Post', icon: FileText, path: '/studio', color: 'gradient-cool' },
-          { label: 'Newsletter', icon: Mail, path: '/email', color: 'bg-accent' },
-          { label: 'Comment Replies', icon: MessageSquare, path: '/comments', color: 'bg-secondary' },
-          { label: 'Visual Concept', icon: Palette, path: '/editorial', color: 'bg-muted' },
+          { label: 'Strategic Ideas', icon: Brain, path: '/strategy', color: 'gradient-brand' },
+          { label: 'Editorial Cycle', icon: Sparkles, path: '/editorial', color: 'gradient-warm' },
+          { label: 'Blog Draft', icon: PenTool, path: '/blog', color: 'gradient-cool' },
+          { label: 'Social Post', icon: FileText, path: '/studio', color: 'bg-accent' },
+          { label: 'Newsletter', icon: Mail, path: '/email', color: 'bg-secondary' },
+          { label: 'Comment Replies', icon: MessageSquare, path: '/comments', color: 'bg-muted' },
         ].map(a => (
           <motion.div key={a.label} variants={fadeIn}>
             <Link to={a.path}>
@@ -111,6 +114,59 @@ export default function Dashboard() {
           </motion.div>
         ))}
       </motion.div>
+
+      {/* ─── STRATEGIC IDEAS BLOCK ─── */}
+      {(approvedIdeas.length > 0 || strategicCycles.length > 0) && (
+        <Card className="shadow-card border-primary/10">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="font-display text-base flex items-center gap-2">
+                <Brain className="w-4 h-4 text-primary" /> Strategic Ideas
+              </CardTitle>
+              <Link to="/strategy">
+                <Button variant="ghost" size="sm" className="text-xs gap-1">
+                  View All <ArrowRight className="w-3 h-3" />
+                </Button>
+              </Link>
+            </div>
+            {strategicCycles[0]?.recommended_focus && (
+              <p className="text-xs text-muted-foreground italic mt-1">{strategicCycles[0].recommended_focus}</p>
+            )}
+          </CardHeader>
+          <CardContent>
+            {approvedIdeas.length > 0 ? (
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {approvedIdeas.slice(0, 6).map((idea: any) => {
+                  const typeEmojis: Record<string, string> = {
+                    tension: '⚡', opportunity: '🎯', myth: '💥', lesson: '📖', conversion: '💰',
+                  };
+                  return (
+                    <div key={idea.id} className="p-3 rounded-lg border border-border hover:border-primary/30 transition-all bg-card">
+                      <div className="flex items-start gap-2">
+                        <span className="text-sm">{typeEmojis[idea.idea_type] || '🎯'}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold line-clamp-2">{idea.title}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{idea.description}</p>
+                          <div className="flex items-center gap-1.5 mt-1.5">
+                            <Badge variant="secondary" className="text-[9px]">{idea.idea_type}</Badge>
+                            {idea.related_pillar && <span className="text-[9px] text-muted-foreground">{idea.related_pillar}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <Brain className="w-8 h-8 mx-auto text-primary/30 mb-2" />
+                <p className="text-xs text-muted-foreground">Generate strategic ideas to lead conversations.</p>
+                <Link to="/strategy"><Button size="sm" className="mt-2 gap-1.5 text-xs"><Sparkles className="w-3 h-3" /> Generate Ideas</Button></Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Main Grid */}
       <div className="grid gap-6 lg:grid-cols-3">

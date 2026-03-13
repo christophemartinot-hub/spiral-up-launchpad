@@ -15,6 +15,7 @@ const navSections = [
     label: 'Intelligence',
     items: [
       { path: '/', label: 'Command Center', icon: LayoutDashboard },
+      { path: '/strategy', label: 'Strategic Ideas', icon: Brain },
       { path: '/brand', label: 'Brand Intelligence', icon: Brain },
       { path: '/performance', label: 'Performance', icon: TrendingUp },
       { path: '/analytics', label: 'Analytics', icon: BarChart3 },
