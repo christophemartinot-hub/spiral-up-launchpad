@@ -81,46 +81,70 @@ Deno.serve(async (req) => {
     // Build HTML email body
     const htmlBody = buildEmailHtml(campaign);
 
-    // Send via Resend (batch - up to 100 per call)
-    const batchSize = 50;
+    // Send via Resend — throttled to respect 2 req/sec rate limit
+    const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
     let totalSent = 0;
     let totalFailed = 0;
 
-    for (let i = 0; i < subscribers.length; i += batchSize) {
-      const batch = subscribers.slice(i, i + batchSize);
+    for (let i = 0; i < subscribers.length; i++) {
+      const sub = subscribers[i];
+      try {
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${RESEND_API_KEY}`,
+          },
+          body: JSON.stringify({
+            from: "Spiral Up <connect@spiralingup.works>",
+            to: [sub.email],
+            subject: campaign.subject_line,
+            html: htmlBody.replace("{{name}}", sub.first_name || "there"),
+            text: campaign.plain_text_fallback || undefined,
+          }),
+        });
 
-      // Send individually to personalize
-      const sendPromises = batch.map(async (sub) => {
-        try {
-          const res = await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${RESEND_API_KEY}`,
-            },
-            body: JSON.stringify({
-              from: "Spiral Up <connect@spiralingup.works>",
-              to: [sub.email],
-              subject: campaign.subject_line,
-              html: htmlBody.replace("{{name}}", sub.first_name || "there"),
-              text: campaign.plain_text_fallback || undefined,
-            }),
-          });
-
-          if (res.ok) {
-            totalSent++;
+        if (res.ok) {
+          totalSent++;
+        } else {
+          const errData = await res.json();
+          // On rate limit, wait and retry once
+          if (res.status === 429) {
+            const retryAfter = parseInt(res.headers.get("retry-after") || "2", 10);
+            await delay(retryAfter * 1000);
+            const retry = await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${RESEND_API_KEY}`,
+              },
+              body: JSON.stringify({
+                from: "Spiral Up <connect@spiralingup.works>",
+                to: [sub.email],
+                subject: campaign.subject_line,
+                html: htmlBody.replace("{{name}}", sub.first_name || "there"),
+                text: campaign.plain_text_fallback || undefined,
+              }),
+            });
+            if (retry.ok) {
+              totalSent++;
+            } else {
+              await retry.text();
+              console.error(`Retry failed for ${sub.email}`);
+              totalFailed++;
+            }
           } else {
-            const errData = await res.json();
             console.error(`Failed to send to ${sub.email}:`, errData);
             totalFailed++;
           }
-        } catch (e) {
-          console.error(`Error sending to ${sub.email}:`, e);
-          totalFailed++;
         }
-      });
+      } catch (e) {
+        console.error(`Error sending to ${sub.email}:`, e);
+        totalFailed++;
+      }
 
-      await Promise.all(sendPromises);
+      // Throttle: ~1.5 emails/sec to stay under 2/sec limit
+      await delay(700);
     }
 
     // Update campaign with results
