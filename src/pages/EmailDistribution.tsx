@@ -256,6 +256,12 @@ export default function EmailDistribution() {
                     <Calendar className="w-3.5 h-3.5" /> Schedule
                   </Button>
                 )}
+                {(selectedCampaign.status === 'approved' || selectedCampaign.status === 'scheduled') && (
+                  <Button size="sm" onClick={() => handleSend(selectedCampaign)} disabled={sendCampaign.isPending} className="gap-1.5">
+                    {sendCampaign.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                    Send Now
+                  </Button>
+                )}
                 <Button size="sm" variant="ghost" onClick={() => { setSelectedCampaign(null); setEditing(false); }}>
                   <X className="w-3.5 h-3.5" />
                 </Button>
