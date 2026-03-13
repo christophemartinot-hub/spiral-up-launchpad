@@ -242,3 +242,4 @@ export function useGenerateBlogEmail() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['email-campaigns'] }),
   });
+}
