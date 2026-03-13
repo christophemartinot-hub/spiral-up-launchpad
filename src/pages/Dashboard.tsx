@@ -87,7 +87,7 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <motion.div initial="hidden" animate="show" variants={stagger}
-        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
           { label: 'New Editorial Cycle', icon: Sparkles, path: '/editorial', color: 'gradient-brand' },
           { label: 'Blog Draft', icon: PenTool, path: '/blog', color: 'gradient-warm' },
