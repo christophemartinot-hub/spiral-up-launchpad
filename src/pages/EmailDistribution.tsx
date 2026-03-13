@@ -102,6 +102,8 @@ export default function EmailDistribution() {
       onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to send email'),
     });
   };
+
+  return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
       <motion.div initial="hidden" animate="show" variants={fadeIn} transition={{ duration: 0.4 }}>
         <h1 className="text-2xl md:text-3xl font-display font-bold">Email Distribution</h1>
