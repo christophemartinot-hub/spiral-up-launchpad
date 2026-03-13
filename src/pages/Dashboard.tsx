@@ -47,6 +47,7 @@ export default function Dashboard() {
   const { data: feedback, isLoading: fbLoading } = useFeedbackSummary();
   const { data: perf, isLoading: perfLoading } = usePerformanceSummary();
   const { data: memories } = useLearningMemory();
+  const { data: commentCounts } = useCommentCounts();
 
   const loading = plansLoading || itemsLoading;
 
