@@ -3,9 +3,12 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Sparkles, FileText, PenTool, Calendar, ClipboardList,
   BarChart3, FolderOpen, Settings, Menu, X, ChevronRight, Brain, Rocket,
-  TrendingUp, Mail, MessageSquare
+  TrendingUp, Mail, MessageSquare, LogOut, Shield, Edit3, Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import type { User } from '@supabase/supabase-js';
+import type { AppRole } from '@/hooks/use-auth';
 
 const navSections = [
   {
@@ -50,9 +53,30 @@ const navSections = [
 
 const allItems = navSections.flatMap(s => s.items);
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+const ROLE_DISPLAY: Record<AppRole, { label: string; icon: typeof Shield; color: string }> = {
+  admin: { label: 'Admin', icon: Shield, color: 'text-primary' },
+  editor: { label: 'Editor', icon: Edit3, color: 'text-amber-600' },
+  viewer: { label: 'Viewer', icon: Eye, color: 'text-muted-foreground' },
+};
+
+interface AppLayoutProps {
+  children: React.ReactNode;
+  user: User;
+  profile: { display_name: string; avatar_url: string } | null;
+  roles: AppRole[];
+  onSignOut: () => void;
+  isAdmin: boolean;
+  isEditor: boolean;
+}
+
+export default function AppLayout({ children, user, profile, roles, onSignOut, isAdmin, isEditor }: AppLayoutProps) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const displayName = profile?.display_name || user.email || 'User';
+  const topRole = roles[0] || 'viewer';
+  const roleInfo = ROLE_DISPLAY[topRole] || ROLE_DISPLAY.viewer;
+  const RoleIcon = roleInfo.icon;
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -65,7 +89,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
             <div>
               <span className="font-display font-bold text-base text-sidebar-primary-foreground block leading-tight">Spiral Up</span>
-              <span className="text-[10px] text-sidebar-foreground/60 leading-none">AI Marketing Engine</span>
+              <span className="text-[10px] text-sidebar-foreground/60 leading-none">AI Content OS</span>
             </div>
           </Link>
         </div>
@@ -98,10 +122,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           ))}
         </nav>
-        <div className="p-4 mx-3 mb-4 rounded-lg bg-sidebar-accent">
-          <p className="text-xs text-sidebar-foreground font-medium mb-0.5">Consultant Mode</p>
-          <p className="text-sm font-semibold text-sidebar-accent-foreground">Christophe Martinot</p>
-          <p className="text-[10px] text-sidebar-foreground">Review · Edit · Approve</p>
+        <div className="p-4 mx-3 mb-3 rounded-lg bg-sidebar-accent">
+          <div className="flex items-center gap-2 mb-1">
+            <RoleIcon className={`w-3 h-3 ${roleInfo.color}`} />
+            <span className="text-[10px] font-medium text-sidebar-foreground">{roleInfo.label}</span>
+          </div>
+          <p className="text-sm font-semibold text-sidebar-accent-foreground truncate">{displayName}</p>
+          <p className="text-[10px] text-sidebar-foreground truncate">{user.email}</p>
+          <Button variant="ghost" size="sm" onClick={onSignOut} className="w-full mt-2 text-xs gap-1.5 h-7">
+            <LogOut className="w-3 h-3" /> Sign Out
+          </Button>
         </div>
       </aside>
 
@@ -114,7 +144,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
             <div>
               <span className="font-display font-bold text-sm block leading-tight">Spiral Up</span>
-              <span className="text-[9px] text-muted-foreground leading-none">AI Marketing Engine</span>
+              <span className="text-[9px] text-muted-foreground leading-none">AI Content OS</span>
             </div>
           </Link>
           <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 rounded-md hover:bg-muted">
@@ -149,6 +179,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   );
                 })}
               </nav>
+              <div className="px-4 pb-3 border-t border-border pt-3">
+                <p className="text-xs font-medium truncate">{displayName}</p>
+                <Button variant="ghost" size="sm" onClick={onSignOut} className="w-full mt-1 text-xs gap-1.5 h-7">
+                  <LogOut className="w-3 h-3" /> Sign Out
+                </Button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
