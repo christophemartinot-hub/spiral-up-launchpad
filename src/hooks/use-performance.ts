@@ -242,17 +242,3 @@ export function useGenerateBlogEmail() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['email-campaigns'] }),
   });
-}
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (item: any) => {
-      const { data, error } = await supabase.functions.invoke('generate-editorial-plan', {
-        body: { action: 'generate_blog_email', item },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['email-campaigns'] }),
-  });
-}
