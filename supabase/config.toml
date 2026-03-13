@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.comment-response]
 verify_jwt = false
+
+[functions.publish-blog]
+verify_jwt = false
