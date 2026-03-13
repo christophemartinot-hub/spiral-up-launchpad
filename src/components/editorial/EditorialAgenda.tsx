@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Sparkles, Calendar, AlertCircle, CheckCircle2, Clock, Zap } from 'lucide-react';
-import { format, addDays, startOfWeek, endOfWeek, addWeeks } from 'date-fns';
+import { format, addDays, startOfWeek, endOfWeek, addWeeks, parseISO } from 'date-fns';
 import {
   useEditorialPlans,
   useEditorialItems,
