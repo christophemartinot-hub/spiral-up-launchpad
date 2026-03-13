@@ -39,6 +39,7 @@ export default function EmailDistribution() {
   const updateCampaign = useUpdateEmailCampaign();
   const deleteCampaign = useDeleteEmailCampaign();
   const generateEmail = useGenerateBlogEmail();
+  const sendCampaign = useSendCampaign();
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<any>({});
