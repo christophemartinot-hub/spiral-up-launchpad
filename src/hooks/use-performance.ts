@@ -209,6 +209,25 @@ export function useDeleteEmailCampaign() {
   });
 }
 
+// ─── Send Campaign via Resend ───
+export function useSendCampaign() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (campaignId: string) => {
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: { campaignId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['email-campaigns'] });
+      qc.invalidateQueries({ queryKey: ['email-campaign'] });
+    },
+  });
+}
+
 // ─── Generate Email from Blog ───
 export function useGenerateBlogEmail() {
   const qc = useQueryClient();

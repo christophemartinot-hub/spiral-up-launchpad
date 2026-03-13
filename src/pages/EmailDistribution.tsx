@@ -13,7 +13,7 @@ import {
 import { format } from 'date-fns';
 import {
   useEmailCampaigns, useCreateEmailCampaign, useUpdateEmailCampaign,
-  useDeleteEmailCampaign, useGenerateBlogEmail, useSubscriberCount,
+  useDeleteEmailCampaign, useGenerateBlogEmail, useSubscriberCount, useSendCampaign,
 } from '@/hooks/use-performance';
 import { useEditorialItems, useEditorialPlans } from '@/hooks/use-editorial';
 import { toast } from 'sonner';
@@ -39,6 +39,7 @@ export default function EmailDistribution() {
   const updateCampaign = useUpdateEmailCampaign();
   const deleteCampaign = useDeleteEmailCampaign();
   const generateEmail = useGenerateBlogEmail();
+  const sendCampaign = useSendCampaign();
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<any>({});
@@ -89,6 +90,16 @@ export default function EmailDistribution() {
   const handleSchedule = (campaign: any) => {
     updateCampaign.mutate({ id: campaign.id, status: 'scheduled' }, {
       onSuccess: () => toast.success('Email scheduled'),
+    });
+  };
+
+  const handleSend = (campaign: any) => {
+    sendCampaign.mutate(campaign.id, {
+      onSuccess: (data) => {
+        toast.success(`Email sent to ${data.totalSent} subscribers`);
+        setSelectedCampaign(null);
+      },
+      onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to send email'),
     });
   };
 
@@ -245,6 +256,12 @@ export default function EmailDistribution() {
                     <Calendar className="w-3.5 h-3.5" /> Schedule
                   </Button>
                 )}
+                {(selectedCampaign.status === 'approved' || selectedCampaign.status === 'scheduled') && (
+                  <Button size="sm" onClick={() => handleSend(selectedCampaign)} disabled={sendCampaign.isPending} className="gap-1.5">
+                    {sendCampaign.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                    Send Now
+                  </Button>
+                )}
                 <Button size="sm" variant="ghost" onClick={() => { setSelectedCampaign(null); setEditing(false); }}>
                   <X className="w-3.5 h-3.5" />
                 </Button>
@@ -350,10 +367,10 @@ export default function EmailDistribution() {
             )}
 
             {/* Email provider notice */}
-            <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-              <p className="text-xs text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5" />
-                Email sending is ready for integration. Connect a delivery provider (Resend, SendGrid, etc.) to enable live sending.
+            <div className="bg-accent/30 border border-border rounded-lg p-3">
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Send className="w-3.5 h-3.5" />
+                Emails are sent via Resend from <span className="font-medium text-foreground">connect@spiralingup.works</span>
               </p>
             </div>
           </CardContent>
