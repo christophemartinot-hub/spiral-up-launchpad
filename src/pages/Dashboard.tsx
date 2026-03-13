@@ -257,7 +257,7 @@ export default function Dashboard() {
       </div>
 
       {/* Second row */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-4">
         {/* ─── CONTENT PERFORMANCE ─── */}
         <Card className="shadow-card">
           <CardHeader className="pb-3">
