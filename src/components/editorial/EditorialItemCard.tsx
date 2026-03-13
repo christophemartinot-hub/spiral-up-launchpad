@@ -8,7 +8,7 @@ import {
   ChevronDown, ChevronUp, Check, X, RefreshCw, Edit3, Calendar,
   Loader2, Info, Palette, Lightbulb,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { useUpdateEditorialItem, useRegenerateItem } from '@/hooks/use-editorial';
 import { useRecordFeedback } from '@/hooks/use-feedback';
 import { toast } from 'sonner';
