@@ -92,12 +92,12 @@ export default function Dashboard() {
       <motion.div initial="hidden" animate="show" variants={stagger}
         className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: 'New Editorial Cycle', icon: Sparkles, path: '/editorial', color: 'gradient-brand' },
-          { label: 'Blog Draft', icon: PenTool, path: '/blog', color: 'gradient-warm' },
-          { label: 'Social Post', icon: FileText, path: '/studio', color: 'gradient-cool' },
-          { label: 'Newsletter', icon: Mail, path: '/email', color: 'bg-accent' },
-          { label: 'Comment Replies', icon: MessageSquare, path: '/comments', color: 'bg-secondary' },
-          { label: 'Visual Concept', icon: Palette, path: '/editorial', color: 'bg-muted' },
+          { label: 'Strategic Ideas', icon: Brain, path: '/strategy', color: 'gradient-brand' },
+          { label: 'Editorial Cycle', icon: Sparkles, path: '/editorial', color: 'gradient-warm' },
+          { label: 'Blog Draft', icon: PenTool, path: '/blog', color: 'gradient-cool' },
+          { label: 'Social Post', icon: FileText, path: '/studio', color: 'bg-accent' },
+          { label: 'Newsletter', icon: Mail, path: '/email', color: 'bg-secondary' },
+          { label: 'Comment Replies', icon: MessageSquare, path: '/comments', color: 'bg-muted' },
         ].map(a => (
           <motion.div key={a.label} variants={fadeIn}>
             <Link to={a.path}>
