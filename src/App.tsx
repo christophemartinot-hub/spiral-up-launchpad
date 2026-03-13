@@ -16,6 +16,7 @@ import SettingsPage from "@/pages/SettingsPage";
 import EditorialPlanning from "@/pages/EditorialPlanning";
 import PerformanceDashboard from "@/pages/PerformanceDashboard";
 import EmailDistribution from "@/pages/EmailDistribution";
+import CommentResponse from "@/pages/CommentResponse";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
