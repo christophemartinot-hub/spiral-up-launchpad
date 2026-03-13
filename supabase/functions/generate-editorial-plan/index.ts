@@ -712,7 +712,8 @@ Return ONLY valid JSON, no markdown.`;
       ? `\n\nSTRATEGIC CONTENT MIX (target percentages per cycle):\n${balanceEntries.map(([k, v]) => `- ${k.replace(/_/g, ' ')}: ~${v}%`).join('\n')}\nDistribute items to match this balance. If ${postsPerCycle} items, allocate proportionally.`
       : '';
 
-    const systemPrompt = `You are the AI editorial planner for Spiral Up. Your role is to create a strategic content plan with visual directions for the upcoming publication cycle.
+    const systemPrompt = `You are the AI editorial planner for Spiral Up. Your role is to create a strategic, value-driven content plan that helps leaders learn, reflect, and improve — while steadily growing an engaged follower base.
+${AUDIENCE_VALUE_FILTER}
 
 ${brandContext}${visualConfig}${recentItems}${feedbackLearnings}${perfLearnings}${intelligenceModeInstructions}${balanceStr}
 
