@@ -452,7 +452,44 @@ export default function Dashboard() {
                 <Link to="/editorial">
                   <Button size="sm" className="gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Get Started</Button>
                 </Link>
-              </div>
+        {/* ─── COMMENT INBOX ─── */}
+        <Card className="shadow-card">
+          <CardHeader className="pb-3">
+            <CardTitle className="font-display text-base flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-primary" /> Comments
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {commentCounts ? (
+              <>
+                <div className="space-y-2">
+                  {[
+                    { label: 'New', count: commentCounts.byStatus?.new || 0, color: 'text-blue-500' },
+                    { label: 'Awaiting Approval', count: (commentCounts.byStatus?.reply_suggested || 0) + (commentCounts.byStatus?.awaiting_approval || 0), color: 'text-amber-500' },
+                    { label: 'Answered', count: commentCounts.byStatus?.sent || 0, color: 'text-green-500' },
+                  ].map(s => (
+                    <div key={s.label} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40">
+                      <span className={`text-xs font-medium ${s.color}`}>{s.label}</span>
+                      <span className="text-sm font-bold">{s.count}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-muted/40 rounded-lg p-2.5 text-center">
+                  <p className="text-lg font-bold">{commentCounts.total}</p>
+                  <p className="text-[9px] text-muted-foreground">Total Comments</p>
+                </div>
+                <Link to="/comments">
+                  <Button variant="ghost" size="sm" className="w-full text-xs gap-1">
+                    <MessageSquare className="w-3 h-3" /> Manage Comments
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground text-center py-4">No comments yet.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
             )}
           </CardContent>
         </Card>
