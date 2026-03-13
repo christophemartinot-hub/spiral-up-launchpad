@@ -150,7 +150,7 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
             author: 'Christophe Martinot',
             status: 'draft',
           } as any);
-          if (data) setSelectedId(data.id);
+          if (result) setSelectedId(result.id);
           toast.success('Blog draft saved');
         } catch (e: any) {
           toast.error('Failed to save draft: ' + e.message);
