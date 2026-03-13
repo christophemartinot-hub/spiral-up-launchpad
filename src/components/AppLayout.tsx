@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Sparkles, FileText, PenTool, Calendar, ClipboardList,
   BarChart3, FolderOpen, Settings, Menu, X, ChevronRight, Brain, Rocket,
-  TrendingUp, Mail
+  TrendingUp, Mail, MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -37,6 +37,7 @@ const navSections = [
     label: 'Distribute',
     items: [
       { path: '/email', label: 'Email Distribution', icon: Mail },
+      { path: '/comments', label: 'Comment Response', icon: MessageSquare },
     ],
   },
   {

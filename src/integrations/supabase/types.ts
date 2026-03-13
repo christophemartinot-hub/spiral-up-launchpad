@@ -197,6 +197,212 @@ export type Database = {
         }
         Relationships: []
       }
+      comment_inbox: {
+        Row: {
+          author_avatar_url: string | null
+          author_handle: string | null
+          author_name: string
+          channel: string
+          comment_date: string
+          comment_text: string
+          comment_type: string
+          created_at: string
+          editorial_item_id: string | null
+          external_comment_id: string | null
+          id: string
+          is_sensitive: boolean
+          metadata: Json | null
+          parent_comment_id: string | null
+          post_reference: string | null
+          post_title: string | null
+          priority: string
+          requires_human_review: boolean
+          requires_reply: boolean
+          risk_flags: Json | null
+          sentiment: string
+          status: string
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          author_avatar_url?: string | null
+          author_handle?: string | null
+          author_name?: string
+          channel?: string
+          comment_date?: string
+          comment_text?: string
+          comment_type?: string
+          created_at?: string
+          editorial_item_id?: string | null
+          external_comment_id?: string | null
+          id?: string
+          is_sensitive?: boolean
+          metadata?: Json | null
+          parent_comment_id?: string | null
+          post_reference?: string | null
+          post_title?: string | null
+          priority?: string
+          requires_human_review?: boolean
+          requires_reply?: boolean
+          risk_flags?: Json | null
+          sentiment?: string
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Update: {
+          author_avatar_url?: string | null
+          author_handle?: string | null
+          author_name?: string
+          channel?: string
+          comment_date?: string
+          comment_text?: string
+          comment_type?: string
+          created_at?: string
+          editorial_item_id?: string | null
+          external_comment_id?: string | null
+          id?: string
+          is_sensitive?: boolean
+          metadata?: Json | null
+          parent_comment_id?: string | null
+          post_reference?: string | null
+          post_title?: string | null
+          priority?: string
+          requires_human_review?: boolean
+          requires_reply?: boolean
+          risk_flags?: Json | null
+          sentiment?: string
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_inbox_editorial_item_id_fkey"
+            columns: ["editorial_item_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_inbox_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "comment_inbox"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comment_replies: {
+        Row: {
+          approved_text: string | null
+          comment_id: string
+          created_at: string
+          engagement_result: Json | null
+          external_reply_id: string | null
+          id: string
+          reply_text: string
+          reply_type: string
+          sent_at: string | null
+          status: string
+          tone: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_text?: string | null
+          comment_id: string
+          created_at?: string
+          engagement_result?: Json | null
+          external_reply_id?: string | null
+          id?: string
+          reply_text?: string
+          reply_type?: string
+          sent_at?: string | null
+          status?: string
+          tone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_text?: string | null
+          comment_id?: string
+          created_at?: string
+          engagement_result?: Json | null
+          external_reply_id?: string | null
+          id?: string
+          reply_text?: string
+          reply_type?: string
+          sent_at?: string | null
+          status?: string
+          tone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_replies_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comment_inbox"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comment_reply_feedback: {
+        Row: {
+          action_type: string
+          comment_id: string
+          created_at: string
+          final_text: string | null
+          id: string
+          length_preference: string | null
+          original_text: string | null
+          reason: string | null
+          reply_id: string | null
+          text_was_edited: boolean | null
+          tone_preference: string | null
+        }
+        Insert: {
+          action_type?: string
+          comment_id: string
+          created_at?: string
+          final_text?: string | null
+          id?: string
+          length_preference?: string | null
+          original_text?: string | null
+          reason?: string | null
+          reply_id?: string | null
+          text_was_edited?: boolean | null
+          tone_preference?: string | null
+        }
+        Update: {
+          action_type?: string
+          comment_id?: string
+          created_at?: string
+          final_text?: string | null
+          id?: string
+          length_preference?: string | null
+          original_text?: string | null
+          reason?: string | null
+          reply_id?: string | null
+          text_was_edited?: boolean | null
+          tone_preference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_reply_feedback_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comment_inbox"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_reply_feedback_reply_id_fkey"
+            columns: ["reply_id"]
+            isOneToOne: false
+            referencedRelation: "comment_replies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_performance: {
         Row: {
           asset_used: string | null

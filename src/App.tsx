@@ -16,6 +16,7 @@ import SettingsPage from "@/pages/SettingsPage";
 import EditorialPlanning from "@/pages/EditorialPlanning";
 import PerformanceDashboard from "@/pages/PerformanceDashboard";
 import EmailDistribution from "@/pages/EmailDistribution";
+import CommentResponse from "@/pages/CommentResponse";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/editorial" element={<EditorialPlanning />} />
             <Route path="/performance" element={<PerformanceDashboard />} />
             <Route path="/email" element={<EmailDistribution />} />
+            <Route path="/comments" element={<CommentResponse />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
