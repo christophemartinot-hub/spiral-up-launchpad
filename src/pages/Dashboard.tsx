@@ -9,7 +9,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { useEditorialPlans, useEditorialItems, useCycleCompletionStatus, useLearningMemory } from '@/hooks/use-editorial';
 import { useFeedbackSummary } from '@/hooks/use-feedback';
 import { usePerformanceSummary } from '@/hooks/use-performance';
