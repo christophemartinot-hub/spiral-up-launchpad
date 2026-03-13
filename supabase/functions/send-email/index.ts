@@ -60,7 +60,12 @@ Deno.serve(async (req) => {
 
     // Fetch subscribers from external spiralingup.works DB (book_leads table)
     const segment = campaign.recipient_segment || "all";
-    let query = websiteDb.from("book_leads").select("email, source").eq("updates", true);
+    let query = websiteDb
+      .from("book_leads")
+      .select("email, first_name, source")
+      .eq("updates", true)
+      .is("bounced_at", null)
+      .is("complaint_at", null);
     if (segment !== "all") {
       query = query.eq("source", segment);
     }
