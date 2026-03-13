@@ -216,7 +216,7 @@ export default function StrategicIdeas() {
               <div key={cycle.id} className="flex items-center justify-between p-2.5 rounded-lg border border-border hover:bg-muted/30">
                 <div>
                   <p className="text-sm font-medium">
-                    {format(new Date(cycle.cycle_start), 'MMM d')} — {format(new Date(cycle.cycle_end), 'MMM d, yyyy')}
+                    {format(parseISO(cycle.cycle_start), 'MMM d')} — {format(parseISO(cycle.cycle_end), 'MMM d, yyyy')}
                   </p>
                   <p className="text-[10px] text-muted-foreground">{cycle.status}</p>
                 </div>

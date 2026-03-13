@@ -32,7 +32,7 @@ export default function PlanHistory({ onSelectPlan }: { onSelectPlan: (id: strin
             >
               <div>
                 <p className="font-display font-semibold text-sm">
-                  {format(new Date(plan.cycle_start), 'MMM d')} — {format(new Date(plan.cycle_end), 'MMM d, yyyy')}
+                  {format(parseISO(plan.cycle_start), 'MMM d')} — {format(parseISO(plan.cycle_end), 'MMM d, yyyy')}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant="outline" className="text-[10px]">{plan.cadence}</Badge>

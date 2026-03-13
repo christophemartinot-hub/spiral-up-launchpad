@@ -247,7 +247,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <span className="text-[9px] text-muted-foreground flex-shrink-0">
-                        {format(new Date(item.publish_date), 'MMM d')}
+                        {format(parseISO(item.publish_date), 'MMM d')}
                       </span>
                     </div>
                     );
