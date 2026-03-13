@@ -4,6 +4,7 @@ import {
   Sparkles, Brain, PenTool, BarChart3, ArrowRight, Calendar,
   Loader2, Lightbulb, CheckCircle2, Clock, AlertCircle, Eye, Palette,
   Mail, Zap, TrendingUp, FileText, RefreshCw, Image as ImageIcon,
+  MessageSquare,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { format } from 'date-fns';
 import { useEditorialPlans, useEditorialItems, useCycleCompletionStatus, useLearningMemory } from '@/hooks/use-editorial';
 import { useFeedbackSummary } from '@/hooks/use-feedback';
 import { usePerformanceSummary } from '@/hooks/use-performance';
+import { useCommentCounts } from '@/hooks/use-comments';
 import { resolveBrandIcon } from '@/lib/brand-assets';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
@@ -45,6 +47,7 @@ export default function Dashboard() {
   const { data: feedback, isLoading: fbLoading } = useFeedbackSummary();
   const { data: perf, isLoading: perfLoading } = usePerformanceSummary();
   const { data: memories } = useLearningMemory();
+  const { data: commentCounts } = useCommentCounts();
 
   const loading = plansLoading || itemsLoading;
 
@@ -84,13 +87,14 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <motion.div initial="hidden" animate="show" variants={stagger}
-        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
           { label: 'New Editorial Cycle', icon: Sparkles, path: '/editorial', color: 'gradient-brand' },
           { label: 'Blog Draft', icon: PenTool, path: '/blog', color: 'gradient-warm' },
           { label: 'Social Post', icon: FileText, path: '/studio', color: 'gradient-cool' },
           { label: 'Newsletter', icon: Mail, path: '/email', color: 'bg-accent' },
-          { label: 'Visual Concept', icon: Palette, path: '/editorial', color: 'bg-secondary' },
+          { label: 'Comment Replies', icon: MessageSquare, path: '/comments', color: 'bg-secondary' },
+          { label: 'Visual Concept', icon: Palette, path: '/editorial', color: 'bg-muted' },
         ].map(a => (
           <motion.div key={a.label} variants={fadeIn}>
             <Link to={a.path}>
@@ -253,7 +257,7 @@ export default function Dashboard() {
       </div>
 
       {/* Second row */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-4">
         {/* ─── CONTENT PERFORMANCE ─── */}
         <Card className="shadow-card">
           <CardHeader className="pb-3">
@@ -448,7 +452,44 @@ export default function Dashboard() {
                 <Link to="/editorial">
                   <Button size="sm" className="gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Get Started</Button>
                 </Link>
-              </div>
+        {/* ─── COMMENT INBOX ─── */}
+        <Card className="shadow-card">
+          <CardHeader className="pb-3">
+            <CardTitle className="font-display text-base flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-primary" /> Comments
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {commentCounts ? (
+              <>
+                <div className="space-y-2">
+                  {[
+                    { label: 'New', count: commentCounts.byStatus?.new || 0, color: 'text-blue-500' },
+                    { label: 'Awaiting Approval', count: (commentCounts.byStatus?.reply_suggested || 0) + (commentCounts.byStatus?.awaiting_approval || 0), color: 'text-amber-500' },
+                    { label: 'Answered', count: commentCounts.byStatus?.sent || 0, color: 'text-green-500' },
+                  ].map(s => (
+                    <div key={s.label} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40">
+                      <span className={`text-xs font-medium ${s.color}`}>{s.label}</span>
+                      <span className="text-sm font-bold">{s.count}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-muted/40 rounded-lg p-2.5 text-center">
+                  <p className="text-lg font-bold">{commentCounts.total}</p>
+                  <p className="text-[9px] text-muted-foreground">Total Comments</p>
+                </div>
+                <Link to="/comments">
+                  <Button variant="ghost" size="sm" className="w-full text-xs gap-1">
+                    <MessageSquare className="w-3 h-3" /> Manage Comments
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground text-center py-4">No comments yet.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
             )}
           </CardContent>
         </Card>
