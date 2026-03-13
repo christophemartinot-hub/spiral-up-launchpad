@@ -8,7 +8,7 @@ import {
   ChevronDown, ChevronUp, Check, X, RefreshCw, Edit3, Calendar,
   Loader2, Info, Palette, Lightbulb,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { useUpdateEditorialItem, useRegenerateItem } from '@/hooks/use-editorial';
 import { useRecordFeedback } from '@/hooks/use-feedback';
 import { toast } from 'sonner';
@@ -164,7 +164,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
           <p className="font-display font-semibold text-sm mt-1 truncate">{item.working_title}</p>
           <p className="text-xs text-muted-foreground mt-0.5">
             <Calendar className="w-3 h-3 inline mr-1" />
-            {format(new Date(item.publish_date), 'EEE, MMM d')} • {item.channel}
+            {format(parseISO(item.publish_date), 'EEE, MMM d')} • {item.channel}
           </p>
         </div>
         <div className="flex items-center gap-1">

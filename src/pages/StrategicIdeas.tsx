@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { format, addDays } from 'date-fns';
+import { format, addDays, parseISO } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -139,7 +139,7 @@ export default function StrategicIdeas() {
                   : 'border-border hover:border-primary/30 text-muted-foreground'
               }`}
             >
-              {format(new Date(cycle.cycle_start), 'MMM d')} — {format(new Date(cycle.cycle_end), 'MMM d')}
+              {format(parseISO(cycle.cycle_start), 'MMM d')} — {format(parseISO(cycle.cycle_end), 'MMM d')}
             </button>
           ))}
         </div>
@@ -216,7 +216,7 @@ export default function StrategicIdeas() {
               <div key={cycle.id} className="flex items-center justify-between p-2.5 rounded-lg border border-border hover:bg-muted/30">
                 <div>
                   <p className="text-sm font-medium">
-                    {format(new Date(cycle.cycle_start), 'MMM d')} — {format(new Date(cycle.cycle_end), 'MMM d, yyyy')}
+                    {format(parseISO(cycle.cycle_start), 'MMM d')} — {format(parseISO(cycle.cycle_end), 'MMM d, yyyy')}
                   </p>
                   <p className="text-[10px] text-muted-foreground">{cycle.status}</p>
                 </div>

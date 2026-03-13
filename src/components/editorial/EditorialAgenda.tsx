@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Sparkles, Calendar, AlertCircle, CheckCircle2, Clock, Zap } from 'lucide-react';
-import { format, addDays, startOfWeek, endOfWeek, addWeeks } from 'date-fns';
+import { format, addDays, startOfWeek, endOfWeek, addWeeks, parseISO } from 'date-fns';
 import {
   useEditorialPlans,
   useEditorialItems,
@@ -39,7 +39,7 @@ export default function EditorialAgenda({ activePlanId, onPlanChange }: Props) {
     const activePlan = plans?.find(p => p.id === activePlanId);
     
     // If there's an active plan, start next cycle after it ends
-    const baseDate = activePlan ? new Date(activePlan.cycle_end) : now;
+    const baseDate = activePlan ? parseISO(activePlan.cycle_end) : now;
     const nextStart = addDays(baseDate, 1);
     const cycleStart = format(startOfWeek(nextStart, { weekStartsOn: 1 }), 'yyyy-MM-dd');
     const cycleEnd = cadence === 'weekly'
@@ -99,7 +99,7 @@ export default function EditorialAgenda({ activePlanId, onPlanChange }: Props) {
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-medium">
-                {format(new Date(activePlan.cycle_start), 'MMM d')} — {format(new Date(activePlan.cycle_end), 'MMM d, yyyy')}
+                {format(parseISO(activePlan.cycle_start), 'MMM d')} — {format(parseISO(activePlan.cycle_end), 'MMM d, yyyy')}
               </span>
               <Badge variant="outline" className="text-xs">{activePlan.cadence}</Badge>
               {config?.intelligence_mode && (

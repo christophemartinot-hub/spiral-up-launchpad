@@ -9,7 +9,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { useEditorialPlans, useEditorialItems, useCycleCompletionStatus, useLearningMemory } from '@/hooks/use-editorial';
 import { useFeedbackSummary } from '@/hooks/use-feedback';
 import { usePerformanceSummary } from '@/hooks/use-performance';
@@ -185,7 +185,7 @@ export default function Dashboard() {
             </div>
             {activePlan && (
               <p className="text-xs text-muted-foreground">
-                {format(new Date(activePlan.cycle_start), 'MMM d')} — {format(new Date(activePlan.cycle_end), 'MMM d, yyyy')}
+                {format(parseISO(activePlan.cycle_start), 'MMM d')} — {format(parseISO(activePlan.cycle_end), 'MMM d, yyyy')}
                 <Badge variant="outline" className="ml-2 text-[10px]">{activePlan.cadence}</Badge>
               </p>
             )}
@@ -247,7 +247,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <span className="text-[9px] text-muted-foreground flex-shrink-0">
-                        {format(new Date(item.publish_date), 'MMM d')}
+                        {format(parseISO(item.publish_date), 'MMM d')}
                       </span>
                     </div>
                     );
