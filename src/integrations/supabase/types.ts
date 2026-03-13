@@ -44,6 +44,92 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          author: string
+          content: string
+          content_pillar: string | null
+          created_at: string
+          editorial_item_id: string | null
+          excerpt: string
+          external_id: string | null
+          hero_image_url: string | null
+          id: string
+          linkedin_version: string | null
+          meta_description: string | null
+          newsletter_version: string | null
+          published_at: string | null
+          seo_keywords: Json | null
+          slug: string
+          social_snippets: Json | null
+          status: string
+          tags: Json | null
+          title: string
+          updated_at: string
+          visual_concept: string | null
+          visual_rationale: string | null
+          visual_type: string | null
+        }
+        Insert: {
+          author?: string
+          content?: string
+          content_pillar?: string | null
+          created_at?: string
+          editorial_item_id?: string | null
+          excerpt?: string
+          external_id?: string | null
+          hero_image_url?: string | null
+          id?: string
+          linkedin_version?: string | null
+          meta_description?: string | null
+          newsletter_version?: string | null
+          published_at?: string | null
+          seo_keywords?: Json | null
+          slug?: string
+          social_snippets?: Json | null
+          status?: string
+          tags?: Json | null
+          title?: string
+          updated_at?: string
+          visual_concept?: string | null
+          visual_rationale?: string | null
+          visual_type?: string | null
+        }
+        Update: {
+          author?: string
+          content?: string
+          content_pillar?: string | null
+          created_at?: string
+          editorial_item_id?: string | null
+          excerpt?: string
+          external_id?: string | null
+          hero_image_url?: string | null
+          id?: string
+          linkedin_version?: string | null
+          meta_description?: string | null
+          newsletter_version?: string | null
+          published_at?: string | null
+          seo_keywords?: Json | null
+          slug?: string
+          social_snippets?: Json | null
+          status?: string
+          tags?: Json | null
+          title?: string
+          updated_at?: string
+          visual_concept?: string | null
+          visual_rationale?: string | null
+          visual_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_editorial_item_id_fkey"
+            columns: ["editorial_item_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       book_info: {
         Row: {
           author: string | null
