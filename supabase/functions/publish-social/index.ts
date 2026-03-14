@@ -72,6 +72,66 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ── UNPUBLISH FLOW ──
+    if (isUnpublish) {
+      const targetPlatforms = connections.map((c: any) => c.channel as string);
+      const unpublishPayload = {
+        post_id: `post_${item.id}`,
+        platforms: targetPlatforms,
+        action: "unpublish",
+        status: "unpublished",
+        editorial_item_id: item.id,
+        title: item.working_title,
+        source: "spiral-up-editorial",
+      };
+
+      const results: Array<{ channel: string; account: string; success: boolean; error?: string }> = [];
+
+      // Group by webhook URL
+      const webhookGroups = new Map<string, typeof connections>();
+      for (const conn of connections) {
+        const url = conn.webhook_url;
+        if (!webhookGroups.has(url)) webhookGroups.set(url, []);
+        webhookGroups.get(url)!.push(conn);
+      }
+
+      for (const [webhookUrl, conns] of webhookGroups) {
+        try {
+          await fetch(webhookUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...unpublishPayload, platforms: conns.map((c: any) => c.channel) }),
+          });
+          for (const conn of conns) {
+            results.push({ channel: conn.channel, account: conn.account_name, success: true });
+          }
+        } catch (err) {
+          for (const conn of conns) {
+            results.push({ channel: conn.channel, account: conn.account_name, success: false, error: err instanceof Error ? err.message : "Unknown error" });
+          }
+        }
+      }
+
+      // Reset status to approved
+      await supabase
+        .from("editorial_items")
+        .update({ status: "approved", updated_at: new Date().toISOString() })
+        .eq("id", editorialItemId);
+
+      await supabase.from("audit_log").insert({
+        action: "unpublish_social",
+        entity_type: "editorial_item",
+        entity_id: editorialItemId,
+        details: { results, channels: connections.map((c: any) => c.channel) },
+      });
+
+      return new Response(
+        JSON.stringify({ success: true, results, action: "unpublished" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ── PUBLISH FLOW ──
     // Generate image from visual concept if available
     let imageUrl = "";
     if (item.visual_concept) {
@@ -145,20 +205,9 @@ Deno.serve(async (req) => {
       video_url: "",
       link_url: "",
       publish_at: item.publish_date ? new Date(item.publish_date).toISOString() : new Date().toISOString(),
-      // Per-platform overrides
-      instagram: {
-        caption,
-        image_url: imageUrl || "",
-      },
-      facebook: {
-        message: caption,
-        image_url: imageUrl || "",
-      },
-      linkedin: {
-        text: caption,
-        image_url: imageUrl || "",
-      },
-      // Extra metadata (Make can ignore or use)
+      instagram: { caption, image_url: imageUrl || "" },
+      facebook: { message: caption, image_url: imageUrl || "" },
+      linkedin: { text: caption, image_url: imageUrl || "" },
       content_pillar: item.content_pillar || "",
       content_format: item.content_format || "",
       key_message: item.key_message || "",
@@ -171,7 +220,7 @@ Deno.serve(async (req) => {
       editorial_item_id: item.id,
     };
 
-    // Group connections by unique webhook URL (one call per webhook)
+    // Group connections by unique webhook URL
     const webhookGroups = new Map<string, typeof connections>();
     for (const conn of connections) {
       const url = conn.webhook_url;
@@ -179,39 +228,27 @@ Deno.serve(async (req) => {
       webhookGroups.get(url)!.push(conn);
     }
 
-    // Fire one webhook per unique URL
     const results: Array<{ channel: string; account: string; success: boolean; error?: string }> = [];
 
     for (const [webhookUrl, conns] of webhookGroups) {
       try {
-        // Override platforms list to only those on this specific webhook
-        const webhookPayload = {
-          ...payload,
-          platforms: conns.map((c: any) => c.channel),
-        };
-
+        const webhookPayload = { ...payload, platforms: conns.map((c: any) => c.channel) };
         await fetch(webhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(webhookPayload),
         });
-
         for (const conn of conns) {
           results.push({ channel: conn.channel, account: conn.account_name, success: true });
         }
       } catch (err) {
         for (const conn of conns) {
-          results.push({
-            channel: conn.channel,
-            account: conn.account_name,
-            success: false,
-            error: err instanceof Error ? err.message : "Unknown error",
-          });
+          results.push({ channel: conn.channel, account: conn.account_name, success: false, error: err instanceof Error ? err.message : "Unknown error" });
         }
       }
     }
 
-    // Update the editorial item status to published
+    // Update status to published
     const allSuccess = results.every((r) => r.success);
     if (allSuccess) {
       await supabase
@@ -220,7 +257,6 @@ Deno.serve(async (req) => {
         .eq("id", editorialItemId);
     }
 
-    // Log to audit
     await supabase.from("audit_log").insert({
       action: "publish_social",
       entity_type: "editorial_item",
