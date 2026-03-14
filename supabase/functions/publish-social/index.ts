@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Build the payload for Zapier
+    // Build the payload for the webhook (Make.com, Zapier, etc.)
     const payload = {
       title: item.working_title,
       content: item.draft_content || "",
@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify(webhookPayload),
         });
 
-        // Zapier webhooks always return 200, so we assume success
+        // Webhook services typically return 200, so we assume success
         results.push({ channel: conn.channel, account: conn.account_name, success: true });
       } catch (err) {
         results.push({

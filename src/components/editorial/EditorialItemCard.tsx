@@ -138,7 +138,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       const successCount = (data.results || []).filter((r: any) => r.success).length;
-      toast.success(`Published to ${successCount} channel${successCount !== 1 ? 's' : ''} via Zapier ⚡`);
+      toast.success(`Published to ${successCount} channel${successCount !== 1 ? 's' : ''} via webhook ⚡`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to publish');
     } finally {

@@ -234,7 +234,7 @@ export default function SettingsPage() {
                           </div>
                         )}
                         {conn.webhook_url && (
-                          <span className="text-[10px] text-green-600 dark:text-green-400 font-medium">⚡ Zapier connected</span>
+                          <span className="text-[10px] text-green-600 dark:text-green-400 font-medium">⚡ Webhook connected</span>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
@@ -269,9 +269,9 @@ export default function SettingsPage() {
                             <Input type="number" value={editForm.followers} onChange={e => setEditForm(f => ({ ...f, followers: e.target.value }))} />
                           </div>
                           <div>
-                            <label className="text-xs font-medium text-muted-foreground mb-1 block">Zapier Webhook URL</label>
-                            <Input value={editForm.webhook_url} onChange={e => setEditForm(f => ({ ...f, webhook_url: e.target.value }))} placeholder="https://hooks.zapier.com/..." />
-                            <p className="text-[10px] text-muted-foreground mt-1">Paste your Zapier webhook URL to auto-publish content to this channel.</p>
+                            <label className="text-xs font-medium text-muted-foreground mb-1 block">Webhook URL (Make.com / Zapier)</label>
+                            <Input value={editForm.webhook_url} onChange={e => setEditForm(f => ({ ...f, webhook_url: e.target.value }))} placeholder="https://hook.eu2.make.com/..." />
+                            <p className="text-[10px] text-muted-foreground mt-1">Paste your Make.com (or other automation) webhook URL to auto-publish content to this channel.</p>
                           </div>
                         </div>
                         <div className="flex justify-end gap-2">
