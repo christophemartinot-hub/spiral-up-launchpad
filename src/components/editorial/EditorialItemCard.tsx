@@ -382,10 +382,18 @@ export default function EditorialItemCard({ item }: { item: any }) {
                     <Check className="w-3.5 h-3.5" /> Approve
                   </Button>
                 )}
-                {item.status === 'approved' && (
-                  <Button size="sm" variant="outline" onClick={handleSchedule} className="gap-1.5 text-purple-600">
-                    <Calendar className="w-3.5 h-3.5" /> Schedule
-                  </Button>
+                {(item.status === 'approved' || item.status === 'scheduled') && (
+                  <>
+                    {item.status === 'approved' && (
+                      <Button size="sm" variant="outline" onClick={handleSchedule} className="gap-1.5 text-purple-600">
+                        <Calendar className="w-3.5 h-3.5" /> Schedule
+                      </Button>
+                    )}
+                    <Button size="sm" onClick={handlePublishSocial} disabled={publishing} className="gap-1.5">
+                      {publishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                      Publish to Social
+                    </Button>
+                  </>
                 )}
                 <Button size="sm" variant="outline" onClick={handleRegenerate} disabled={regenerate.isPending} className="gap-1.5">
                   {regenerate.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
