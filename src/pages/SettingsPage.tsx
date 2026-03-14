@@ -19,6 +19,7 @@ type SocialConn = {
   last_sync: string | null;
   followers: number | null;
   profile_url: string | null;
+  webhook_url: string | null;
 };
 
 function useSocialConnections() {
@@ -44,7 +45,7 @@ export default function SettingsPage() {
   const { data: config, isLoading: configLoading } = usePlanningConfig();
   const updateConfig = useUpdatePlanningConfig();
   const [editing, setEditing] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ account_name: '', profile_url: '', followers: '' });
+  const [editForm, setEditForm] = useState({ account_name: '', profile_url: '', followers: '', webhook_url: '' });
   const [adding, setAdding] = useState(false);
   const [newConn, setNewConn] = useState({ channel: 'linkedin', account_name: '', profile_url: '' });
 
@@ -96,11 +97,11 @@ export default function SettingsPage() {
 
   const startEdit = (conn: SocialConn) => {
     setEditing(conn.id);
-    setEditForm({ account_name: conn.account_name, profile_url: conn.profile_url || '', followers: conn.followers?.toString() || '' });
+    setEditForm({ account_name: conn.account_name, profile_url: conn.profile_url || '', followers: conn.followers?.toString() || '', webhook_url: conn.webhook_url || '' });
   };
 
   const saveEdit = (id: string) => {
-    updateMut.mutate({ id, account_name: editForm.account_name, profile_url: editForm.profile_url || null, followers: editForm.followers ? parseInt(editForm.followers) : null });
+    updateMut.mutate({ id, account_name: editForm.account_name, profile_url: editForm.profile_url || null, followers: editForm.followers ? parseInt(editForm.followers) : null, webhook_url: editForm.webhook_url || null });
     toast.success('Account updated');
   };
 
@@ -232,6 +233,9 @@ export default function SettingsPage() {
                             <span className="text-xs text-muted-foreground">{conn.followers.toLocaleString()} followers</span>
                           </div>
                         )}
+                        {conn.webhook_url && (
+                          <span className="text-[10px] text-green-600 dark:text-green-400 font-medium">⚡ Zapier connected</span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         {conn.connected ? (
@@ -251,7 +255,7 @@ export default function SettingsPage() {
 
                     {isEditing && (
                       <div className="mt-3 ml-14 p-3 rounded-lg bg-muted/30 border space-y-3">
-                        <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="grid gap-3 sm:grid-cols-2">
                           <div>
                             <label className="text-xs font-medium text-muted-foreground mb-1 block">Account Name</label>
                             <Input value={editForm.account_name} onChange={e => setEditForm(f => ({ ...f, account_name: e.target.value }))} />
@@ -263,6 +267,11 @@ export default function SettingsPage() {
                           <div>
                             <label className="text-xs font-medium text-muted-foreground mb-1 block">Followers</label>
                             <Input type="number" value={editForm.followers} onChange={e => setEditForm(f => ({ ...f, followers: e.target.value }))} />
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-muted-foreground mb-1 block">Zapier Webhook URL</label>
+                            <Input value={editForm.webhook_url} onChange={e => setEditForm(f => ({ ...f, webhook_url: e.target.value }))} placeholder="https://hooks.zapier.com/..." />
+                            <p className="text-[10px] text-muted-foreground mt-1">Paste your Zapier webhook URL to auto-publish content to this channel.</p>
                           </div>
                         </div>
                         <div className="flex justify-end gap-2">

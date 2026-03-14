@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import {
   ChevronDown, ChevronUp, Check, X, RefreshCw, Edit3, Calendar,
-  Loader2, Info, Palette, Lightbulb,
+  Loader2, Info, Palette, Lightbulb, Send,
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { useUpdateEditorialItem, useRegenerateItem } from '@/hooks/use-editorial';
@@ -14,6 +14,7 @@ import { useRecordFeedback } from '@/hooks/use-feedback';
 import { toast } from 'sonner';
 import VisualBriefPanel from './VisualBriefPanel';
 import { resolveBrandIcon } from '@/lib/brand-assets';
+import { supabase } from '@/integrations/supabase/client';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   suggested: { label: 'Suggested', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
@@ -35,6 +36,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
   const [form, setForm] = useState(item);
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectInput, setShowRejectInput] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   const updateItem = useUpdateEditorialItem();
   const regenerate = useRegenerateItem();
@@ -125,6 +127,23 @@ export default function EditorialItemCard({ item }: { item: any }) {
       { id: item.id, status: 'scheduled' },
       { onSuccess: () => toast.success('Content scheduled') }
     );
+  };
+
+  const handlePublishSocial = async () => {
+    setPublishing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('publish-social', {
+        body: { editorialItemId: item.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const successCount = (data.results || []).filter((r: any) => r.success).length;
+      toast.success(`Published to ${successCount} channel${successCount !== 1 ? 's' : ''} via Zapier ⚡`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to publish');
+    } finally {
+      setPublishing(false);
+    }
   };
 
   return (
@@ -363,10 +382,18 @@ export default function EditorialItemCard({ item }: { item: any }) {
                     <Check className="w-3.5 h-3.5" /> Approve
                   </Button>
                 )}
-                {item.status === 'approved' && (
-                  <Button size="sm" variant="outline" onClick={handleSchedule} className="gap-1.5 text-purple-600">
-                    <Calendar className="w-3.5 h-3.5" /> Schedule
-                  </Button>
+                {(item.status === 'approved' || item.status === 'scheduled') && (
+                  <>
+                    {item.status === 'approved' && (
+                      <Button size="sm" variant="outline" onClick={handleSchedule} className="gap-1.5 text-purple-600">
+                        <Calendar className="w-3.5 h-3.5" /> Schedule
+                      </Button>
+                    )}
+                    <Button size="sm" onClick={handlePublishSocial} disabled={publishing} className="gap-1.5">
+                      {publishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                      Publish to Social
+                    </Button>
+                  </>
                 )}
                 <Button size="sm" variant="outline" onClick={handleRegenerate} disabled={regenerate.isPending} className="gap-1.5">
                   {regenerate.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}

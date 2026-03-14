@@ -1372,6 +1372,7 @@ export type Database = {
           last_sync: string | null
           profile_url: string | null
           updated_at: string
+          webhook_url: string | null
         }
         Insert: {
           access_token?: string | null
@@ -1384,6 +1385,7 @@ export type Database = {
           last_sync?: string | null
           profile_url?: string | null
           updated_at?: string
+          webhook_url?: string | null
         }
         Update: {
           access_token?: string | null
@@ -1396,6 +1398,7 @@ export type Database = {
           last_sync?: string | null
           profile_url?: string | null
           updated_at?: string
+          webhook_url?: string | null
         }
         Relationships: []
       }
