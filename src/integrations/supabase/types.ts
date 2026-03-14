@@ -234,6 +234,7 @@ export type Database = {
           id: string
           metadata: Json | null
           name: string
+          sort_order: number
           updated_at: string
           usage_guidelines: string | null
         }
@@ -247,6 +248,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           name?: string
+          sort_order?: number
           updated_at?: string
           usage_guidelines?: string | null
         }
@@ -260,6 +262,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           name?: string
+          sort_order?: number
           updated_at?: string
           usage_guidelines?: string | null
         }
