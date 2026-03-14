@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import {
   ChevronDown, ChevronUp, Check, X, RefreshCw, Edit3, Calendar,
-  Loader2, Info, Palette, Lightbulb,
+  Loader2, Info, Palette, Lightbulb, Send,
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { useUpdateEditorialItem, useRegenerateItem } from '@/hooks/use-editorial';
@@ -14,6 +14,7 @@ import { useRecordFeedback } from '@/hooks/use-feedback';
 import { toast } from 'sonner';
 import VisualBriefPanel from './VisualBriefPanel';
 import { resolveBrandIcon } from '@/lib/brand-assets';
+import { supabase } from '@/integrations/supabase/client';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   suggested: { label: 'Suggested', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
