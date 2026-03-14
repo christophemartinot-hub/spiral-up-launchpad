@@ -132,9 +132,31 @@ Return only the final image prompt. Do not explain. Do not add labels. Do not ad
     }
 
     const aiData = await aiResponse.json();
-    const imageDataUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    console.log("AI response keys:", JSON.stringify(Object.keys(aiData)));
+    console.log("First choice message keys:", JSON.stringify(aiData.choices?.[0]?.message ? Object.keys(aiData.choices[0].message) : "no message"));
+    
+    // Try multiple possible image locations in the response
+    let imageDataUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    // Fallback: check content parts for inline image
+    if (!imageDataUrl) {
+      const parts = aiData.choices?.[0]?.message?.content;
+      if (Array.isArray(parts)) {
+        for (const part of parts) {
+          if (part.type === "image_url" && part.image_url?.url) {
+            imageDataUrl = part.image_url.url;
+            break;
+          }
+          if (part.type === "image" && part.image_url?.url) {
+            imageDataUrl = part.image_url.url;
+            break;
+          }
+        }
+      }
+    }
 
     if (!imageDataUrl) {
+      console.error("Full AI response:", JSON.stringify(aiData).substring(0, 2000));
       throw new Error("No image returned from AI model");
     }
 
