@@ -262,33 +262,63 @@ function buildEmailHtml(campaign: Record<string, unknown>): string {
     // DIVIDER
     '<tr><td style="padding:8px 0;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="border-top:2px solid #e8e4e0;"></td></tr></table></td></tr>' +
 
-    // GET THE BOOK
+    // GET THE BOOK — with cover image
     '<tr><td>' +
     '<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e4e0;border-radius:12px;overflow:hidden;background:' + bgCard + ';">' +
-    '<tr><td style="padding:28px 32px;">' +
-    '<div style="background:' + bgMint + ';border-radius:12px;padding:24px;">' +
+    '<tr><td style="padding:24px 32px;">' +
+    '<table width="100%" cellpadding="0" cellspacing="0"><tr>' +
+    '<td width="120" valign="top" style="padding-right:20px;">' +
+    '<img src="https://spiralingup.works/assets/spiral-up-book-preview-BvQT9dwc.png" width="100" style="display:block;width:100px;height:auto;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.12);" alt="Spiral Up Book" />' +
+    '</td>' +
+    '<td valign="top">' +
     '<h3 style="margin:0 0 8px;font-size:18px;font-weight:700;color:' + textDark + ';font-family:\'Titillium Web\',\'Helvetica Neue\',Helvetica,Arial,sans-serif;">📚 Get the Book</h3>' +
-    '<p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:' + textMuted + ';">Discover the complete SPIRAL UP® framework and transform how your team delivers value.</p>' +
+    '<p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:' + textMuted + ';">Discover how to transform challenges into opportunities with the Spiral Up framework.</p>' +
     '<table cellpadding="0" cellspacing="0"><tr><td style="background:' + coral + ';border-radius:8px;">' +
-    '<a href="https://spiralingup.works/book" style="display:inline-block;padding:12px 24px;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Buy the Book →</a>' +
-    '</td></tr></table></div></td></tr></table></td></tr>' +
+    '<a href="https://spiralingup.works/book" style="display:inline-block;padding:12px 24px;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Buy the Book</a>' +
+    '</td></tr></table>' +
+    '</td></tr></table>' +
+    '</td></tr></table></td></tr>' +
 
     // SPACER
     '<tr><td style="height:16px;"></td></tr>' +
 
-    // DIAGNOSTIC CTA
+    // WHERE IS YOUR TEAM — with zone icons
     '<tr><td>' +
     '<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e4e0;border-radius:12px;overflow:hidden;background:' + bgCard + ';">' +
     '<tr><td style="padding:28px 32px;text-align:center;">' +
-    '<h3 style="margin:0 0 8px;font-size:18px;font-weight:700;color:' + textDark + ';font-family:\'Titillium Web\',\'Helvetica Neue\',Helvetica,Arial,sans-serif;">🧭 Where Is Your Team Right Now?</h3>' +
-    '<p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:' + textMuted + ';">In 10 minutes, the free SPIRAL UP® diagnostic tells you exactly where your team stands — and what to do next. No login. No commitment. Instant results.</p>' +
-    '<table cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr>' +
-    '<td style="background:' + teal + ';border-radius:8px;">' +
-    '<a href="https://platform.spiralingup.works" style="display:inline-block;padding:14px 24px;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Free Team Diagnostic →</a></td>' +
-    '<td style="width:12px;"></td>' +
-    '<td style="background:' + coral + ';border-radius:8px;">' +
-    '<a href="https://platform.spiralingup.works" style="display:inline-block;padding:14px 24px;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Free Leader Diagnostic →</a></td>' +
-    '</tr></table></td></tr></table></td></tr>' +
+    '<h3 style="margin:0 0 20px;font-size:18px;font-weight:700;color:' + textDark + ';font-family:\'Titillium Web\',\'Helvetica Neue\',Helvetica,Arial,sans-serif;">🤔 Where do you think your team is?</h3>' +
+
+    // 3 zone cards
+    '<table width="100%" cellpadding="0" cellspacing="0"><tr>' +
+
+    // Spiraling Down
+    '<td width="33%" align="center" valign="top" style="padding:0 6px;">' +
+    '<div style="border:2px solid ' + coral + ';border-radius:12px;padding:16px 8px;text-align:center;">' +
+    '<img src="https://yhqcwlvzcdeqxqvavcfl.supabase.co/storage/v1/object/public/brand-assets/icons/zone-spiraling-down.png" width="48" height="48" style="display:block;margin:0 auto 8px;width:48px;height:48px;" alt="Spiraling Down" />' +
+    '<p style="margin:0;font-size:11px;font-weight:700;color:' + textDark + ';text-transform:uppercase;letter-spacing:0.5px;">Spiraling Down</p>' +
+    '</div></td>' +
+
+    // Stagnating
+    '<td width="33%" align="center" valign="top" style="padding:0 6px;">' +
+    '<div style="border:2px solid #C4A84D;border-radius:12px;padding:16px 8px;text-align:center;">' +
+    '<img src="https://yhqcwlvzcdeqxqvavcfl.supabase.co/storage/v1/object/public/brand-assets/icons/zone-stagnating.png" width="48" height="48" style="display:block;margin:0 auto 8px;width:48px;height:48px;" alt="Stagnating" />' +
+    '<p style="margin:0;font-size:11px;font-weight:700;color:' + textDark + ';text-transform:uppercase;letter-spacing:0.5px;">Stagnating</p>' +
+    '</div></td>' +
+
+    // Spiraling Up
+    '<td width="33%" align="center" valign="top" style="padding:0 6px;">' +
+    '<div style="border:2px solid ' + teal + ';border-radius:12px;padding:16px 8px;text-align:center;">' +
+    '<img src="https://yhqcwlvzcdeqxqvavcfl.supabase.co/storage/v1/object/public/brand-assets/icons/zone-spiraling-up.png" width="48" height="48" style="display:block;margin:0 auto 8px;width:48px;height:48px;" alt="Spiraling Up" />' +
+    '<p style="margin:0;font-size:11px;font-weight:700;color:' + textDark + ';text-transform:uppercase;letter-spacing:0.5px;">Spiraling Up</p>' +
+    '</div></td>' +
+
+    '</tr></table>' +
+
+    '<p style="margin:20px 0 16px;font-size:14px;line-height:1.6;color:' + textMuted + ';">Take our free 10-minute assessment to discover your team\'s level of agility, resilience, and customer value delivery.</p>' +
+    '<table cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr><td style="background:' + coral + ';border-radius:8px;">' +
+    '<a href="https://platform.spiralingup.works" style="display:inline-block;padding:14px 28px;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Take the Test →</a></td>' +
+    '</tr></table>' +
+    '</td></tr></table></td></tr>' +
 
     // SPACER
     '<tr><td style="height:16px;"></td></tr>' +
