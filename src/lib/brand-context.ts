@@ -137,6 +137,19 @@ ${(brandCore.key_beliefs as string[] || []).length > 0 ? `Key Beliefs:\n${(brand
     sections.push(`## THE SPIRAL UP BOOK\n${parts.join('\n')}`);
   }
 
+  // ── Book Chapters (deep knowledge) ──
+  if (bookChapters && bookChapters.length > 0) {
+    const chapterLines = bookChapters.map((ch: any) => {
+      let line = `### Ch${ch.chapter_number}: ${ch.chapter_title}`;
+      const concepts = (ch.key_concepts as string[]) || [];
+      if (concepts.length > 0) line += `\nKey concepts: ${concepts.join(', ')}`;
+      const quotes = (ch.quotes as string[]) || [];
+      if (quotes.length > 0) line += `\nQuotes: ${quotes.map((q: string) => `"${q}"`).join(' | ')}`;
+      return line;
+    });
+    sections.push(`## BOOK DEEP KNOWLEDGE\nUse these concepts and quotes from the Spiral Up book to enrich content:\n${chapterLines.join('\n\n')}`);
+  }
+
   // ── Events & Workshops ──
   if (events && events.length > 0) {
     const lines = events.map((e: any) => {
