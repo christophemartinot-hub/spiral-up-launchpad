@@ -230,7 +230,7 @@ function buildEmailHtml(campaign: Record<string, unknown>): string {
     '<tr><td>' +
     '<table width="100%" cellpadding="0" cellspacing="0" style="background:' + teal + ';border-radius:16px 16px 0 0;overflow:hidden;">' +
     '<tr><td style="padding:28px 32px;">' +
-    '<h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;font-family:Georgia,\'Times New Roman\',serif;">Let\'s SPIRAL <span style="color:#FFD93D;">UP!</span></h1>' +
+    '<h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;font-family:\'Titillium Web\',\'Helvetica Neue\',Helvetica,Arial,sans-serif;">Let\'s SPIRAL <span style="color:#FFD93D;">UP!</span></h1>' +
     '<p style="margin:6px 0 0;color:rgba(255,255,255,0.9);font-size:14px;">✨ HI {{name}}, NEW ARTICLE!</p>' +
     '</td></tr></table></td></tr>' +
 
