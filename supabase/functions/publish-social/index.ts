@@ -71,6 +71,40 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Generate image from visual concept if available
+    let imageUrl = "";
+    if (item.visual_concept) {
+      try {
+        console.log("Generating social image for:", item.visual_concept);
+        const imgRes = await fetch(
+          `${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-social-image`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+            },
+            body: JSON.stringify({
+              visual_concept: item.visual_concept,
+              visual_type: item.visual_type,
+              channel: item.channel,
+              title: item.working_title,
+              editorial_item_id: item.id,
+            }),
+          }
+        );
+        const imgData = await imgRes.json();
+        if (imgData.image_url) {
+          imageUrl = imgData.image_url;
+          console.log("Image generated:", imageUrl);
+        } else {
+          console.warn("Image generation returned no URL:", imgData.error);
+        }
+      } catch (imgErr) {
+        console.warn("Image generation failed, continuing without image:", imgErr);
+      }
+    }
+
     // Build the payload for the webhook (Make.com, Zapier, etc.)
     const payload = {
       title: item.working_title,
@@ -84,6 +118,7 @@ Deno.serve(async (req) => {
       post_angle: item.post_angle || "",
       visual_type: item.visual_type || "",
       visual_concept: item.visual_concept || "",
+      image_url: imageUrl,
       hashtags: "",
       carousel_idea: item.carousel_idea || "",
       objective: item.objective || "",
