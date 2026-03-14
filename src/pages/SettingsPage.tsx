@@ -97,7 +97,7 @@ export default function SettingsPage() {
 
   const startEdit = (conn: SocialConn) => {
     setEditing(conn.id);
-    setEditForm({ account_name: conn.account_name, profile_url: conn.profile_url || '', followers: conn.followers?.toString() || '' });
+    setEditForm({ account_name: conn.account_name, profile_url: conn.profile_url || '', followers: conn.followers?.toString() || '', webhook_url: conn.webhook_url || '' });
   };
 
   const saveEdit = (id: string) => {
