@@ -311,7 +311,7 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
               <>
                 <DialogHeader>
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">{CHANNEL_ICONS[detailItem.channel] || '📌'}</span>
+                    <ChannelIcon channel={detailItem.channel} size={18} />
                     <DialogTitle className="font-display">{detailItem.working_title}</DialogTitle>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap mt-1">
