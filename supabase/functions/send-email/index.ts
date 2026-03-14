@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
                 from: "Spiral Up <connect@spiralingup.works>",
                 to: [sub.email],
                 subject: campaign.subject_line,
-                html: htmlBody.replace(/\{\{name\}\}/g, sub.first_name || "there").replace(/\{\{email\}\}/g, encodeURIComponent(sub.email)),
+                html: htmlBody.replace(/\{\{name\}\}/g, sub.first_name || "there").replace(/\{\{token\}\}/g, btoa(sub.email)),
                 text: campaign.plain_text_fallback || undefined,
               }),
             });
