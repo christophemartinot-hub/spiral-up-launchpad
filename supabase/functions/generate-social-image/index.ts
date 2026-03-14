@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { visual_concept, visual_type, channel, title, editorial_item_id } = await req.json();
+    const { visual_concept, visual_type, channel, title, editorial_item_id, content_format, objective, key_message, post_angle, cta, content } = await req.json();
 
     if (!visual_concept) {
       return new Response(
@@ -31,18 +31,51 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Build a prompt tailored for social media visuals
-    const aspectRatio = channel === "instagram" ? "4:5" : "16:9";
-    const prompt = `Create a professional, brand-aligned social media visual for ${channel || "social media"}.
+    // Master prompt template for brand-aligned image generation
+    const prompt = `You are generating a social media image for the Spiral Up brand.
 
+Your job is to produce one image brief for an AI image model. The image must feel consistent with Spiral Up brand guidelines and with the specific channel and post context provided below.
+
+SPIRAL UP BRAND RULES
+
+Brand personality: Human. Direct. Pragmatic. Energizing. Professional.
+
+Brand message territory: Sustainable impact through systemic change. Healthy systems. Empowered teams. Aligned operating models. Business agility. Resilience. Adaptability. Customer centricity. Leadership that creates the conditions for value delivery.
+
+Visual principles: Clean. Modern. High-trust. Human-centered. Editorial quality. Professional. Simple. Spacious. Credible.
+
+Layout and composition rules: Prioritize clarity over decoration. Use generous white space. Keep composition focused. Avoid clutter. Avoid crowded scenes. Avoid visual noise. Use strong hierarchy in the image composition. Use one clear idea per image. Use visuals only if they support the message.
+
+Style rules: No text overlay. No typography inside the image. No logos inside the image unless explicitly provided as an overlay step outside generation. No meme style. No fantasy style. No cartoon style unless explicitly requested. No exaggerated AI-art look. No surrealism. No glossy sci-fi aesthetics. No stock-photo cliché energy. No handshake clichés. No fake conference-stage clichés. No exaggerated smiles. No over-designed business visuals. No decorative icon overload. No random arrows, charts, or floating UI elements unless the concept explicitly requires them. No invented brand symbols.
+
+Color rules: Use only a restrained and professional palette. Keep tones warm, balanced, and credible. Use subtle accents only. Do not invent official Spiral Up brand colors. If exact brand colors are not provided, stay visually neutral and premium. Avoid neon. Avoid harsh saturation. Avoid loud gradients.
+
+Image intent: The image should communicate business relevance, human systems, leadership, adaptability, resilience, collaboration, customer focus, or systemic change. It must look credible to leaders, consultants, and transformation professionals.
+
+Channel adaptation: If channel is instagram, optimize for visual impact, emotional clarity, and 4:5 composition. If channel is linkedin, optimize for professional credibility, business clarity, and 16:9 or square composition depending on the requested format. If channel is facebook, optimize for broad readability, clean composition, and 16:9 composition. If format is carousel cover, make the image bold, simple, and concept-led. If format is single image post, make the image self-sufficient and immediately understandable.
+
+INPUTS
+
+Channel: ${channel || "linkedin"}
+Format: ${content_format || "single image post"}
 Visual type: ${visual_type || "graphic"}
-Concept: ${visual_concept}
-Post title: ${title || ""}
+Objective: ${objective || ""}
+Key message: ${key_message || ""}
+Post angle: ${post_angle || ""}
+CTA: ${cta || ""}
+Visual concept raw: ${visual_concept}
+Title: ${title || ""}
+Content excerpt: ${content || ""}
 
-Style: Clean, modern, inspirational. Use warm tones with accents of teal/gold. 
-The image should be suitable for ${channel || "social media"} (aspect ratio ${aspectRatio}).
-Do NOT include any text in the image — text overlays will be added separately.
-Make it visually striking and scroll-stopping.`;
+TASK
+
+Rewrite the raw visual concept into a brand-ready image prompt for an image model.
+
+The final image prompt must: Reflect the Spiral Up brand rules above. Be concrete and visual. Describe the scene, composition, mood, subject, setting, framing, and style. Adapt to the channel and format. Avoid generic corporate visuals. Avoid text inside the image. Avoid mentioning brand colors unless exact approved colors are provided separately. Stay concise but specific.
+
+OUTPUT FORMAT
+
+Return only the final image prompt. Do not explain. Do not add labels. Do not add bullet points.`;
 
     console.log("Generating image with prompt:", prompt);
 
