@@ -294,21 +294,21 @@ function buildEmailHtml(campaign: Record<string, unknown>): string {
     // Spiraling Down
     '<td width="33%" align="center" valign="top" style="padding:0 6px;">' +
     '<div style="border:2px solid ' + coral + ';border-radius:12px;padding:16px 8px;text-align:center;">' +
-    '<img src="https://yhqcwlvzcdeqxqvavcfl.supabase.co/storage/v1/object/public/brand-assets/icons/zone-spiraling-down.png" width="48" height="48" style="display:block;margin:0 auto 8px;width:48px;height:48px;" alt="Spiraling Down" />' +
+    '<img src="https://yhqcwlvzcdeqxqvavcfl.supabase.co/storage/v1/object/public/brand-assets/illustrations/spiraling-down.jpg" width="120" style="display:block;margin:0 auto 8px;width:120px;height:auto;border-radius:8px;" alt="Spiraling Down" />' +
     '<p style="margin:0;font-size:11px;font-weight:700;color:' + textDark + ';text-transform:uppercase;letter-spacing:0.5px;">Spiraling Down</p>' +
     '</div></td>' +
 
     // Stagnating
     '<td width="33%" align="center" valign="top" style="padding:0 6px;">' +
     '<div style="border:2px solid #C4A84D;border-radius:12px;padding:16px 8px;text-align:center;">' +
-    '<img src="https://yhqcwlvzcdeqxqvavcfl.supabase.co/storage/v1/object/public/brand-assets/icons/zone-stagnating.png" width="48" height="48" style="display:block;margin:0 auto 8px;width:48px;height:48px;" alt="Stagnating" />' +
+    '<img src="https://yhqcwlvzcdeqxqvavcfl.supabase.co/storage/v1/object/public/brand-assets/illustrations/stagnating.jpg" width="120" style="display:block;margin:0 auto 8px;width:120px;height:auto;border-radius:8px;" alt="Stagnating" />' +
     '<p style="margin:0;font-size:11px;font-weight:700;color:' + textDark + ';text-transform:uppercase;letter-spacing:0.5px;">Stagnating</p>' +
     '</div></td>' +
 
     // Spiraling Up
     '<td width="33%" align="center" valign="top" style="padding:0 6px;">' +
     '<div style="border:2px solid ' + teal + ';border-radius:12px;padding:16px 8px;text-align:center;">' +
-    '<img src="https://yhqcwlvzcdeqxqvavcfl.supabase.co/storage/v1/object/public/brand-assets/icons/zone-spiraling-up.png" width="48" height="48" style="display:block;margin:0 auto 8px;width:48px;height:48px;" alt="Spiraling Up" />' +
+    '<img src="https://yhqcwlvzcdeqxqvavcfl.supabase.co/storage/v1/object/public/brand-assets/illustrations/spiraling-up.png" width="120" style="display:block;margin:0 auto 8px;width:120px;height:auto;border-radius:8px;" alt="Spiraling Up" />' +
     '<p style="margin:0;font-size:11px;font-weight:700;color:' + textDark + ';text-transform:uppercase;letter-spacing:0.5px;">Spiraling Up</p>' +
     '</div></td>' +
 
