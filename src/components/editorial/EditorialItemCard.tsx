@@ -146,6 +146,22 @@ export default function EditorialItemCard({ item }: { item: any }) {
     }
   };
 
+  const handleUnpublish = async () => {
+    setPublishing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('publish-social', {
+        body: { editorialItemId: item.id, action: 'unpublish' },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success('Unpublished — status reset to approved, Make notified');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to unpublish');
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   return (
     <Card className={`shadow-card overflow-hidden transition-all ${item.status === 'approved' ? 'border-green-200 dark:border-green-800' : ''}`}>
       <button
