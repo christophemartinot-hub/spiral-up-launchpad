@@ -412,7 +412,17 @@ function ItemDetailDialog({ item, open, onOpenChange }: { item: any; open: boole
 export default function CalendarView() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const { data: editorialItems } = useEditorialItems(null);
+  const updateItem = useUpdateEditorialItem();
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
+
+  const handleQuickApprove = async (item: any) => {
+    try {
+      await updateItem.mutateAsync({ id: item.id, status: 'approved' });
+      toast.success(`"${item.working_title}" approved ✓`);
+    } catch {
+      toast.error('Failed to approve');
+    }
+  };
 
   const weekStart = startOfWeek(currentDate);
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
