@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EditorialAgenda from '@/components/editorial/EditorialAgenda';
+import WeekReviewBoard from '@/components/editorial/WeekReviewBoard';
 import PlanningConfigPanel from '@/components/editorial/PlanningConfigPanel';
 import VisualConfigPanel from '@/components/editorial/VisualConfigPanel';
 import PlanHistory from '@/components/editorial/PlanHistory';
