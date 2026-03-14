@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Build the payload for Zapier
+    // Build the payload for the webhook (Make.com, Zapier, etc.)
     const payload = {
       title: item.working_title,
       content: item.draft_content || "",
