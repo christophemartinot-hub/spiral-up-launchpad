@@ -233,6 +233,9 @@ export default function SettingsPage() {
                             <span className="text-xs text-muted-foreground">{conn.followers.toLocaleString()} followers</span>
                           </div>
                         )}
+                        {conn.webhook_url && (
+                          <span className="text-[10px] text-green-600 dark:text-green-400 font-medium">⚡ Zapier connected</span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         {conn.connected ? (
