@@ -18,6 +18,7 @@ export async function buildBrandContext(): Promise<string> {
     { data: examples },
     { data: bookInfo },
     { data: events },
+    { data: bookChapters },
   ] = await Promise.all([
     supabase.from('brand_core').select('*').limit(1).single(),
     supabase.from('founder_profile').select('*').limit(1).single(),
@@ -29,6 +30,7 @@ export async function buildBrandContext(): Promise<string> {
     supabase.from('example_content').select('*').limit(10),
     supabase.from('book_info').select('*').limit(1).single(),
     supabase.from('events_workshops').select('*').order('sort_order'),
+    supabase.from('book_chapters').select('*').order('sort_order'),
   ]);
 
   const sections: string[] = [];
@@ -133,6 +135,19 @@ ${(brandCore.key_beliefs as string[] || []).length > 0 ? `Key Beliefs:\n${(brand
       parts.push(`Endorsements:\n${quotes.join('\n')}`);
     }
     sections.push(`## THE SPIRAL UP BOOK\n${parts.join('\n')}`);
+  }
+
+  // ── Book Chapters (deep knowledge) ──
+  if (bookChapters && bookChapters.length > 0) {
+    const chapterLines = bookChapters.map((ch: any) => {
+      let line = `### Ch${ch.chapter_number}: ${ch.chapter_title}`;
+      const concepts = (ch.key_concepts as string[]) || [];
+      if (concepts.length > 0) line += `\nKey concepts: ${concepts.join(', ')}`;
+      const quotes = (ch.quotes as string[]) || [];
+      if (quotes.length > 0) line += `\nQuotes: ${quotes.map((q: string) => `"${q}"`).join(' | ')}`;
+      return line;
+    });
+    sections.push(`## BOOK DEEP KNOWLEDGE\nUse these concepts and quotes from the Spiral Up book to enrich content:\n${chapterLines.join('\n\n')}`);
   }
 
   // ── Events & Workshops ──
