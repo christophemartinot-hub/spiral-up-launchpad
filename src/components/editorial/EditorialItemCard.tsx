@@ -36,6 +36,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
   const [form, setForm] = useState(item);
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectInput, setShowRejectInput] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   const updateItem = useUpdateEditorialItem();
   const regenerate = useRegenerateItem();
