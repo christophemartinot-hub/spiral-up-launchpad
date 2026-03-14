@@ -280,7 +280,7 @@ function buildEmailHtml(campaign: Record<string, unknown>): string {
     '<tr><td>' +
     '<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e4e0;border-radius:12px;overflow:hidden;background:' + bgCard + ';">' +
     '<tr><td style="padding:28px 32px;text-align:center;">' +
-    '<h3 style="margin:0 0 8px;font-size:18px;font-weight:700;color:' + textDark + ';font-family:Georgia,\'Times New Roman\',serif;">🧭 Where Is Your Team Right Now?</h3>' +
+    '<h3 style="margin:0 0 8px;font-size:18px;font-weight:700;color:' + textDark + ';font-family:\'Titillium Web\',\'Helvetica Neue\',Helvetica,Arial,sans-serif;">🧭 Where Is Your Team Right Now?</h3>' +
     '<p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:' + textMuted + ';">In 10 minutes, the free SPIRAL UP® diagnostic tells you exactly where your team stands — and what to do next. No login. No commitment. Instant results.</p>' +
     '<table cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr>' +
     '<td style="background:' + teal + ';border-radius:8px;">' +
