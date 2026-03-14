@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Check, X, Loader2, CheckCheck, Eye, ChevronLeft, ChevronRight,
-  Palette, Calendar, Target, Lightbulb,
+  Palette, Calendar, Target, Lightbulb, Instagram, Linkedin, Facebook, PenLine, Globe,
 } from 'lucide-react';
 import { format, parseISO, startOfWeek, endOfWeek, addWeeks, eachDayOfInterval, isSameDay } from 'date-fns';
 import { useEditorialItems, useUpdateEditorialItem } from '@/hooks/use-editorial';
@@ -17,9 +17,21 @@ import {
 } from '@/components/ui/dialog';
 import VisualBriefPanel from './VisualBriefPanel';
 
-const CHANNEL_ICONS: Record<string, string> = {
-  linkedin: '💼', blog: '📝', email: '✉️', instagram: '📸',
-  twitter: '𝕏', facebook: '👤', youtube: '▶️',
+const CHANNEL_ICON_COMPONENTS: Record<string, { icon: any; color: string }> = {
+  instagram: { icon: Instagram, color: 'text-pink-500' },
+  linkedin: { icon: Linkedin, color: 'text-blue-600' },
+  facebook: { icon: Facebook, color: 'text-blue-500' },
+  blog: { icon: PenLine, color: 'text-accent-foreground' },
+  email: { icon: Globe, color: 'text-muted-foreground' },
+  twitter: { icon: Globe, color: 'text-foreground' },
+  youtube: { icon: Globe, color: 'text-destructive' },
+};
+
+const ChannelIcon = ({ channel, size = 12 }: { channel: string; size?: number }) => {
+  const entry = CHANNEL_ICON_COMPONENTS[channel];
+  if (!entry) return <Globe className="text-muted-foreground" style={{ width: size, height: size }} />;
+  const Icon = entry.icon;
+  return <Icon className={entry.color} style={{ width: size, height: size }} />;
 };
 
 const VISUAL_TYPE_ICONS: Record<string, string> = {
@@ -222,7 +234,7 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                             {icon ? (
                               <img src={icon} alt="" className="w-6 h-6 object-contain" />
                             ) : (
-                              <span className="text-lg">{CHANNEL_ICONS[item.channel] || '📌'}</span>
+                              <span className="text-lg"><ChannelIcon channel={item.channel} size={14} /></span>
                             )}
                           </div>
                         )}
@@ -230,7 +242,7 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                         <CardContent className="p-2 space-y-1">
                           {/* Channel + visual type */}
                           <div className="flex items-center gap-1 flex-wrap">
-                            <span className="text-[9px]">{CHANNEL_ICONS[item.channel] || '📌'}</span>
+                            <ChannelIcon channel={item.channel} size={11} />
                             {item.visual_type && (
                               <span className="text-[9px]">{VISUAL_TYPE_ICONS[item.visual_type] || '🎨'}</span>
                             )}
@@ -299,7 +311,7 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
               <>
                 <DialogHeader>
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">{CHANNEL_ICONS[detailItem.channel] || '📌'}</span>
+                    <ChannelIcon channel={detailItem.channel} size={18} />
                     <DialogTitle className="font-display">{detailItem.working_title}</DialogTitle>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap mt-1">
