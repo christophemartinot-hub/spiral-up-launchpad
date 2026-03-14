@@ -244,7 +244,7 @@ function buildEmailHtml(campaign: Record<string, unknown>): string {
 
     // ARTICLE TITLE & SUMMARY
     '<tr><td style="background:' + bgCard + ';padding:20px 32px;">' +
-    '<h2 style="margin:0 0 12px;font-size:24px;font-weight:800;color:' + textDark + ';font-family:Georgia,\'Times New Roman\',serif;line-height:1.3;">' +
+    '<h2 style="margin:0 0 12px;font-size:24px;font-weight:800;color:' + textDark + ';font-family:\'Titillium Web\',\'Helvetica Neue\',Helvetica,Arial,sans-serif;line-height:1.3;">' +
     subjectLine + '</h2>' + blogSummaryBlock + '</td></tr>' +
 
     // PRIMARY CTA
