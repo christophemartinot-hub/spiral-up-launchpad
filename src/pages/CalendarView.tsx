@@ -8,8 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   ChevronLeft, ChevronRight, Plus, Filter, CheckCircle2, XCircle,
-  Palette, Image as ImageIcon, Eye, Pencil, Clock, Sparkles,
+  Palette, Image as ImageIcon, Eye, Pencil, Clock, Sparkles, Check,
+  Instagram, Linkedin, Facebook, PenLine, Globe,
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ChannelType, CHANNEL_CONFIG } from '@/data/types';
 import { useEditorialItems, useUpdateEditorialItem } from '@/hooks/use-editorial';
 import { resolveBrandIcon } from '@/lib/brand-assets';
@@ -72,11 +74,30 @@ const ACCENT_MAP: Record<string, string> = {
 };
 
 // ─── Calendar Card ───
-function CalendarEditorialCard({ item, onClick }: { item: any; onClick: () => void }) {
+const CHANNEL_ICON_MAP: Record<string, any> = {
+  instagram: Instagram,
+  linkedin: Linkedin,
+  facebook: Facebook,
+  blog: PenLine,
+  email: Globe,
+};
+
+const CHANNEL_ICON_COLORS: Record<string, string> = {
+  instagram: 'text-pink-500',
+  linkedin: 'text-blue-600',
+  facebook: 'text-blue-500',
+  blog: 'text-accent-foreground',
+  email: 'text-muted-foreground',
+};
+
+function CalendarEditorialCard({ item, onClick, onQuickApprove }: { item: any; onClick: () => void; onQuickApprove?: () => void }) {
   const channel = item.channel as string;
   const brandIcon = resolveBrandIcon(item.content_pillar || item.working_title || '');
   const vs = VISUAL_STATUS_STYLES[item.visual_status] || VISUAL_STATUS_STYLES.none;
   const hasVisual = item.visual_status && item.visual_status !== 'none';
+  const canApprove = item.status === 'suggested' || item.status === 'under_review';
+  const ChannelIconComp = CHANNEL_ICON_MAP[channel] || Globe;
+  const channelColor = CHANNEL_ICON_COLORS[channel] || 'text-muted-foreground';
 
   return (
     <div
@@ -86,12 +107,25 @@ function CalendarEditorialCard({ item, onClick }: { item: any; onClick: () => vo
       {/* Header */}
       <div className="px-3 pt-2.5 pb-1 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className={`w-5 h-5 rounded-full ${CHANNEL_COLORS[channel] || 'bg-primary'} flex items-center justify-center text-[9px] text-white font-bold`}>
-            {channel === 'linkedin' ? 'in' : channel === 'email' ? '✉' : channel === 'blog' ? '📝' : channel[0]?.toUpperCase()}
-          </div>
-          <span className="text-[10px] font-medium text-muted-foreground">{item.content_format || 'Post'}</span>
+          <ChannelIconComp className={`w-4 h-4 ${channelColor}`} />
+          <span className="text-[10px] font-medium text-muted-foreground">{item.content_format?.replace(/_/g, ' ') || 'Post'}</span>
         </div>
-        {brandIcon && <img src={brandIcon} alt="" className="w-4 h-4 object-contain opacity-60" />}
+        <div className="flex items-center gap-1">
+          {brandIcon && <img src={brandIcon} alt="" className="w-4 h-4 object-contain opacity-60" />}
+          {canApprove && onQuickApprove && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onQuickApprove(); }}
+                  className="w-5 h-5 rounded-full border-2 border-green-400 hover:bg-green-500 hover:border-green-500 hover:text-white flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  <Check className="w-3 h-3" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">Quick approve</TooltipContent>
+            </Tooltip>
+          )}
+        </div>
       </div>
 
       {/* Title */}
@@ -378,7 +412,17 @@ function ItemDetailDialog({ item, open, onOpenChange }: { item: any; open: boole
 export default function CalendarView() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const { data: editorialItems } = useEditorialItems(null);
+  const updateItem = useUpdateEditorialItem();
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
+
+  const handleQuickApprove = async (item: any) => {
+    try {
+      await updateItem.mutateAsync({ id: item.id, status: 'approved' });
+      toast.success(`"${item.working_title}" approved ✓`);
+    } catch {
+      toast.error('Failed to approve');
+    }
+  };
 
   const weekStart = startOfWeek(currentDate);
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -447,7 +491,7 @@ export default function CalendarView() {
 
               <div className="flex-1 p-1.5 space-y-1.5 overflow-y-auto">
                 {editorials.map((item: any) => (
-                  <CalendarEditorialCard key={item.id} item={item} onClick={() => setSelectedItem(item)} />
+                  <CalendarEditorialCard key={item.id} item={item} onClick={() => setSelectedItem(item)} onQuickApprove={() => handleQuickApprove(item)} />
                 ))}
                 {editorials.length === 0 && (
                   <div className="flex items-center justify-center h-20 text-[10px] text-muted-foreground/40 italic">
