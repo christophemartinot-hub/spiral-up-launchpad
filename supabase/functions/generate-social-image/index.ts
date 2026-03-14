@@ -31,8 +31,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Master prompt template for brand-aligned image generation
-    const prompt = `You are generating a social media image for the Spiral Up brand.
+    // STEP 1: Use a text model to refine the raw visual concept into a brand-ready image prompt
+    const masterPrompt = `You are generating a social media image for the Spiral Up brand.
 
 Your job is to produce one image brief for an AI image model. The image must feel consistent with Spiral Up brand guidelines and with the specific channel and post context provided below.
 
@@ -77,9 +77,37 @@ OUTPUT FORMAT
 
 Return only the final image prompt. Do not explain. Do not add labels. Do not add bullet points.`;
 
-    console.log("Generating image with prompt:", prompt);
+    console.log("Step 1: Refining visual concept with text model...");
 
-    // Call Lovable AI image generation
+    const refineResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "user", content: masterPrompt }],
+      }),
+    });
+
+    if (!refineResponse.ok) {
+      const errText = await refineResponse.text();
+      throw new Error(`Prompt refinement failed [${refineResponse.status}]: ${errText}`);
+    }
+
+    const refineData = await refineResponse.json();
+    const refinedPrompt = refineData.choices?.[0]?.message?.content?.trim();
+
+    if (!refinedPrompt) {
+      throw new Error("No refined prompt returned from text model");
+    }
+
+    console.log("Step 1 complete. Refined prompt:", refinedPrompt);
+
+    // STEP 2: Generate the image using the refined prompt
+    console.log("Step 2: Generating image...");
+
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -91,7 +119,7 @@ Return only the final image prompt. Do not explain. Do not add labels. Do not ad
         messages: [
           {
             role: "user",
-            content: prompt,
+            content: `Generate this image. Do not return any text, only the image.\n\n${refinedPrompt}`,
           },
         ],
         modalities: ["image", "text"],
@@ -149,7 +177,7 @@ Return only the final image prompt. Do not explain. Do not add labels. Do not ad
     console.log("Image generated and uploaded:", publicUrl);
 
     return new Response(
-      JSON.stringify({ success: true, image_url: publicUrl }),
+      JSON.stringify({ success: true, image_url: publicUrl, refined_prompt: refinedPrompt }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
