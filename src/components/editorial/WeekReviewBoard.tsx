@@ -94,6 +94,29 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
     }
   };
 
+  const handleQuickApprove = async (item: any) => {
+    try {
+      updateItem.mutate({ id: item.id, status: 'approved' }, {
+        onSuccess: () => {
+          recordFeedback.mutate({
+            editorial_item_id: item.id,
+            plan_id: item.plan_id,
+            action_type: 'approved_clean',
+            original_title: item.working_title || '',
+            original_content: (item.draft_content || '').slice(0, 2000),
+            original_cta: item.suggested_cta || item.cta || '',
+            original_visual_type: item.visual_type || '',
+            original_content_pillar: item.content_pillar || '',
+            original_topic: item.key_message || item.working_title || '',
+            channel: item.channel || '',
+            content_format: item.content_format || '',
+          });
+          toast.success(`"${item.working_title}" approved ✓`);
+        },
+      });
+    } catch { toast.error('Failed to approve'); }
+  };
+
   const handleBatchApprove = async () => {
     if (selected.size === 0) return;
     setApproving(true);
