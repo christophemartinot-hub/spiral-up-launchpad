@@ -1,0 +1,1 @@
+UPDATE social_connections SET webhook_url = 'https://hooks.zapier.com/hooks/catch/7061002/ux7txr2/', updated_at = now() WHERE id IN ('ac2a6582-78cd-45ea-8101-3dad431f36a8', 'c0eebeb2-2073-4f5a-9feb-fd9fedfb62f0', '1ffab042-3e2c-4278-a2db-9834f3a76702', '7ad96cdb-eef8-4f63-99d5-4dde8bb63f2c');
