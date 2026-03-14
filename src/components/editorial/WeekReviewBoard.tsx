@@ -260,7 +260,7 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                     return (
                       <Card
                         key={item.id}
-                        className={`cursor-pointer transition-all hover:shadow-md overflow-hidden ${
+                        className={`group/card cursor-pointer transition-all hover:shadow-md overflow-hidden ${
                           isSelected ? 'ring-2 ring-green-500 shadow-md' :
                           isApproved ? 'border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20' : ''
                         }`}
@@ -275,6 +275,19 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                                 <ChannelIcon channel={item.channel} size={12} />
                               </div>
                             </div>
+                            {isSuggested && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleQuickApprove(item); }}
+                                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity shadow-md hover:bg-green-600"
+                                  >
+                                    <Check className="w-3.5 h-3.5" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">Quick approve</TooltipContent>
+                              </Tooltip>
+                            )}
                           </div>
                         ) : icon ? (
                           <div className={`${isVisualChannel ? 'h-20' : 'h-14'} bg-gradient-to-br from-muted/50 to-muted/20 flex items-center justify-center relative`}>
@@ -284,14 +297,35 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                                 <ChannelIcon channel={item.channel} size={12} />
                               </div>
                             </div>
+                            {isSuggested && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleQuickApprove(item); }}
+                                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity shadow-md hover:bg-green-600"
+                                  >
+                                    <Check className="w-3.5 h-3.5" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">Quick approve</TooltipContent>
+                              </Tooltip>
+                            )}
                           </div>
                         ) : (
                           <div className={`${isVisualChannel ? 'h-20' : 'h-14'} bg-gradient-to-br from-muted/50 to-muted/20 flex items-center justify-center relative`}>
                             <ChannelIcon channel={item.channel} size={isVisualChannel ? 24 : 16} />
-                            {item.visual_headline && (
-                              <div className="absolute inset-0 flex items-center justify-center px-2">
-                                <p className="text-[8px] font-bold text-center leading-tight text-foreground/70 line-clamp-2">{item.visual_headline}</p>
-                              </div>
+                            {isSuggested && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleQuickApprove(item); }}
+                                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity shadow-md hover:bg-green-600"
+                                  >
+                                    <Check className="w-3.5 h-3.5" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">Quick approve</TooltipContent>
+                              </Tooltip>
                             )}
                           </div>
                         )}
@@ -323,29 +357,6 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                             <p className="text-[9px] text-muted-foreground line-clamp-2 italic">
                               <Palette className="w-2.5 h-2.5 inline mr-0.5" />{item.visual_concept}
                             </p>
-                          )}
-
-                          {/* Quick approve checkbox for suggested items */}
-                          {isSuggested && (
-                            <div className="flex justify-end pt-0.5">
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); toggleSelect(item.id); }}
-                                    className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                                      isSelected
-                                        ? 'bg-green-500 border-green-500 text-white'
-                                        : 'border-muted-foreground/30 hover:border-green-500'
-                                    }`}
-                                  >
-                                    {isSelected && <Check className="w-3 h-3" />}
-                                  </button>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="text-xs">
-                                  {isSelected ? 'Deselect' : 'Select for batch approve'}
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
                           )}
                         </CardContent>
                       </Card>
