@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.unsubscribe-proxy]
 verify_jwt = false
+
+[functions.editorial-reminder]
+verify_jwt = false
