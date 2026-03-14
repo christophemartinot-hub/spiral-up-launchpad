@@ -145,6 +145,8 @@ export default function EditorialItemCard({ item }: { item: any }) {
       setPublishing(false);
     }
   };
+
+  return (
     <Card className={`shadow-card overflow-hidden transition-all ${item.status === 'approved' ? 'border-green-200 dark:border-green-800' : ''}`}>
       <button
         onClick={() => setExpanded(!expanded)}
