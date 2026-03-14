@@ -136,12 +136,30 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
       ...(item.recommended_assets || []),
       item.visual_concept || '',
       item.working_title || '',
+      item.content_pillar || '',
+      item.key_message || '',
     ].join(' ').toLowerCase();
-    const keywords = ['synergize', 'provide', 'inspect', 'respond', 'act & accept', 'act_accept', 'learn',
-      'spiraling_up', 'spiraling_down', 'stagnating'];
-    for (const kw of keywords) {
-      if (fields.includes(kw)) return resolveBrandIllustration(kw.replace(/\s+/g, '_'));
+
+    // Check zones first (with flexible matching)
+    if (fields.includes('spiraling down') || fields.includes('spiral down') || fields.includes('spiraling_down')) {
+      return resolveBrandIllustration('spiraling_down');
     }
+    if (fields.includes('spiraling up') || fields.includes('spiral up') || fields.includes('spiraling_up')) {
+      return resolveBrandIllustration('spiraling_up');
+    }
+    if (fields.includes('stagnat')) {
+      return resolveBrandIllustration('stagnating');
+    }
+
+    // Check principles
+    const principles = ['synergize', 'provide', 'inspect', 'respond', 'learn'];
+    for (const p of principles) {
+      if (fields.includes(p)) return resolveBrandIllustration(p);
+    }
+    if (fields.includes('act') && fields.includes('accept')) {
+      return resolveBrandIllustration('act_accept');
+    }
+
     return null;
   };
 
