@@ -124,56 +124,89 @@ Deno.serve(async (req) => {
       return imageUrl ? "image" : "text";
     };
 
-    // Build the payload for the webhook (Make.com, Zapier, etc.)
-    const payload = {
+    const postType = resolvePostType(item.visual_type, item.content_format);
+    const caption = item.draft_content || "";
+    const cta = item.suggested_cta || item.cta || "";
+    const targetPlatforms = connections.map((c: any) => c.channel as string);
+
+    // Build clean Make.com payload
+    const payload: Record<string, unknown> = {
+      post_id: `post_${item.id}`,
+      platforms: targetPlatforms,
+      post_type: postType,
+      status: "ready",
       title: item.working_title,
-      content: item.draft_content || "",
-      channel: item.channel,
-      platform: item.channel,
-      post_type: resolvePostType(item.visual_type, item.content_format),
-      content_format: item.content_format,
+      caption,
+      cta,
+      hashtags: "",
+      image_url: imageUrl || "",
+      image_urls: imageUrl ? [imageUrl] : [],
+      video_url: "",
+      link_url: "",
+      publish_at: item.publish_date ? new Date(item.publish_date).toISOString() : new Date().toISOString(),
+      // Per-platform overrides
+      instagram: {
+        caption,
+        image_url: imageUrl || "",
+      },
+      facebook: {
+        message: caption,
+        image_url: imageUrl || "",
+      },
+      linkedin: {
+        text: caption,
+        image_url: imageUrl || "",
+      },
+      // Extra metadata (Make can ignore or use)
       content_pillar: item.content_pillar || "",
-      cta: item.suggested_cta || item.cta || "",
-      publish_date: item.publish_date,
+      content_format: item.content_format || "",
       key_message: item.key_message || "",
       post_angle: item.post_angle || "",
       visual_type: item.visual_type || "",
       visual_concept: item.visual_concept || "",
-      image_url: imageUrl,
-      hashtags: "",
       carousel_idea: item.carousel_idea || "",
       objective: item.objective || "",
       source: "spiral-up-editorial",
       editorial_item_id: item.id,
-      timestamp: new Date().toISOString(),
     };
 
-    // Fire webhooks for each connection
+    // Group connections by unique webhook URL (one call per webhook)
+    const webhookGroups = new Map<string, typeof connections>();
+    for (const conn of connections) {
+      const url = conn.webhook_url;
+      if (!webhookGroups.has(url)) webhookGroups.set(url, []);
+      webhookGroups.get(url)!.push(conn);
+    }
+
+    // Fire one webhook per unique URL
     const results: Array<{ channel: string; account: string; success: boolean; error?: string }> = [];
 
-    for (const conn of connections) {
+    for (const [webhookUrl, conns] of webhookGroups) {
       try {
+        // Override platforms list to only those on this specific webhook
         const webhookPayload = {
           ...payload,
-          target_channel: conn.channel,
-          target_account: conn.account_name,
+          platforms: conns.map((c: any) => c.channel),
         };
 
-        await fetch(conn.webhook_url, {
+        await fetch(webhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(webhookPayload),
         });
 
-        // Webhook services typically return 200, so we assume success
-        results.push({ channel: conn.channel, account: conn.account_name, success: true });
+        for (const conn of conns) {
+          results.push({ channel: conn.channel, account: conn.account_name, success: true });
+        }
       } catch (err) {
-        results.push({
-          channel: conn.channel,
-          account: conn.account_name,
-          success: false,
-          error: err instanceof Error ? err.message : "Unknown error",
-        });
+        for (const conn of conns) {
+          results.push({
+            channel: conn.channel,
+            account: conn.account_name,
+            success: false,
+            error: err instanceof Error ? err.message : "Unknown error",
+          });
+        }
       }
     }
 
