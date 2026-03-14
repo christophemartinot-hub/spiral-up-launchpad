@@ -129,7 +129,22 @@ export default function EditorialItemCard({ item }: { item: any }) {
     );
   };
 
-  return (
+  const handlePublishSocial = async () => {
+    setPublishing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('publish-social', {
+        body: { editorialItemId: item.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const successCount = (data.results || []).filter((r: any) => r.success).length;
+      toast.success(`Published to ${successCount} channel${successCount !== 1 ? 's' : ''} via Zapier ⚡`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to publish');
+    } finally {
+      setPublishing(false);
+    }
+  };
     <Card className={`shadow-card overflow-hidden transition-all ${item.status === 'approved' ? 'border-green-200 dark:border-green-800' : ''}`}>
       <button
         onClick={() => setExpanded(!expanded)}
