@@ -17,9 +17,21 @@ import {
 } from '@/components/ui/dialog';
 import VisualBriefPanel from './VisualBriefPanel';
 
-const CHANNEL_ICONS: Record<string, string> = {
-  linkedin: '💼', blog: '📝', email: '✉️', instagram: '📸',
-  twitter: '𝕏', facebook: '👤', youtube: '▶️',
+const CHANNEL_ICON_COMPONENTS: Record<string, { icon: any; color: string }> = {
+  instagram: { icon: Instagram, color: 'text-pink-500' },
+  linkedin: { icon: Linkedin, color: 'text-blue-600' },
+  facebook: { icon: Facebook, color: 'text-blue-500' },
+  blog: { icon: PenLine, color: 'text-accent-foreground' },
+  email: { icon: Globe, color: 'text-muted-foreground' },
+  twitter: { icon: Globe, color: 'text-foreground' },
+  youtube: { icon: Globe, color: 'text-destructive' },
+};
+
+const ChannelIcon = ({ channel, size = 12 }: { channel: string; size?: number }) => {
+  const entry = CHANNEL_ICON_COMPONENTS[channel];
+  if (!entry) return <Globe className="text-muted-foreground" style={{ width: size, height: size }} />;
+  const Icon = entry.icon;
+  return <Icon className={entry.color} style={{ width: size, height: size }} />;
 };
 
 const VISUAL_TYPE_ICONS: Record<string, string> = {
