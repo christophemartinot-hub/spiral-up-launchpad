@@ -7,6 +7,8 @@ import {
   Check, X, Loader2, CheckCheck, Eye, ChevronLeft, ChevronRight,
   Palette, Calendar, Target, Lightbulb,
 } from 'lucide-react';
+import { SiInstagram, SiLinkedin, SiFacebook } from 'react-icons/si';
+import { FileText } from 'lucide-react';
 import { format, parseISO, startOfWeek, endOfWeek, addWeeks, eachDayOfInterval, isSameDay } from 'date-fns';
 import { useEditorialItems, useUpdateEditorialItem } from '@/hooks/use-editorial';
 import { useRecordFeedback } from '@/hooks/use-feedback';
