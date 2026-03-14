@@ -242,7 +242,7 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                         <CardContent className="p-2 space-y-1">
                           {/* Channel + visual type */}
                           <div className="flex items-center gap-1 flex-wrap">
-                            <span className="text-[9px]">{CHANNEL_ICONS[item.channel] || '📌'}</span>
+                            <ChannelIcon channel={item.channel} size={11} />
                             {item.visual_type && (
                               <span className="text-[9px]">{VISUAL_TYPE_ICONS[item.visual_type] || '🎨'}</span>
                             )}
