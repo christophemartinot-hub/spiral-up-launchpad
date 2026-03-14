@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.generate-strategic-ideas]
 verify_jwt = false
+
+[functions.publish-social]
+verify_jwt = false
