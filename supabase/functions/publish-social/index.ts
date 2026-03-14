@@ -90,6 +90,12 @@ Deno.serve(async (req) => {
               channel: item.channel,
               title: item.working_title,
               editorial_item_id: item.id,
+              content_format: item.content_format,
+              objective: item.objective,
+              key_message: item.key_message,
+              post_angle: item.post_angle,
+              cta: item.suggested_cta || item.cta,
+              content: item.draft_content?.substring(0, 500),
             }),
           }
         );
