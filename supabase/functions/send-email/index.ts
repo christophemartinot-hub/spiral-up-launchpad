@@ -267,7 +267,7 @@ function buildEmailHtml(campaign: Record<string, unknown>): string {
     '<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e4e0;border-radius:12px;overflow:hidden;background:' + bgCard + ';">' +
     '<tr><td style="padding:28px 32px;">' +
     '<div style="background:' + bgMint + ';border-radius:12px;padding:24px;">' +
-    '<h3 style="margin:0 0 8px;font-size:18px;font-weight:700;color:' + textDark + ';font-family:Georgia,\'Times New Roman\',serif;">📚 Get the Book</h3>' +
+    '<h3 style="margin:0 0 8px;font-size:18px;font-weight:700;color:' + textDark + ';font-family:\'Titillium Web\',\'Helvetica Neue\',Helvetica,Arial,sans-serif;">📚 Get the Book</h3>' +
     '<p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:' + textMuted + ';">Discover the complete SPIRAL UP® framework and transform how your team delivers value.</p>' +
     '<table cellpadding="0" cellspacing="0"><tr><td style="background:' + coral + ';border-radius:8px;">' +
     '<a href="https://spiralingup.works/book" style="display:inline-block;padding:12px 24px;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Buy the Book →</a>' +
