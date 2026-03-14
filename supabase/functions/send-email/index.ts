@@ -279,11 +279,15 @@ function buildEmailHtml(campaign: Record<string, unknown>): string {
     '<tr><td>' +
     '<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e4e0;border-radius:12px;overflow:hidden;background:' + bgCard + ';">' +
     '<tr><td style="padding:28px 32px;text-align:center;">' +
-    '<h3 style="margin:0 0 8px;font-size:18px;font-weight:700;color:' + textDark + ';font-family:Georgia,\'Times New Roman\',serif;">📊 How Agile Is Your Organization?</h3>' +
-    '<p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:' + textMuted + ';">Take our free 5-minute Business Agility Diagnostic to uncover whether your organization is locked in rigidity or truly adaptive.</p>' +
-    '<table cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr><td style="background:' + teal + ';border-radius:8px;">' +
-    '<a href="https://spiralingup.works/diagnostic" style="display:inline-block;padding:14px 28px;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Take the Diagnostic →</a>' +
-    '</td></tr></table></td></tr></table></td></tr>' +
+    '<h3 style="margin:0 0 8px;font-size:18px;font-weight:700;color:' + textDark + ';font-family:Georgia,\'Times New Roman\',serif;">🧭 Where Is Your Team Right Now?</h3>' +
+    '<p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:' + textMuted + ';">In 10 minutes, the free SPIRAL UP® diagnostic tells you exactly where your team stands — and what to do next. No login. No commitment. Instant results.</p>' +
+    '<table cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr>' +
+    '<td style="background:' + teal + ';border-radius:8px;">' +
+    '<a href="https://platform.spiralingup.works" style="display:inline-block;padding:14px 24px;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Free Team Diagnostic →</a></td>' +
+    '<td style="width:12px;"></td>' +
+    '<td style="background:' + coral + ';border-radius:8px;">' +
+    '<a href="https://platform.spiralingup.works" style="display:inline-block;padding:14px 24px;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Free Leader Diagnostic →</a></td>' +
+    '</tr></table></td></tr></table></td></tr>' +
 
     // SPACER
     '<tr><td style="height:16px;"></td></tr>' +
