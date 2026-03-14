@@ -1,0 +1,1 @@
+UPDATE planning_config SET channels = '["linkedin", "blog", "email", "instagram", "facebook"]'::jsonb, updated_at = now() WHERE id = 'e9cbf274-c4cc-4eb6-8e13-c2b145610e9a';
