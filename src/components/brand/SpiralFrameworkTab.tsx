@@ -81,8 +81,8 @@ function PrincipleEditor({ principle, isExpanded, onToggle, onSave, isSaving }: 
   return (
     <Card className="shadow-card overflow-hidden">
       <button onClick={onToggle} className="w-full flex items-center gap-4 p-5 text-left hover:bg-muted/30 transition-colors">
-        {officialIcon ? (
-          <img src={officialIcon} alt={`${principle.letter} — ${asset?.label}`} className="w-12 h-12 object-contain rounded-xl flex-shrink-0" />
+        {officialIllustration ? (
+          <img src={officialIllustration} alt={`${principle.letter} — ${asset?.label}`} className="w-14 h-14 object-cover rounded-lg flex-shrink-0" />
         ) : (
           <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-display font-bold text-xl flex-shrink-0">
             {principle.letter}
