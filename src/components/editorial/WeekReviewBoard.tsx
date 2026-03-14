@@ -234,7 +234,7 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                             {icon ? (
                               <img src={icon} alt="" className="w-6 h-6 object-contain" />
                             ) : (
-                              <span className="text-lg">{CHANNEL_ICONS[item.channel] || '📌'}</span>
+                              <span className="text-lg"><ChannelIcon channel={item.channel} size={14} /></span>
                             )}
                           </div>
                         )}
