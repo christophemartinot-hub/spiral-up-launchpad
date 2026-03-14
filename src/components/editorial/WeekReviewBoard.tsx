@@ -192,14 +192,14 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
         </div>
 
         {/* Week grid */}
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-3">
           {days.map(day => {
             const key = format(day, 'yyyy-MM-dd');
             const dayItems = itemsByDay.get(key) || [];
             const isToday = isSameDay(day, new Date());
 
             return (
-              <div key={key} className="min-h-[140px]">
+              <div key={key} className="min-h-[180px]">
                 {/* Day header */}
                 <div className={`text-center pb-1.5 mb-2 border-b ${isToday ? 'border-primary' : 'border-border'}`}>
                   <p className="text-[10px] uppercase text-muted-foreground font-medium">{format(day, 'EEE')}</p>
@@ -207,13 +207,14 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                 </div>
 
                 {/* Day items */}
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {dayItems.map((item: any) => {
                     const illustration = resolveIllustration(item);
                     const icon = resolveBrandIcon(item.content_pillar || item.working_title || '');
                     const isSuggested = item.status === 'suggested' || item.status === 'under_review';
                     const isSelected = selected.has(item.id);
                     const isApproved = item.status === 'approved' || item.status === 'scheduled' || item.status === 'published';
+                    const isVisualChannel = ['instagram', 'linkedin', 'facebook', 'blog'].includes(item.channel);
 
                     return (
                       <Card
@@ -224,30 +225,47 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                         }`}
                         onClick={() => setDetailItem(item)}
                       >
-                        {/* Visual thumbnail */}
+                        {/* Visual thumbnail — taller for visual channels */}
                         {illustration ? (
-                          <div className="h-16 overflow-hidden bg-muted/30">
+                          <div className={`${isVisualChannel ? 'h-24' : 'h-16'} overflow-hidden bg-muted/30 relative`}>
                             <img src={illustration} alt="" className="w-full h-full object-cover" />
+                            <div className="absolute top-1 left-1">
+                              <div className="bg-background/80 backdrop-blur-sm rounded-full p-0.5">
+                                <ChannelIcon channel={item.channel} size={12} />
+                              </div>
+                            </div>
+                          </div>
+                        ) : icon ? (
+                          <div className={`${isVisualChannel ? 'h-20' : 'h-14'} bg-gradient-to-br from-muted/50 to-muted/20 flex items-center justify-center relative`}>
+                            <img src={icon} alt="" className={`${isVisualChannel ? 'w-10 h-10' : 'w-6 h-6'} object-contain`} />
+                            <div className="absolute top-1 left-1">
+                              <div className="bg-background/80 backdrop-blur-sm rounded-full p-0.5">
+                                <ChannelIcon channel={item.channel} size={12} />
+                              </div>
+                            </div>
                           </div>
                         ) : (
-                          <div className="h-12 bg-gradient-to-br from-muted/50 to-muted/20 flex items-center justify-center">
-                            {icon ? (
-                              <img src={icon} alt="" className="w-6 h-6 object-contain" />
-                            ) : (
-                              <span className="text-lg"><ChannelIcon channel={item.channel} size={14} /></span>
+                          <div className={`${isVisualChannel ? 'h-20' : 'h-14'} bg-gradient-to-br from-muted/50 to-muted/20 flex items-center justify-center relative`}>
+                            <ChannelIcon channel={item.channel} size={isVisualChannel ? 24 : 16} />
+                            {item.visual_headline && (
+                              <div className="absolute inset-0 flex items-center justify-center px-2">
+                                <p className="text-[8px] font-bold text-center leading-tight text-foreground/70 line-clamp-2">{item.visual_headline}</p>
+                              </div>
                             )}
                           </div>
                         )}
 
-                        <CardContent className="p-2 space-y-1">
-                          {/* Channel + visual type */}
+                        <CardContent className="p-2.5 space-y-1.5">
+                          {/* Channel + visual type + status */}
                           <div className="flex items-center gap-1 flex-wrap">
-                            <ChannelIcon channel={item.channel} size={11} />
                             {item.visual_type && (
                               <span className="text-[9px]">{VISUAL_TYPE_ICONS[item.visual_type] || '🎨'}</span>
                             )}
+                            {item.content_format && (
+                              <span className="text-[8px] text-muted-foreground capitalize">{item.content_format.replace(/_/g, ' ')}</span>
+                            )}
                             {item.outcome_score >= 7 && <span className="text-[9px]">🎯</span>}
-                            <span className={`text-[8px] font-medium px-1 py-0 rounded-full ml-auto ${
+                            <span className={`text-[8px] font-medium px-1.5 py-0.5 rounded-full ml-auto ${
                               isApproved ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
                               item.status === 'rejected' ? 'bg-red-100 text-red-700' :
                               'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
@@ -257,12 +275,12 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                           </div>
 
                           {/* Title */}
-                          <p className="text-[10px] font-semibold leading-tight line-clamp-2">{item.working_title}</p>
+                          <p className="text-[11px] font-semibold leading-tight line-clamp-2">{item.working_title}</p>
 
                           {/* Visual concept snippet */}
                           {item.visual_concept && (
-                            <p className="text-[9px] text-muted-foreground line-clamp-1 italic">
-                              <Palette className="w-2 h-2 inline mr-0.5" />{item.visual_concept}
+                            <p className="text-[9px] text-muted-foreground line-clamp-2 italic">
+                              <Palette className="w-2.5 h-2.5 inline mr-0.5" />{item.visual_concept}
                             </p>
                           )}
 
