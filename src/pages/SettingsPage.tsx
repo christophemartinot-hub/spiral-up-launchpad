@@ -45,7 +45,7 @@ export default function SettingsPage() {
   const { data: config, isLoading: configLoading } = usePlanningConfig();
   const updateConfig = useUpdatePlanningConfig();
   const [editing, setEditing] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ account_name: '', profile_url: '', followers: '' });
+  const [editForm, setEditForm] = useState({ account_name: '', profile_url: '', followers: '', webhook_url: '' });
   const [adding, setAdding] = useState(false);
   const [newConn, setNewConn] = useState({ channel: 'linkedin', account_name: '', profile_url: '' });
 
