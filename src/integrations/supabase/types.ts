@@ -130,6 +130,48 @@ export type Database = {
           },
         ]
       }
+      book_chapters: {
+        Row: {
+          chapter_number: number
+          chapter_title: string
+          content: string
+          created_at: string
+          id: string
+          key_concepts: Json | null
+          quotes: Json | null
+          related_principles: Json | null
+          sort_order: number
+          updated_at: string
+          word_count: number | null
+        }
+        Insert: {
+          chapter_number?: number
+          chapter_title?: string
+          content?: string
+          created_at?: string
+          id?: string
+          key_concepts?: Json | null
+          quotes?: Json | null
+          related_principles?: Json | null
+          sort_order?: number
+          updated_at?: string
+          word_count?: number | null
+        }
+        Update: {
+          chapter_number?: number
+          chapter_title?: string
+          content?: string
+          created_at?: string
+          id?: string
+          key_concepts?: Json | null
+          quotes?: Json | null
+          related_principles?: Json | null
+          sort_order?: number
+          updated_at?: string
+          word_count?: number | null
+        }
+        Relationships: []
+      }
       book_info: {
         Row: {
           author: string | null
