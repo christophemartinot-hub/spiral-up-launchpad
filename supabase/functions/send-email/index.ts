@@ -219,8 +219,9 @@ function buildEmailHtml(campaign: Record<string, unknown>): string {
 
   return '<!DOCTYPE html>' +
     '<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' +
+    '<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">' +
     '<title>' + subjectLine + '</title>' + previewSpan + '</head>' +
-    '<body style="margin:0;padding:0;background-color:' + bgOuter + ';font-family:\'Helvetica Neue\',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">' +
+    '<body style="margin:0;padding:0;background-color:' + bgOuter + ';font-family:\'Titillium Web\',\'Helvetica Neue\',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">' +
     '<table width="100%" cellpadding="0" cellspacing="0" style="background-color:' + bgOuter + ';padding:24px 16px;">' +
     '<tr><td align="center">' +
     '<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">' +
@@ -229,7 +230,7 @@ function buildEmailHtml(campaign: Record<string, unknown>): string {
     '<tr><td>' +
     '<table width="100%" cellpadding="0" cellspacing="0" style="background:' + teal + ';border-radius:16px 16px 0 0;overflow:hidden;">' +
     '<tr><td style="padding:28px 32px;">' +
-    '<h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;font-family:Georgia,\'Times New Roman\',serif;">Let\'s SPIRAL <span style="color:#FFD93D;">UP!</span></h1>' +
+    '<h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;font-family:\'Titillium Web\',\'Helvetica Neue\',Helvetica,Arial,sans-serif;">Let\'s SPIRAL <span style="color:#FFD93D;">UP!</span></h1>' +
     '<p style="margin:6px 0 0;color:rgba(255,255,255,0.9);font-size:14px;">✨ HI {{name}}, NEW ARTICLE!</p>' +
     '</td></tr></table></td></tr>' +
 
@@ -243,7 +244,7 @@ function buildEmailHtml(campaign: Record<string, unknown>): string {
 
     // ARTICLE TITLE & SUMMARY
     '<tr><td style="background:' + bgCard + ';padding:20px 32px;">' +
-    '<h2 style="margin:0 0 12px;font-size:24px;font-weight:800;color:' + textDark + ';font-family:Georgia,\'Times New Roman\',serif;line-height:1.3;">' +
+    '<h2 style="margin:0 0 12px;font-size:24px;font-weight:800;color:' + textDark + ';font-family:\'Titillium Web\',\'Helvetica Neue\',Helvetica,Arial,sans-serif;line-height:1.3;">' +
     subjectLine + '</h2>' + blogSummaryBlock + '</td></tr>' +
 
     // PRIMARY CTA
@@ -266,7 +267,7 @@ function buildEmailHtml(campaign: Record<string, unknown>): string {
     '<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e4e0;border-radius:12px;overflow:hidden;background:' + bgCard + ';">' +
     '<tr><td style="padding:28px 32px;">' +
     '<div style="background:' + bgMint + ';border-radius:12px;padding:24px;">' +
-    '<h3 style="margin:0 0 8px;font-size:18px;font-weight:700;color:' + textDark + ';font-family:Georgia,\'Times New Roman\',serif;">📚 Get the Book</h3>' +
+    '<h3 style="margin:0 0 8px;font-size:18px;font-weight:700;color:' + textDark + ';font-family:\'Titillium Web\',\'Helvetica Neue\',Helvetica,Arial,sans-serif;">📚 Get the Book</h3>' +
     '<p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:' + textMuted + ';">Discover the complete SPIRAL UP® framework and transform how your team delivers value.</p>' +
     '<table cellpadding="0" cellspacing="0"><tr><td style="background:' + coral + ';border-radius:8px;">' +
     '<a href="https://spiralingup.works/book" style="display:inline-block;padding:12px 24px;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;">Buy the Book →</a>' +
@@ -279,7 +280,7 @@ function buildEmailHtml(campaign: Record<string, unknown>): string {
     '<tr><td>' +
     '<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e4e0;border-radius:12px;overflow:hidden;background:' + bgCard + ';">' +
     '<tr><td style="padding:28px 32px;text-align:center;">' +
-    '<h3 style="margin:0 0 8px;font-size:18px;font-weight:700;color:' + textDark + ';font-family:Georgia,\'Times New Roman\',serif;">🧭 Where Is Your Team Right Now?</h3>' +
+    '<h3 style="margin:0 0 8px;font-size:18px;font-weight:700;color:' + textDark + ';font-family:\'Titillium Web\',\'Helvetica Neue\',Helvetica,Arial,sans-serif;">🧭 Where Is Your Team Right Now?</h3>' +
     '<p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:' + textMuted + ';">In 10 minutes, the free SPIRAL UP® diagnostic tells you exactly where your team stands — and what to do next. No login. No commitment. Instant results.</p>' +
     '<table cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr>' +
     '<td style="background:' + teal + ';border-radius:8px;">' +
