@@ -20,6 +20,7 @@ import PerformanceDashboard from "@/pages/PerformanceDashboard";
 import EmailDistribution from "@/pages/EmailDistribution";
 import CommentResponse from "@/pages/CommentResponse";
 import StrategicIdeas from "@/pages/StrategicIdeas";
+import UnsubscribePage from "@/pages/UnsubscribePage";
 import NotFound from "./pages/NotFound.tsx";
 import { Loader2 } from "lucide-react";
 
