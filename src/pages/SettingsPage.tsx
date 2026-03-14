@@ -234,7 +234,7 @@ export default function SettingsPage() {
                           </div>
                         )}
                         {conn.webhook_url && (
-                          <span className="text-[10px] text-green-600 dark:text-green-400 font-medium">⚡ Zapier connected</span>
+                          <span className="text-[10px] text-green-600 dark:text-green-400 font-medium">⚡ Webhook connected</span>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
