@@ -71,7 +71,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/unsubscribe" element={<UnsubscribePage />} />
+          
           <Route path="*" element={<AuthenticatedApp />} />
         </Routes>
       </BrowserRouter>
