@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EditorialAgenda from '@/components/editorial/EditorialAgenda';
+import WeekReviewBoard from '@/components/editorial/WeekReviewBoard';
 import PlanningConfigPanel from '@/components/editorial/PlanningConfigPanel';
 import VisualConfigPanel from '@/components/editorial/VisualConfigPanel';
 import PlanHistory from '@/components/editorial/PlanHistory';
@@ -24,6 +25,7 @@ export default function EditorialPlanning() {
       <Tabs defaultValue="agenda" className="space-y-6">
         <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="agenda">📋 Agenda</TabsTrigger>
+          <TabsTrigger value="week-review">👁️ Week Review</TabsTrigger>
           <TabsTrigger value="intelligence">🧠 Intelligence</TabsTrigger>
           <TabsTrigger value="config">⚙️ AI Planning Prompt</TabsTrigger>
           <TabsTrigger value="visual-config">🎨 AI Visual Prompt</TabsTrigger>
@@ -32,6 +34,9 @@ export default function EditorialPlanning() {
 
         <TabsContent value="agenda">
           <EditorialAgenda activePlanId={activePlanId} onPlanChange={setActivePlanId} />
+        </TabsContent>
+        <TabsContent value="week-review">
+          <WeekReviewBoard activePlanId={activePlanId} />
         </TabsContent>
         <TabsContent value="intelligence">
           <EditorialIntelligence />
