@@ -5,10 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Check, X, Loader2, CheckCheck, Eye, ChevronLeft, ChevronRight,
-  Palette, Calendar, Target, Lightbulb, Instagram, Linkedin, Facebook, PenLine, Globe,
+  Palette, Calendar, Target, Lightbulb, Instagram, Linkedin, Facebook, PenLine, Globe, Home,
 } from 'lucide-react';
 import { format, parseISO, startOfWeek, endOfWeek, addWeeks, eachDayOfInterval, isSameDay } from 'date-fns';
-import { useEditorialItems, useUpdateEditorialItem } from '@/hooks/use-editorial';
+import { useAllEditorialItems, useUpdateEditorialItem } from '@/hooks/use-editorial';
 import { useRecordFeedback } from '@/hooks/use-feedback';
 import { resolveBrandIcon, resolveBrandIllustration } from '@/lib/brand-assets';
 import { toast } from 'sonner';
@@ -23,6 +23,7 @@ const CHANNEL_ICON_COMPONENTS: Record<string, { icon: any; color: string }> = {
   facebook: { icon: Facebook, color: 'text-blue-500' },
   blog: { icon: PenLine, color: 'text-accent-foreground' },
   email: { icon: Globe, color: 'text-muted-foreground' },
+  newsletter: { icon: Globe, color: 'text-muted-foreground' },
   twitter: { icon: Globe, color: 'text-foreground' },
   youtube: { icon: Globe, color: 'text-destructive' },
 };
@@ -45,7 +46,7 @@ interface Props {
 }
 
 export default function WeekReviewBoard({ activePlanId }: Props) {
-  const { data: items, isLoading } = useEditorialItems(activePlanId);
+  const { data: allItems, isLoading } = useAllEditorialItems();
   const updateItem = useUpdateEditorialItem();
   const recordFeedback = useRecordFeedback();
   const [weekOffset, setWeekOffset] = useState(0);
@@ -53,30 +54,52 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
   const [detailItem, setDetailItem] = useState<any>(null);
   const [approving, setApproving] = useState(false);
 
+  // Always default to current week + offset
   const weekStart = useMemo(() => {
-    if (!items || items.length === 0) return startOfWeek(new Date(), { weekStartsOn: 1 });
-    const earliest = items.reduce((min: string, i: any) => i.publish_date < min ? i.publish_date : min, items[0].publish_date);
-    return startOfWeek(addWeeks(parseISO(earliest), weekOffset), { weekStartsOn: 1 });
-  }, [items, weekOffset]);
+    return startOfWeek(addWeeks(new Date(), weekOffset), { weekStartsOn: 1 });
+  }, [weekOffset]);
 
   const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
+  // Filter items visible in this week (from ALL plans)
+  const weekItems = useMemo(() => {
+    if (!allItems) return [];
+    return allItems.filter((i: any) => {
+      try {
+        const d = parseISO(i.publish_date);
+        return d >= weekStart && d <= weekEnd;
+      } catch { return false; }
+    });
+  }, [allItems, weekStart, weekEnd]);
+
   const itemsByDay = useMemo(() => {
-    if (!items) return new Map();
     const map = new Map<string, any[]>();
     for (const day of days) {
       const key = format(day, 'yyyy-MM-dd');
-      map.set(key, items.filter((i: any) => {
+      map.set(key, weekItems.filter((i: any) => {
         try { return isSameDay(parseISO(i.publish_date), day); } catch { return false; }
       }));
     }
     return map;
-  }, [items, days]);
+  }, [weekItems, days]);
 
   const suggestedItems = useMemo(() =>
-    items?.filter((i: any) => i.status === 'suggested' || i.status === 'under_review') || [],
-  [items]);
+    weekItems.filter((i: any) => i.status === 'suggested' || i.status === 'under_review'),
+  [weekItems]);
+
+  // Count items in nearby weeks for quick context
+  const nearbyWeekCounts = useMemo(() => {
+    if (!allItems) return { prev: 0, next: 0 };
+    const prevStart = startOfWeek(addWeeks(new Date(), weekOffset - 1), { weekStartsOn: 1 });
+    const prevEnd = endOfWeek(prevStart, { weekStartsOn: 1 });
+    const nextStart = startOfWeek(addWeeks(new Date(), weekOffset + 1), { weekStartsOn: 1 });
+    const nextEnd = endOfWeek(nextStart, { weekStartsOn: 1 });
+    return {
+      prev: allItems.filter((i: any) => { try { const d = parseISO(i.publish_date); return d >= prevStart && d <= prevEnd; } catch { return false; } }).length,
+      next: allItems.filter((i: any) => { try { const d = parseISO(i.publish_date); return d >= nextStart && d <= nextEnd; } catch { return false; } }).length,
+    };
+  }, [allItems, weekOffset]);
 
   const toggleSelect = (id: string) => {
     setSelected(prev => {
@@ -122,7 +145,7 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
     setApproving(true);
     let count = 0;
     for (const id of selected) {
-      const item = items?.find((i: any) => i.id === id);
+      const item = weekItems.find((i: any) => i.id === id);
       if (!item || (item.status !== 'suggested' && item.status !== 'under_review')) continue;
       try {
         await new Promise<void>((resolve, reject) => {
@@ -163,7 +186,6 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
       item.key_message || '',
     ].join(' ').toLowerCase();
 
-    // Check zones first (with flexible matching)
     if (fields.includes('spiraling down') || fields.includes('spiral down') || fields.includes('spiraling_down')) {
       return resolveBrandIllustration('spiraling_down');
     }
@@ -174,7 +196,6 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
       return resolveBrandIllustration('stagnating');
     }
 
-    // Check principles
     const principles = ['synergize', 'provide', 'inspect', 'respond', 'learn'];
     for (const p of principles) {
       if (fields.includes(p)) return resolveBrandIllustration(p);
@@ -188,33 +209,49 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
 
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
 
-  if (!items || items.length === 0) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <Eye className="w-10 h-10 mx-auto mb-3 opacity-50" />
-        <p className="text-sm">No editorial items to review. Generate a plan first from the Agenda tab.</p>
-      </div>
-    );
-  }
-
   return (
     <TooltipProvider>
       <div className="space-y-4">
         {/* Week navigation & batch actions */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setWeekOffset(o => o - 1)}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setWeekOffset(o => o - 1)}>
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              {nearbyWeekCounts.prev > 0 && (
+                <TooltipContent side="bottom" className="text-xs">{nearbyWeekCounts.prev} item{nearbyWeekCounts.prev !== 1 ? 's' : ''}</TooltipContent>
+              )}
+            </Tooltip>
+
             <span className="text-sm font-display font-semibold min-w-[180px] text-center">
               {format(weekStart, 'MMM d')} — {format(weekEnd, 'MMM d, yyyy')}
             </span>
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setWeekOffset(o => o + 1)}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setWeekOffset(o => o + 1)}>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              {nearbyWeekCounts.next > 0 && (
+                <TooltipContent side="bottom" className="text-xs">{nearbyWeekCounts.next} item{nearbyWeekCounts.next !== 1 ? 's' : ''}</TooltipContent>
+              )}
+            </Tooltip>
+
+            {weekOffset !== 0 && (
+              <Button variant="ghost" size="sm" className="gap-1 text-xs h-8" onClick={() => setWeekOffset(0)}>
+                <Home className="w-3 h-3" /> Today
+              </Button>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs">
+              {weekItems.length} item{weekItems.length !== 1 ? 's' : ''} this week
+            </Badge>
             {suggestedItems.length > 0 && (
               <>
                 <Button variant="outline" size="sm" onClick={selectAllSuggested} className="gap-1.5 text-xs">
@@ -238,9 +275,10 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
             const key = format(day, 'yyyy-MM-dd');
             const dayItems = itemsByDay.get(key) || [];
             const isToday = isSameDay(day, new Date());
+            const isPast = day < new Date() && !isToday;
 
             return (
-              <div key={key} className="min-h-[180px]">
+              <div key={key} className={`min-h-[180px] ${isPast ? 'opacity-75' : ''}`}>
                 {/* Day header */}
                 <div className={`text-center pb-1.5 mb-2 border-b ${isToday ? 'border-primary' : 'border-border'}`}>
                   <p className="text-[10px] uppercase text-muted-foreground font-medium">{format(day, 'EEE')}</p>
@@ -254,7 +292,8 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                     const icon = resolveBrandIcon(item.content_pillar || item.working_title || '');
                     const isSuggested = item.status === 'suggested' || item.status === 'under_review';
                     const isSelected = selected.has(item.id);
-                    const isApproved = item.status === 'approved' || item.status === 'scheduled' || item.status === 'published';
+                    const isApproved = item.status === 'approved' || item.status === 'scheduled';
+                    const isPublished = item.status === 'published';
                     const isVisualChannel = ['instagram', 'linkedin', 'facebook', 'blog'].includes(item.channel);
 
                     return (
@@ -262,11 +301,12 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                         key={item.id}
                         className={`group/card cursor-pointer transition-all hover:shadow-md overflow-hidden ${
                           isSelected ? 'ring-2 ring-green-500 shadow-md' :
+                          isPublished ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/20' :
                           isApproved ? 'border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20' : ''
                         }`}
                         onClick={() => setDetailItem(item)}
                       >
-                        {/* Visual thumbnail — taller for visual channels */}
+                        {/* Visual thumbnail */}
                         {illustration ? (
                           <div className={`${isVisualChannel ? 'h-24' : 'h-16'} overflow-hidden bg-muted/30 relative`}>
                             <img src={illustration} alt="" className="w-full h-full object-cover" />
@@ -341,11 +381,14 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                             )}
                             {item.outcome_score >= 7 && <span className="text-[9px]">🎯</span>}
                             <span className={`text-[8px] font-medium px-1.5 py-0.5 rounded-full ml-auto ${
+                              isPublished ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' :
                               isApproved ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
                               item.status === 'rejected' ? 'bg-red-100 text-red-700' :
                               'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
                             }`}>
-                              {item.status === 'suggested' ? 'NEW' : item.status.toUpperCase().slice(0, 3)}
+                              {item.status === 'suggested' ? 'NEW' :
+                               item.status === 'published' ? 'LIVE' :
+                               item.status.toUpperCase().slice(0, 3)}
                             </span>
                           </div>
 
@@ -391,6 +434,9 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                       <Calendar className="w-3 h-3 inline mr-1" />
                       {format(parseISO(detailItem.publish_date), 'EEE, MMM d')}
                     </span>
+                    <Badge variant="outline" className="text-[10px] capitalize">
+                      {detailItem.status === 'published' ? '✅ Published' : detailItem.status.replace(/_/g, ' ')}
+                    </Badge>
                   </div>
                 </DialogHeader>
 
