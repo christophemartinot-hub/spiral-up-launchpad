@@ -88,6 +88,21 @@ export function useAllPendingItems() {
   });
 }
 
+// ─── All Editorial Items (cross-plan, for Week Review timeline) ───
+export function useAllEditorialItems() {
+  return useQuery({
+    queryKey: ['editorial-items-all'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('editorial_items')
+        .select('*, editorial_plans(cycle_start, cycle_end, cadence)')
+        .order('publish_date', { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
 export function useUpdateEditorialItem() {
   const qc = useQueryClient();
   return useMutation({
@@ -98,6 +113,7 @@ export function useUpdateEditorialItem() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['editorial-items'] });
       qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
+      qc.invalidateQueries({ queryKey: ['editorial-items-all'] });
     },
   });
 }
@@ -112,6 +128,7 @@ export function useDeleteEditorialItem() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['editorial-items'] });
       qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
+      qc.invalidateQueries({ queryKey: ['editorial-items-all'] });
     },
   });
 }
@@ -130,6 +147,7 @@ export function useGenerateEditorialPlan() {
       qc.invalidateQueries({ queryKey: ['editorial-plans'] });
       qc.invalidateQueries({ queryKey: ['editorial-items'] });
       qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
+      qc.invalidateQueries({ queryKey: ['editorial-items-all'] });
       qc.invalidateQueries({ queryKey: ['learning-memory'] });
     },
   });
@@ -160,6 +178,7 @@ export function useRegenerateItem() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['editorial-items'] });
       qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
+      qc.invalidateQueries({ queryKey: ['editorial-items-all'] });
     },
   });
 }
@@ -187,6 +206,7 @@ export function useRegenerateVisual() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['editorial-items'] });
       qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
+      qc.invalidateQueries({ queryKey: ['editorial-items-all'] });
     },
   });
 }
