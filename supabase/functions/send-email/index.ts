@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     }
     const websiteDb = createClient(WEBSITE_URL, WEBSITE_KEY);
 
-    const { campaignId } = await req.json();
+    const { campaignId, testEmail } = await req.json();
     if (!campaignId) {
       return new Response(JSON.stringify({ error: "campaignId required" }), {
         status: 400,
@@ -58,24 +58,32 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch subscribers from external spiralingup.works DB (book_leads table)
-    const segment = campaign.recipient_segment || "all";
-    let query = websiteDb
-      .from("book_leads")
-      .select("email, first_name, source")
-      .eq("updates", true)
-      .is("bounced_at", null)
-      .is("complaint_at", null);
-    if (segment !== "all") {
-      query = query.eq("source", segment);
-    }
-    const { data: subscribers, error: subErr } = await query;
+    // If testEmail provided, send only to that address (skip subscriber fetch)
+    let subscribers: Array<{ email: string; first_name?: string }>;
 
-    if (subErr || !subscribers || subscribers.length === 0) {
-      return new Response(JSON.stringify({ error: "No subscribers found in book_leads", details: subErr?.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (testEmail) {
+      subscribers = [{ email: testEmail, first_name: "Christophe" }];
+    } else {
+      // Fetch subscribers from external spiralingup.works DB (book_leads table)
+      const segment = campaign.recipient_segment || "all";
+      let query = websiteDb
+        .from("book_leads")
+        .select("email, first_name, source")
+        .eq("updates", true)
+        .is("bounced_at", null)
+        .is("complaint_at", null);
+      if (segment !== "all") {
+        query = query.eq("source", segment);
+      }
+      const { data: subs, error: subErr } = await query;
+
+      if (subErr || !subs || subs.length === 0) {
+        return new Response(JSON.stringify({ error: "No subscribers found in book_leads", details: subErr?.message }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      subscribers = subs;
     }
 
     // Build HTML email body
