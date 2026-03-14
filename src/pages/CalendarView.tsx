@@ -491,7 +491,7 @@ export default function CalendarView() {
 
               <div className="flex-1 p-1.5 space-y-1.5 overflow-y-auto">
                 {editorials.map((item: any) => (
-                  <CalendarEditorialCard key={item.id} item={item} onClick={() => setSelectedItem(item)} />
+                  <CalendarEditorialCard key={item.id} item={item} onClick={() => setSelectedItem(item)} onQuickApprove={() => handleQuickApprove(item)} />
                 ))}
                 {editorials.length === 0 && (
                   <div className="flex items-center justify-center h-20 text-[10px] text-muted-foreground/40 italic">
