@@ -19,6 +19,7 @@ type SocialConn = {
   last_sync: string | null;
   followers: number | null;
   profile_url: string | null;
+  webhook_url: string | null;
 };
 
 function useSocialConnections() {
