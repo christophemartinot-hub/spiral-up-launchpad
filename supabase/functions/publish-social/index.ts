@@ -111,11 +111,26 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Map visual_type / content_format to Make.com-friendly post_type
+    const resolvePostType = (visualType: string, contentFormat: string): string => {
+      const vt = (visualType || "").toLowerCase();
+      const cf = (contentFormat || "").toLowerCase();
+      if (vt === "carousel" || cf === "carousel") return "carousel";
+      if (vt === "video_storyboard" || cf === "reel" || cf === "video") return "reel";
+      if (vt === "single_image" || vt === "quote_card" || vt === "framework_card" ||
+          vt === "infographic" || vt === "event_promo" || vt === "workshop_promo" ||
+          vt === "book_promo" || vt === "article_cover") return "image";
+      if (vt === "document_post") return "document";
+      return imageUrl ? "image" : "text";
+    };
+
     // Build the payload for the webhook (Make.com, Zapier, etc.)
     const payload = {
       title: item.working_title,
       content: item.draft_content || "",
       channel: item.channel,
+      platform: item.channel,
+      post_type: resolvePostType(item.visual_type, item.content_format),
       content_format: item.content_format,
       content_pillar: item.content_pillar || "",
       cta: item.suggested_cta || item.cta || "",
