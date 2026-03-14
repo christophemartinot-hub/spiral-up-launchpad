@@ -1,0 +1,1 @@
+UPDATE planning_config SET preferred_formats = '["linkedin_post", "blog_post", "newsletter", "instagram_post", "facebook_post"]'::jsonb, updated_at = now();
