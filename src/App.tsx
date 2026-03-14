@@ -70,7 +70,10 @@ const App = () => (
     <TooltipProvider>
       <Sonner />
       <BrowserRouter>
-        <AuthenticatedApp />
+        <Routes>
+          <Route path="/unsubscribe" element={<UnsubscribePage />} />
+          <Route path="*" element={<AuthenticatedApp />} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
