@@ -8,8 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   ChevronLeft, ChevronRight, Plus, Filter, CheckCircle2, XCircle,
-  Palette, Image as ImageIcon, Eye, Pencil, Clock, Sparkles,
+  Palette, Image as ImageIcon, Eye, Pencil, Clock, Sparkles, Check,
+  Instagram, Linkedin, Facebook, PenLine, Globe,
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ChannelType, CHANNEL_CONFIG } from '@/data/types';
 import { useEditorialItems, useUpdateEditorialItem } from '@/hooks/use-editorial';
 import { resolveBrandIcon } from '@/lib/brand-assets';
