@@ -187,37 +187,15 @@ Deno.serve(async (req) => {
 
     const postType = resolvePostType(item.visual_type, item.content_format);
     const caption = item.draft_content || "";
-    const cta = item.suggested_cta || item.cta || "";
     const targetPlatforms = connections.map((c: any) => c.channel as string);
 
-    // Build clean Make.com payload
+    // ── PHASE 1: Flat base payload for Make.com webhook capture ──
+    // Only base fields — no nested platform objects until Make router is configured
     const payload: Record<string, unknown> = {
-      post_id: `post_${item.id}`,
       platforms: targetPlatforms,
       post_type: postType,
-      status: "ready",
-      title: item.working_title,
       caption,
-      cta,
-      hashtags: "",
       image_url: imageUrl || "",
-      image_urls: imageUrl ? [imageUrl] : [],
-      video_url: "",
-      link_url: "",
-      publish_at: item.publish_date ? new Date(item.publish_date).toISOString() : new Date().toISOString(),
-      instagram: { caption, image_url: imageUrl || "" },
-      facebook: { message: caption, image_url: imageUrl || "" },
-      linkedin: { text: caption, image_url: imageUrl || "" },
-      content_pillar: item.content_pillar || "",
-      content_format: item.content_format || "",
-      key_message: item.key_message || "",
-      post_angle: item.post_angle || "",
-      visual_type: item.visual_type || "",
-      visual_concept: item.visual_concept || "",
-      carousel_idea: item.carousel_idea || "",
-      objective: item.objective || "",
-      source: "spiral-up-editorial",
-      editorial_item_id: item.id,
     };
 
     // Group connections by unique webhook URL
