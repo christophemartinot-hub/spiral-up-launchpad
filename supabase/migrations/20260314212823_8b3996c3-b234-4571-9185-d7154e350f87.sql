@@ -1,0 +1,1 @@
+UPDATE editorial_items SET status = 'approved', updated_at = now() WHERE id IN ('c7a22598-152f-4236-a4e2-e87973fb567f', 'f0205fdc-7b74-438e-895d-65547e9edf58') AND status = 'published';
