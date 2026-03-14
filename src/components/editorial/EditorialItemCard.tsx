@@ -411,6 +411,12 @@ export default function EditorialItemCard({ item }: { item: any }) {
                     </Button>
                   </>
                 )}
+                {item.status === 'published' && (
+                  <Button size="sm" variant="outline" onClick={handleUnpublish} disabled={publishing} className="gap-1.5 text-red-500">
+                    {publishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />}
+                    Unpublish
+                  </Button>
+                )}
                 <Button size="sm" variant="outline" onClick={handleRegenerate} disabled={regenerate.isPending} className="gap-1.5">
                   {regenerate.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
                   Regenerate
