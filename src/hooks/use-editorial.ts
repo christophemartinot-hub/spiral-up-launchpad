@@ -178,6 +178,7 @@ export function useRegenerateItem() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['editorial-items'] });
       qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
+      qc.invalidateQueries({ queryKey: ['editorial-items-all'] });
     },
   });
 }
