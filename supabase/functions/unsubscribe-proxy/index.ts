@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email } = await req.json();
+    const { email, reason } = await req.json();
     if (!email) {
       return new Response(JSON.stringify({ error: "email required" }), {
         status: 400,
@@ -28,6 +28,11 @@ Deno.serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Log the reason if provided
+    if (reason) {
+      console.log(`Unsubscribe reason for ${email}: ${reason}`);
     }
 
     return new Response(JSON.stringify({ success: true }), {

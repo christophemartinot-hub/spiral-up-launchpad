@@ -2,28 +2,38 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
-type Status = "loading" | "success" | "error" | "missing";
+type Status = "reasons" | "loading" | "success" | "error" | "missing";
+
+const REASONS = [
+  { id: "too_many", label: "Too many emails", emoji: "📬" },
+  { id: "not_relevant", label: "Content isn't relevant to me", emoji: "🎯" },
+  { id: "no_time", label: "I don't have time to read them", emoji: "⏰" },
+  { id: "found_elsewhere", label: "I get this info elsewhere", emoji: "🔄" },
+  { id: "never_signed_up", label: "I never signed up", emoji: "❓" },
+  { id: "other", label: "Other reason", emoji: "💬" },
+];
 
 export default function UnsubscribePage() {
   const [searchParams] = useSearchParams();
   const email = searchParams.get("email") || "";
-  const [status, setStatus] = useState<Status>(email ? "loading" : "missing");
+  const [status, setStatus] = useState<Status>(email ? "reasons" : "missing");
+  const [selectedReason, setSelectedReason] = useState<string | null>(null);
+  const [otherText, setOtherText] = useState("");
 
-  useEffect(() => {
-    if (!email) return;
-
-    const run = async () => {
-      try {
-        const { error } = await supabase.functions.invoke("unsubscribe-proxy", {
-          body: { email },
-        });
-        setStatus(error ? "error" : "success");
-      } catch {
-        setStatus("error");
-      }
-    };
-    run();
-  }, [email]);
+  const handleUnsubscribe = async () => {
+    setStatus("loading");
+    try {
+      const { error } = await supabase.functions.invoke("unsubscribe-proxy", {
+        body: {
+          email,
+          reason: selectedReason === "other" ? (otherText || "Other") : (REASONS.find(r => r.id === selectedReason)?.label || "No reason given"),
+        },
+      });
+      setStatus(error ? "error" : "success");
+    } catch {
+      setStatus("error");
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: "#f5f3f0", fontFamily: "'Titillium Web', 'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
@@ -38,7 +48,66 @@ export default function UnsubscribePage() {
         </div>
 
         {/* Body */}
-        <div className="bg-white px-8 py-10 rounded-b-2xl shadow-sm" style={{ borderTop: "none" }}>
+        <div className="bg-white px-8 py-10 rounded-b-2xl shadow-sm">
+          {status === "reasons" && (
+            <div>
+              <h2 className="text-xl font-bold mb-2" style={{ color: "#2d2d2d" }}>We're sorry to see you go 😢</h2>
+              <p className="text-sm mb-6" style={{ color: "#666666" }}>
+                Before you leave, could you tell us why? It helps us improve.
+              </p>
+
+              <div className="space-y-2 mb-6">
+                {REASONS.map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => setSelectedReason(r.id)}
+                    className="w-full text-left px-4 py-3 rounded-lg border-2 transition-all text-sm font-medium flex items-center gap-3"
+                    style={{
+                      borderColor: selectedReason === r.id ? "#6BA8A0" : "#e8e4e0",
+                      background: selectedReason === r.id ? "#f0f7f5" : "transparent",
+                      color: "#2d2d2d",
+                    }}
+                  >
+                    <span className="text-lg">{r.emoji}</span>
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+
+              {selectedReason === "other" && (
+                <textarea
+                  value={otherText}
+                  onChange={(e) => setOtherText(e.target.value)}
+                  placeholder="Tell us more (optional)…"
+                  className="w-full border-2 rounded-lg px-4 py-3 text-sm mb-6 resize-none focus:outline-none"
+                  style={{ borderColor: "#e8e4e0", color: "#2d2d2d" }}
+                  rows={3}
+                />
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleUnsubscribe}
+                  disabled={!selectedReason}
+                  className="flex-1 px-6 py-3 rounded-lg text-white font-semibold text-sm transition-opacity"
+                  style={{
+                    background: selectedReason ? "#D4836B" : "#ccc",
+                    cursor: selectedReason ? "pointer" : "not-allowed",
+                  }}
+                >
+                  Unsubscribe
+                </button>
+                <a
+                  href="https://spiralingup.works"
+                  className="flex-1 px-6 py-3 rounded-lg font-semibold text-sm text-center no-underline border-2"
+                  style={{ borderColor: "#6BA8A0", color: "#6BA8A0" }}
+                >
+                  Keep me subscribed
+                </a>
+              </div>
+            </div>
+          )}
+
           {status === "loading" && (
             <div className="text-center">
               <div className="animate-spin w-8 h-8 border-4 rounded-full mx-auto mb-4" style={{ borderColor: "#6BA8A0", borderTopColor: "transparent" }} />
