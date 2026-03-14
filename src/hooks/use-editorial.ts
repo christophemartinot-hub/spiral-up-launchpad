@@ -88,6 +88,21 @@ export function useAllPendingItems() {
   });
 }
 
+// ─── All Editorial Items (cross-plan, for Week Review timeline) ───
+export function useAllEditorialItems() {
+  return useQuery({
+    queryKey: ['editorial-items-all'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('editorial_items')
+        .select('*, editorial_plans(cycle_start, cycle_end, cadence)')
+        .order('publish_date', { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
 export function useUpdateEditorialItem() {
   const qc = useQueryClient();
   return useMutation({
