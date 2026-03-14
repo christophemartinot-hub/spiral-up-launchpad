@@ -255,7 +255,7 @@ export default function SettingsPage() {
 
                     {isEditing && (
                       <div className="mt-3 ml-14 p-3 rounded-lg bg-muted/30 border space-y-3">
-                        <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="grid gap-3 sm:grid-cols-2">
                           <div>
                             <label className="text-xs font-medium text-muted-foreground mb-1 block">Account Name</label>
                             <Input value={editForm.account_name} onChange={e => setEditForm(f => ({ ...f, account_name: e.target.value }))} />
@@ -267,6 +267,11 @@ export default function SettingsPage() {
                           <div>
                             <label className="text-xs font-medium text-muted-foreground mb-1 block">Followers</label>
                             <Input type="number" value={editForm.followers} onChange={e => setEditForm(f => ({ ...f, followers: e.target.value }))} />
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-muted-foreground mb-1 block">Zapier Webhook URL</label>
+                            <Input value={editForm.webhook_url} onChange={e => setEditForm(f => ({ ...f, webhook_url: e.target.value }))} placeholder="https://hooks.zapier.com/..." />
+                            <p className="text-[10px] text-muted-foreground mt-1">Paste your Zapier webhook URL to auto-publish content to this channel.</p>
                           </div>
                         </div>
                         <div className="flex justify-end gap-2">
