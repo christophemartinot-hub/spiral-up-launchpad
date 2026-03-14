@@ -113,6 +113,7 @@ export function useUpdateEditorialItem() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['editorial-items'] });
       qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
+      qc.invalidateQueries({ queryKey: ['editorial-items-all'] });
     },
   });
 }
