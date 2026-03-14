@@ -1,0 +1,1 @@
+UPDATE social_connections SET webhook_url = 'https://hook.eu2.make.com/wc79v8shf54gem9nwuq913fzpfikppi2', updated_at = now();
