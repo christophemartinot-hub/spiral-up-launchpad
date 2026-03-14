@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify(webhookPayload),
         });
 
-        // Zapier webhooks always return 200, so we assume success
+        // Webhook services typically return 200, so we assume success
         results.push({ channel: conn.channel, account: conn.account_name, success: true });
       } catch (err) {
         results.push({
