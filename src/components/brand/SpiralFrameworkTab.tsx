@@ -29,10 +29,10 @@ export default function SpiralFrameworkTab() {
           {Object.entries(ZONE_ASSETS).map(([key, zone]) => (
             <Card key={key} className="shadow-card">
               <CardContent className="p-4 flex items-center gap-3">
-                <img src={zone.icon} alt={zone.label} className="w-12 h-12 object-contain flex-shrink-0" />
+                <img src={zone.illustration} alt={zone.label} className="w-14 h-14 object-cover rounded-lg flex-shrink-0" />
                 <div>
                   <p className="font-display font-semibold text-sm">{zone.label}</p>
-                  <p className="text-[10px] text-muted-foreground">Official icon</p>
+                  <p className="text-[10px] text-muted-foreground">Illustration — Martin Tognola</p>
                 </div>
               </CardContent>
             </Card>
