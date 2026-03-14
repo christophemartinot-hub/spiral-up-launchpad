@@ -101,7 +101,7 @@ export default function SettingsPage() {
   };
 
   const saveEdit = (id: string) => {
-    updateMut.mutate({ id, account_name: editForm.account_name, profile_url: editForm.profile_url || null, followers: editForm.followers ? parseInt(editForm.followers) : null });
+    updateMut.mutate({ id, account_name: editForm.account_name, profile_url: editForm.profile_url || null, followers: editForm.followers ? parseInt(editForm.followers) : null, webhook_url: editForm.webhook_url || null });
     toast.success('Account updated');
   };
 
