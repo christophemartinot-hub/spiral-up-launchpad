@@ -272,27 +272,41 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                   </CardHeader>
                   <CardContent className="space-y-2 max-h-[400px] overflow-y-auto">
                     {(grouped[status] || []).map(post => (
-                      <button
+                      <div
                         key={post.id}
-                        onClick={() => loadPostToEditor(post)}
                         className="w-full text-left p-3 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/30 transition-all"
                       >
-                        <p className="text-sm font-medium line-clamp-2">{post.title || 'Untitled'}</p>
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{post.excerpt}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge className={`text-[10px] border-0 ${STATUS_STYLES[post.status] || STATUS_STYLES.draft}`}>
-                            {post.status}
-                          </Badge>
-                          {post.slug && (
-                            <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">/{post.slug}</span>
-                          )}
-                          {(post as any).scheduled_publish_at && post.status !== 'published' && (
-                            <span className="text-[10px] text-primary flex items-center gap-0.5">
-                              <Clock className="w-2.5 h-2.5" /> {format(parseISO((post as any).scheduled_publish_at), "MMM d")}
-                            </span>
-                          )}
-                        </div>
-                      </button>
+                        <button onClick={() => loadPostToEditor(post)} className="w-full text-left">
+                          <p className="text-sm font-medium line-clamp-2">{post.title || 'Untitled'}</p>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{post.excerpt}</p>
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
+                            <Badge className={`text-[10px] border-0 ${STATUS_STYLES[post.status] || STATUS_STYLES.draft}`}>
+                              {post.status}
+                            </Badge>
+                            {(post as any).scheduled_publish_at && post.status !== 'published' && (
+                              <span className="text-[10px] text-primary flex items-center gap-0.5">
+                                <Clock className="w-2.5 h-2.5" /> {format(parseISO((post as any).scheduled_publish_at), "MMM d")}
+                              </span>
+                            )}
+                            {post.status === 'published' && post.published_at && (
+                              <span className="text-[10px] text-muted-foreground">
+                                {format(parseISO(post.published_at), "MMM d, yyyy")}
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                        {post.status === 'published' && post.slug && (
+                          <a
+                            href={`https://spiralingup.works/blog/${post.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={e => e.stopPropagation()}
+                            className="flex items-center gap-1 mt-2 text-[11px] text-primary hover:underline"
+                          >
+                            <ExternalLink className="w-3 h-3" /> spiralingup.works/blog/{post.slug}
+                          </a>
+                        )}
+                      </div>
                     ))}
                     {(!grouped[status] || grouped[status].length === 0) && (
                       <p className="text-xs text-muted-foreground text-center py-6">No posts</p>
