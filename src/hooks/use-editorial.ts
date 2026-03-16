@@ -116,11 +116,14 @@ export function useUpdateEditorialItem() {
       qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
       qc.invalidateQueries({ queryKey: ['editorial-items-all'] });
 
-      // Auto-publish blog posts when approved
+      // Auto-publish when approved
       if (result && result.updates.status === 'approved') {
         try {
           const { data: item } = await supabase.from('editorial_items').select('channel').eq('id', result.id).single();
-          if (item?.channel === 'blog') {
+          const channel = item?.channel;
+
+          if (channel === 'blog') {
+            // Auto-publish blog to website
             const { data, error } = await supabase.functions.invoke('auto-publish-blog', {
               body: { editorialItemId: result.id },
             });
@@ -128,14 +131,23 @@ export function useUpdateEditorialItem() {
             else if (data?.error) console.error('Auto-publish blog failed:', data.error);
             else {
               console.log('Blog auto-published:', data?.url);
-              // Refresh editorial items to reflect published status
-              qc.invalidateQueries({ queryKey: ['editorial-items'] });
-              qc.invalidateQueries({ queryKey: ['editorial-items-all'] });
               qc.invalidateQueries({ queryKey: ['blog-posts'] });
             }
+          } else if (['linkedin', 'instagram', 'facebook'].includes(channel || '')) {
+            // Auto-publish social post via webhook
+            const { data, error } = await supabase.functions.invoke('publish-social', {
+              body: { editorialItemId: result.id },
+            });
+            if (error) console.error('Auto-publish social failed:', error);
+            else if (data?.error) console.error('Auto-publish social failed:', data.error);
+            else console.log('Social auto-published:', data?.results);
           }
+
+          // Refresh to reflect published status
+          qc.invalidateQueries({ queryKey: ['editorial-items'] });
+          qc.invalidateQueries({ queryKey: ['editorial-items-all'] });
         } catch (e) {
-          console.error('Auto-publish check failed:', e);
+          console.error('Auto-publish failed:', e);
         }
       }
     },
