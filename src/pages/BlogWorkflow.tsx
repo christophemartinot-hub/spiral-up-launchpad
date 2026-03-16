@@ -291,6 +291,7 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                               <Clock className="w-2.5 h-2.5" /> {format(parseISO((post as any).scheduled_publish_at), "MMM d")}
                             </span>
                           )}
+                        </div>
                       </button>
                     ))}
                     {(!grouped[status] || grouped[status].length === 0) && (
