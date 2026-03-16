@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ChannelType, CHANNEL_CONFIG } from '@/data/types';
-import { useEditorialItems, useUpdateEditorialItem } from '@/hooks/use-editorial';
+import { useAllEditorialItems, useUpdateEditorialItem } from '@/hooks/use-editorial';
 import { resolveBrandIcon } from '@/lib/brand-assets';
 import { toast } from 'sonner';
 
