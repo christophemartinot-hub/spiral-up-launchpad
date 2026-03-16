@@ -15,9 +15,13 @@ import {
   useBlogPosts, useBlogPost, useCreateBlogPost, useUpdateBlogPost,
   useDeleteBlogPost, usePublishBlogPost, useUnpublishBlogPost, generateSlug,
 } from '@/hooks/use-blog';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format, parseISO, setHours, setMinutes, addDays, nextTuesday, nextWednesday, nextThursday, isBefore } from 'date-fns';
 import {
   Sparkles, FileText, Globe, Eye, Copy, Check, Loader2,
   Save, CheckCircle, Send, Trash2, ExternalLink, Pencil, ArrowLeft,
+  CalendarIcon, Clock, Lightbulb,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
