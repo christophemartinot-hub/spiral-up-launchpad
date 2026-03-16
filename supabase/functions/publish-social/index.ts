@@ -189,13 +189,14 @@ Deno.serve(async (req) => {
     const caption = item.draft_content || "";
     const targetPlatforms = connections.map((c: any) => c.channel as string);
 
-    // ── PHASE 1: Flat base payload for Make.com webhook capture ──
-    // Only base fields — no nested platform objects until Make router is configured
+    // ── Flat payload for Make.com webhook ──
+    // If we have a real image URL → post_type from visual mapping; otherwise always "text"
+    const finalPostType = imageUrl ? postType : "text";
     const payload: Record<string, unknown> = {
       platforms: targetPlatforms,
-      post_type: postType,
+      post_type: finalPostType,
       caption,
-      image_url: imageUrl || "",
+      image_url: imageUrl || null,
     };
 
     // Group connections by unique webhook URL
