@@ -26,3 +26,9 @@ verify_jwt = false
 
 [functions.editorial-reminder]
 verify_jwt = false
+
+[functions.auto-publish-blog]
+verify_jwt = false
+
+[functions.publish-scheduled-blogs]
+verify_jwt = false
