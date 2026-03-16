@@ -109,11 +109,35 @@ export function useUpdateEditorialItem() {
     mutationFn: async ({ id, ...updates }: { id: string } & Record<string, unknown>) => {
       const { error } = await supabase.from('editorial_items').update({ ...updates, updated_at: new Date().toISOString() } as any).eq('id', id);
       if (error) throw error;
+      return { id, updates };
     },
-    onSuccess: () => {
+    onSuccess: async (result) => {
       qc.invalidateQueries({ queryKey: ['editorial-items'] });
       qc.invalidateQueries({ queryKey: ['editorial-items-pending'] });
       qc.invalidateQueries({ queryKey: ['editorial-items-all'] });
+
+      // Auto-publish blog posts when approved
+      if (result && result.updates.status === 'approved') {
+        try {
+          const { data: item } = await supabase.from('editorial_items').select('channel').eq('id', result.id).single();
+          if (item?.channel === 'blog') {
+            const { data, error } = await supabase.functions.invoke('auto-publish-blog', {
+              body: { editorialItemId: result.id },
+            });
+            if (error) console.error('Auto-publish blog failed:', error);
+            else if (data?.error) console.error('Auto-publish blog failed:', data.error);
+            else {
+              console.log('Blog auto-published:', data?.url);
+              // Refresh editorial items to reflect published status
+              qc.invalidateQueries({ queryKey: ['editorial-items'] });
+              qc.invalidateQueries({ queryKey: ['editorial-items-all'] });
+              qc.invalidateQueries({ queryKey: ['blog-posts'] });
+            }
+          }
+        } catch (e) {
+          console.error('Auto-publish check failed:', e);
+        }
+      }
     },
   });
 }
