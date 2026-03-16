@@ -6,6 +6,35 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/wc79v8shf54gem9nwuq913fzpfikppi2";
+
+/** Map visual_type / content_format to a Make-friendly post_type */
+function resolvePostType(visualType: string, contentFormat: string, hasImage: boolean): string {
+  const vt = (visualType || "").toLowerCase();
+  const cf = (contentFormat || "").toLowerCase();
+  if (vt === "carousel" || cf === "carousel") return "carousel";
+  if (vt === "video_storyboard" || cf === "reel" || cf === "video") return "video";
+  if (vt === "document_post") return "document";
+  if (hasImage) return "image";
+  return "text";
+}
+
+/** Validate that a URL looks like a public image the platforms will accept */
+function isValidPublicImageUrl(url: unknown): url is string {
+  if (!url || typeof url !== "string") return false;
+  try {
+    const u = new URL(url);
+    if (!["http:", "https:"].includes(u.protocol)) return false;
+    // Basic extension check – platforms accept jpg/jpeg/png/webp
+    const ext = u.pathname.split(".").pop()?.toLowerCase() ?? "";
+    // Also accept URLs without extension (e.g. Supabase Storage signed URLs)
+    if (ext && !["jpg", "jpeg", "png", "webp", "gif"].includes(ext)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -27,7 +56,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch the editorial item
+    // ── Fetch editorial item ──
     const { data: item, error: itemErr } = await supabase
       .from("editorial_items")
       .select("*")
@@ -41,75 +70,43 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch social connections with webhook URLs
-    let query = supabase
-      .from("social_connections")
-      .select("*")
-      .eq("connected", true)
-      .not("webhook_url", "is", null);
-
-    // If specific channels requested, filter
+    // ── Resolve target platforms ──
+    let targetPlatforms: string[] = [];
     if (channels && channels.length > 0) {
-      query = query.in("channel", channels);
+      targetPlatforms = channels;
     } else {
-      // Default: send to the item's channel
-      query = query.eq("channel", item.channel);
+      targetPlatforms = [item.channel];
     }
 
-    const { data: connections, error: connErr } = await query;
-
-    if (connErr) {
-      return new Response(
-        JSON.stringify({ error: "Failed to fetch connections", details: connErr.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!connections || connections.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "No connected channels with webhook URLs found for this content" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // ── UNPUBLISH FLOW ──
+    // ═══════════════════════════════════════════
+    // UNPUBLISH FLOW
+    // ═══════════════════════════════════════════
     if (isUnpublish) {
-      const targetPlatforms = connections.map((c: any) => c.channel as string);
       const unpublishPayload = {
-        post_id: `post_${item.id}`,
         platforms: targetPlatforms,
+        post_type: "text",
+        caption: "",
+        image_url: null,
+        alt_text: null,
+        title: item.working_title || null,
+        content_id: `post_${item.id}`,
         action: "unpublish",
-        status: "unpublished",
-        editorial_item_id: item.id,
-        title: item.working_title,
-        source: "spiral-up-editorial",
       };
 
-      const results: Array<{ channel: string; account: string; success: boolean; error?: string }> = [];
+      console.log("Sending unpublish to Make.com:", JSON.stringify(unpublishPayload));
 
-      // Group by webhook URL
-      const webhookGroups = new Map<string, typeof connections>();
-      for (const conn of connections) {
-        const url = conn.webhook_url;
-        if (!webhookGroups.has(url)) webhookGroups.set(url, []);
-        webhookGroups.get(url)!.push(conn);
-      }
-
-      for (const [webhookUrl, conns] of webhookGroups) {
-        try {
-          await fetch(webhookUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...unpublishPayload, platforms: conns.map((c: any) => c.channel) }),
-          });
-          for (const conn of conns) {
-            results.push({ channel: conn.channel, account: conn.account_name, success: true });
-          }
-        } catch (err) {
-          for (const conn of conns) {
-            results.push({ channel: conn.channel, account: conn.account_name, success: false, error: err instanceof Error ? err.message : "Unknown error" });
-          }
-        }
+      let webhookSuccess = false;
+      let webhookError = "";
+      try {
+        const res = await fetch(MAKE_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(unpublishPayload),
+        });
+        webhookSuccess = res.ok;
+        if (!res.ok) webhookError = `HTTP ${res.status}`;
+      } catch (err) {
+        webhookError = err instanceof Error ? err.message : "Unknown error";
       }
 
       // Reset status to approved
@@ -122,18 +119,21 @@ Deno.serve(async (req) => {
         action: "unpublish_social",
         entity_type: "editorial_item",
         entity_id: editorialItemId,
-        details: { results, channels: connections.map((c: any) => c.channel) },
+        details: { platforms: targetPlatforms, success: webhookSuccess, error: webhookError || undefined },
       });
 
       return new Response(
-        JSON.stringify({ success: true, results, action: "unpublished" }),
+        JSON.stringify({ success: webhookSuccess, action: "unpublished", platforms: targetPlatforms }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // ── PUBLISH FLOW ──
-    // Generate image from visual concept if available
-    let imageUrl = "";
+    // ═══════════════════════════════════════════
+    // PUBLISH FLOW
+    // ═══════════════════════════════════════════
+
+    // 1. Generate image if visual concept exists
+    let imageUrl: string | null = null;
     if (item.visual_concept) {
       try {
         console.log("Generating social image for:", item.visual_concept);
@@ -172,79 +172,65 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Map visual_type / content_format to Make.com-friendly post_type
-    const resolvePostType = (visualType: string, contentFormat: string): string => {
-      const vt = (visualType || "").toLowerCase();
-      const cf = (contentFormat || "").toLowerCase();
-      if (vt === "carousel" || cf === "carousel") return "carousel";
-      if (vt === "video_storyboard" || cf === "reel" || cf === "video") return "reel";
-      if (vt === "single_image" || vt === "quote_card" || vt === "framework_card" ||
-          vt === "infographic" || vt === "event_promo" || vt === "workshop_promo" ||
-          vt === "book_promo" || vt === "article_cover") return "image";
-      if (vt === "document_post") return "document";
-      return imageUrl ? "image" : "text";
-    };
+    // 2. Validate image URL — never send empty string
+    const validImage = isValidPublicImageUrl(imageUrl);
+    const finalImageUrl = validImage ? imageUrl : null;
 
-    const postType = resolvePostType(item.visual_type, item.content_format);
-    const caption = item.draft_content || "";
-    const targetPlatforms = connections.map((c: any) => c.channel as string);
+    // 3. Resolve post_type
+    const postType = resolvePostType(item.visual_type, item.content_format, !!finalImageUrl);
 
-    // ── Flat payload for Make.com webhook ──
-    // If we have a real image URL → post_type from visual mapping; otherwise always "text"
-    const finalPostType = imageUrl ? postType : "text";
-    const payload: Record<string, unknown> = {
+    // 4. Build payload matching the exact Make.com structure
+    const payload = {
       platforms: targetPlatforms,
-      post_type: finalPostType,
-      caption,
-      image_url: imageUrl || null,
+      post_type: postType,
+      caption: item.draft_content || "",
+      image_url: finalImageUrl,
+      alt_text: item.visual_concept || null,
+      title: item.working_title || null,
+      content_id: `post_${item.id}`,
     };
 
-    // Group connections by unique webhook URL
-    const webhookGroups = new Map<string, typeof connections>();
-    for (const conn of connections) {
-      const url = conn.webhook_url;
-      if (!webhookGroups.has(url)) webhookGroups.set(url, []);
-      webhookGroups.get(url)!.push(conn);
+    console.log("Sending publish to Make.com:", JSON.stringify(payload));
+
+    // 5. POST to Make.com webhook
+    let webhookSuccess = false;
+    let webhookError = "";
+    try {
+      const res = await fetch(MAKE_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      webhookSuccess = res.ok;
+      if (!res.ok) webhookError = `HTTP ${res.status}`;
+    } catch (err) {
+      webhookError = err instanceof Error ? err.message : "Unknown error";
     }
 
-    const results: Array<{ channel: string; account: string; success: boolean; error?: string }> = [];
-
-    for (const [webhookUrl, conns] of webhookGroups) {
-      try {
-        const webhookPayload = { ...payload, platforms: conns.map((c: any) => c.channel) };
-        await fetch(webhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(webhookPayload),
-        });
-        for (const conn of conns) {
-          results.push({ channel: conn.channel, account: conn.account_name, success: true });
-        }
-      } catch (err) {
-        for (const conn of conns) {
-          results.push({ channel: conn.channel, account: conn.account_name, success: false, error: err instanceof Error ? err.message : "Unknown error" });
-        }
-      }
-    }
-
-    // Update status to published
-    const allSuccess = results.every((r) => r.success);
-    if (allSuccess) {
+    // 6. Update status
+    if (webhookSuccess) {
       await supabase
         .from("editorial_items")
         .update({ status: "published", updated_at: new Date().toISOString() })
         .eq("id", editorialItemId);
     }
 
+    // 7. Audit log
     await supabase.from("audit_log").insert({
       action: "publish_social",
       entity_type: "editorial_item",
       entity_id: editorialItemId,
-      details: { results, channels: connections.map((c: any) => c.channel) },
+      details: { payload, success: webhookSuccess, error: webhookError || undefined },
     });
 
     return new Response(
-      JSON.stringify({ success: allSuccess, results }),
+      JSON.stringify({
+        success: webhookSuccess,
+        platforms: targetPlatforms,
+        post_type: postType,
+        image_url: finalImageUrl,
+        error: webhookError || undefined,
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
