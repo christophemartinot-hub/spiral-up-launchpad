@@ -805,6 +805,7 @@ export type Database = {
           post_angle: string | null
           practical_takeaway: string
           publish_date: string
+          publish_time: string | null
           recommended_assets: Json | null
           rejection_reason: string | null
           related_offer: string | null
@@ -848,6 +849,7 @@ export type Database = {
           post_angle?: string | null
           practical_takeaway?: string
           publish_date: string
+          publish_time?: string | null
           recommended_assets?: Json | null
           rejection_reason?: string | null
           related_offer?: string | null
@@ -891,6 +893,7 @@ export type Database = {
           post_angle?: string | null
           practical_takeaway?: string
           publish_date?: string
+          publish_time?: string | null
           recommended_assets?: Json | null
           rejection_reason?: string | null
           related_offer?: string | null

@@ -1,0 +1,1 @@
+ALTER TABLE public.editorial_items ADD COLUMN IF NOT EXISTS publish_time text DEFAULT null;
