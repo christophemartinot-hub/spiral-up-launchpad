@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Sparkles, FileText, PenTool, Calendar, ClipboardList,
+  LayoutDashboard, Sparkles, PenTool, Calendar, ClipboardList,
   BarChart3, FolderOpen, Settings, Menu, X, ChevronRight, Brain, Rocket,
   TrendingUp, Mail, MessageSquare, LogOut, Shield, Edit3, Eye
 } from 'lucide-react';
@@ -10,49 +10,23 @@ import { Button } from '@/components/ui/button';
 import type { User } from '@supabase/supabase-js';
 import type { AppRole } from '@/hooks/use-auth';
 
-const navSections = [
-  {
-    label: 'Intelligence',
-    items: [
-      { path: '/', label: 'Command Center', icon: LayoutDashboard },
-      { path: '/strategy', label: 'Strategic Ideas', icon: Brain },
-      { path: '/brand', label: 'Brand Intelligence', icon: Brain },
-      { path: '/performance', label: 'Performance', icon: TrendingUp },
-      { path: '/analytics', label: 'Analytics', icon: BarChart3 },
-    ],
-  },
-  {
-    label: 'Create',
-    items: [
-      { path: '/studio', label: 'Content Studio', icon: Sparkles },
-      { path: '/blog', label: 'Blog Workflow', icon: PenTool },
-      { path: '/content', label: 'Content Library', icon: FolderOpen },
-    ],
-  },
-  {
-    label: 'Plan',
-    items: [
-      { path: '/editorial', label: 'Editorial Planning', icon: ClipboardList },
-      { path: '/campaigns/new', label: 'Campaign Planner', icon: Rocket },
-      { path: '/calendar', label: 'Calendar', icon: Calendar },
-    ],
-  },
-  {
-    label: 'Distribute',
-    items: [
-      { path: '/email', label: 'Email Distribution', icon: Mail },
-      { path: '/comments', label: 'Comment Response', icon: MessageSquare },
-    ],
-  },
-  {
-    label: 'System',
-    items: [
-      { path: '/settings', label: 'Settings', icon: Settings },
-    ],
-  },
+const navItems = [
+  { path: '/', label: 'Command Center', icon: LayoutDashboard },
+  { path: '/strategy', label: 'Strategic Ideas', icon: Brain },
+  { path: '/brand', label: 'Brand Intelligence', icon: Brain },
+  { path: '/performance', label: 'Performance', icon: TrendingUp },
+  { path: '/studio', label: 'Content Studio', icon: Sparkles },
+  { path: '/blog', label: 'Blog Workflow', icon: PenTool },
+  { path: '/content', label: 'Content Library', icon: FolderOpen },
+  { path: '/editorial', label: 'Editorial Planning', icon: ClipboardList },
+  { path: '/calendar', label: 'Calendar', icon: Calendar },
+  { path: '/email', label: 'Email Distribution', icon: Mail },
+  { path: '/comments', label: 'Comment Response', icon: MessageSquare },
+  { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { path: '/settings', label: 'Settings', icon: Settings },
 ];
 
-const allItems = navSections.flatMap(s => s.items);
+
 
 const ROLE_DISPLAY: Record<AppRole, { label: string; icon: typeof Shield; color: string }> = {
   admin: { label: 'Admin', icon: Shield, color: 'text-primary' },
@@ -95,33 +69,26 @@ export default function AppLayout({ children, user, profile, roles, onSignOut, i
           </Link>
         </div>
         <nav className="flex-1 px-3 space-y-5 overflow-y-auto">
-          {navSections.map((section) => (
-            <div key={section.label}>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40 px-3 mb-1.5">
-                {section.label}
-              </p>
-              <div className="space-y-0.5">
-                {section.items.map((item) => {
-                  const active = location.pathname === item.path ||
-                    (item.path !== '/' && location.pathname.startsWith(item.path));
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        active
-                          ? 'bg-sidebar-accent text-sidebar-primary'
-                          : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                      }`}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+          <div className="space-y-0.5">
+            {navItems.map((item) => {
+              const active = location.pathname === item.path ||
+                (item.path !== '/' && location.pathname.startsWith(item.path));
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    active
+                      ? 'bg-sidebar-accent text-sidebar-primary'
+                      : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                  }`}
+                >
+                  <item.icon className="w-4 h-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
         </nav>
         <div className="p-4 mx-3 mb-3 rounded-lg bg-sidebar-accent">
           <div className="flex items-center gap-2 mb-1">
@@ -162,7 +129,7 @@ export default function AppLayout({ children, user, profile, roles, onSignOut, i
               className="md:hidden bg-card border-b border-border overflow-hidden"
             >
               <nav className="p-3 space-y-1">
-                {allItems.map((item) => {
+                {navItems.map((item) => {
                   const active = location.pathname === item.path;
                   return (
                     <Link
