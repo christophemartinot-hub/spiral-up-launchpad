@@ -447,30 +447,21 @@ export default function CalendarView() {
     }
   };
 
-  const handleDrop = async (e: DragEvent<HTMLDivElement>, targetDateKey: string) => {
-    e.preventDefault();
-    setDragOverDate(null);
-    const itemId = e.dataTransfer.getData('application/editorial-item-id');
-    if (!itemId) return;
-
+  const handleDropToSlot = async (itemId: string, targetDateKey: string, targetTime: string | null) => {
     const item = (editorialItems || []).find((i: any) => i.id === itemId);
-    if (!item || item.publish_date === targetDateKey) return;
+    if (!item) return;
+    if (item.publish_date === targetDateKey && (targetTime === null ? !item.publish_time : item.publish_time === targetTime)) return;
 
-    // Reset published items to approved when rescheduled
     const statusUpdate = item.status === 'published' ? { status: 'approved' } : {};
+    const timeUpdate = targetTime !== undefined ? { publish_time: targetTime } : {};
 
     try {
-      await updateItem.mutateAsync({ id: itemId, publish_date: targetDateKey, ...statusUpdate });
-      toast.success(`Moved to ${new Date(targetDateKey + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`);
+      await updateItem.mutateAsync({ id: itemId, publish_date: targetDateKey, ...timeUpdate, ...statusUpdate });
+      const label = new Date(targetDateKey + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      toast.success(`Moved to ${label}${targetTime ? ` at ${targetTime}` : ''}`);
     } catch {
       toast.error('Failed to reschedule');
     }
-  };
-
-  const handleDragOver = (e: DragEvent<HTMLDivElement>, dateKey: string) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDragOverDate(dateKey);
   };
 
   const handleDragLeave = () => {
