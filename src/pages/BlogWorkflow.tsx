@@ -63,6 +63,7 @@ export default function BlogWorkflow() {
   const [editLinkedin, setEditLinkedin] = useState('');
   const [editNewsletter, setEditNewsletter] = useState('');
   const [editVisualConcept, setEditVisualConcept] = useState('');
+  const [editScheduledAt, setEditScheduledAt] = useState<Date | undefined>(undefined);
 
   const selectedPost = posts.find(p => p.id === selectedId) ?? null;
 
