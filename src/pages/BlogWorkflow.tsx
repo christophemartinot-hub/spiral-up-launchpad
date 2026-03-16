@@ -79,6 +79,7 @@ export default function BlogWorkflow() {
     setEditLinkedin(post.linkedin_version || '');
     setEditNewsletter(post.newsletter_version || '');
     setEditVisualConcept(post.visual_concept || '');
+    setEditScheduledAt(post.scheduled_publish_at ? parseISO(post.scheduled_publish_at) : undefined);
     setSelectedId(post.id);
     setActiveTab('editor');
   }, []);
