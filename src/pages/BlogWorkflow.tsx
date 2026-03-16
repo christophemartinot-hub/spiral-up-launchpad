@@ -184,6 +184,7 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
         linkedin_version: editLinkedin,
         newsletter_version: editNewsletter,
         visual_concept: editVisualConcept,
+        scheduled_publish_at: editScheduledAt ? editScheduledAt.toISOString() : null,
       });
       toast.success('Saved');
     } catch (e: any) {
