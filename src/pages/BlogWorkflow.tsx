@@ -380,11 +380,16 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                     <CheckCircle className="w-3 h-3 mr-1" /> Approve
                   </Button>
                 )}
-                {selectedPost?.status === 'approved' && (
+                {selectedPost?.status === 'approved' && !editScheduledAt && (
                   <Button size="sm" onClick={handlePublish} disabled={publishPost.isPending} className="gradient-brand text-primary-foreground hover:opacity-90">
                     {publishPost.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Send className="w-3 h-3 mr-1" />}
-                    Publish to Website
+                    Publish Now
                   </Button>
+                )}
+                {selectedPost?.status === 'approved' && editScheduledAt && (
+                  <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
+                    <Clock className="w-3 h-3 mr-1" /> Scheduled: {format(editScheduledAt, "MMM d 'at' HH:mm")}
+                  </Badge>
                 )}
                 {selectedPost?.status === 'published' && (
                   <>
