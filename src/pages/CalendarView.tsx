@@ -1,15 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, DragEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   ChevronLeft, ChevronRight, Plus, Filter, CheckCircle2, XCircle,
   Palette, Image as ImageIcon, Eye, Pencil, Clock, Sparkles, Check,
-  Instagram, Linkedin, Facebook, PenLine, Globe,
+  Instagram, Linkedin, Facebook, PenLine, Globe, GripVertical,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ChannelType, CHANNEL_CONFIG } from '@/data/types';
@@ -40,16 +39,6 @@ function formatDayHeader(d: Date) {
   };
 }
 
-const CHANNEL_COLORS: Record<string, string> = {
-  linkedin: 'bg-[hsl(210,80%,45%)]',
-  instagram: 'bg-gradient-to-br from-[hsl(330,70%,55%)] to-[hsl(30,90%,55%)]',
-  facebook: 'bg-[hsl(220,70%,50%)]',
-  twitter: 'bg-foreground',
-  youtube: 'bg-[hsl(0,80%,50%)]',
-  email: 'bg-[hsl(35,90%,55%)]',
-  blog: 'bg-[hsl(200,70%,50%)]',
-};
-
 const STATUS_STYLES: Record<string, string> = {
   suggested: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
   under_review: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
@@ -73,7 +62,6 @@ const ACCENT_MAP: Record<string, string> = {
   instagram: 'border-l-[hsl(330,70%,55%)]',
 };
 
-// ─── Calendar Card ───
 const CHANNEL_ICON_MAP: Record<string, any> = {
   instagram: Instagram,
   linkedin: Linkedin,
@@ -90,7 +78,12 @@ const CHANNEL_ICON_COLORS: Record<string, string> = {
   email: 'text-muted-foreground',
 };
 
-function CalendarEditorialCard({ item, onClick, onQuickApprove }: { item: any; onClick: () => void; onQuickApprove?: () => void }) {
+// ─── Calendar Card ───
+function CalendarEditorialCard({
+  item, onClick, onQuickApprove,
+}: {
+  item: any; onClick: () => void; onQuickApprove?: () => void;
+}) {
   const channel = item.channel as string;
   const brandIcon = resolveBrandIcon(item.content_pillar || item.working_title || '');
   const vs = VISUAL_STATUS_STYLES[item.visual_status] || VISUAL_STATUS_STYLES.none;
@@ -99,18 +92,37 @@ function CalendarEditorialCard({ item, onClick, onQuickApprove }: { item: any; o
   const ChannelIconComp = CHANNEL_ICON_MAP[channel] || Globe;
   const channelColor = CHANNEL_ICON_COLORS[channel] || 'text-muted-foreground';
 
+  const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData('application/editorial-item-id', item.id);
+    e.dataTransfer.effectAllowed = 'move';
+    (e.currentTarget as HTMLElement).classList.add('opacity-40', 'scale-95');
+  };
+
+  const handleDragEnd = (e: DragEvent<HTMLDivElement>) => {
+    (e.currentTarget as HTMLElement).classList.remove('opacity-40', 'scale-95');
+  };
+
   return (
     <div
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       onClick={onClick}
-      className={`group rounded-xl bg-card border border-border shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden border-l-4 ${ACCENT_MAP[channel] || 'border-l-primary'}`}
+      className={`group rounded-xl bg-card border border-border shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing overflow-hidden border-l-4 ${ACCENT_MAP[channel] || 'border-l-primary'}`}
     >
       {/* Header */}
       <div className="px-3 pt-2.5 pb-1 flex items-center justify-between">
         <div className="flex items-center gap-2">
+          <GripVertical className="w-3 h-3 text-muted-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity" />
           <ChannelIconComp className={`w-4 h-4 ${channelColor}`} />
           <span className="text-[10px] font-medium text-muted-foreground">{item.content_format?.replace(/_/g, ' ') || 'Post'}</span>
         </div>
         <div className="flex items-center gap-1">
+          {item.publish_time && (
+            <span className="text-[9px] text-muted-foreground font-medium flex items-center gap-0.5">
+              <Clock className="w-2.5 h-2.5" /> {item.publish_time}
+            </span>
+          )}
           {brandIcon && <img src={brandIcon} alt="" className="w-4 h-4 object-contain opacity-60" />}
           {canApprove && onQuickApprove && (
             <Tooltip>
@@ -122,7 +134,7 @@ function CalendarEditorialCard({ item, onClick, onQuickApprove }: { item: any; o
                   <Check className="w-3 h-3" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="top" className="text-xs">Quick approve</TooltipContent>
+              <TooltipContent side="top" className="text-xs">Quick approve & publish</TooltipContent>
             </Tooltip>
           )}
         </div>
@@ -171,6 +183,7 @@ function ItemDetailDialog({ item, open, onOpenChange }: { item: any; open: boole
       visual_concept: item.visual_concept || '',
       visual_headline: item.visual_headline || '',
       publish_date: item.publish_date || '',
+      publish_time: item.publish_time || '',
       draft_content: item.draft_content || '',
     });
     setEditing(true);
@@ -225,6 +238,11 @@ function ItemDetailDialog({ item, open, onOpenChange }: { item: any; open: boole
             <Badge variant="outline">{item.channel}</Badge>
             <Badge variant="outline">{item.content_format}</Badge>
             {item.content_pillar && <Badge variant="secondary">{item.content_pillar}</Badge>}
+            {item.publish_time && (
+              <Badge variant="outline" className="gap-1">
+                <Clock className="w-3 h-3" /> {item.publish_time}
+              </Badge>
+            )}
             {item.outcome_score > 0 && (
               <Badge variant="outline" className="gap-1">
                 <Sparkles className="w-3 h-3" /> Score: {item.outcome_score}
@@ -236,7 +254,7 @@ function ItemDetailDialog({ item, open, onOpenChange }: { item: any; open: boole
           <div className="flex gap-2">
             {item.status !== 'approved' && item.status !== 'published' && (
               <Button size="sm" className="gap-1.5" onClick={() => approve('status')}>
-                <CheckCircle2 className="w-3.5 h-3.5" /> Approve Content
+                <CheckCircle2 className="w-3.5 h-3.5" /> Approve & Publish
               </Button>
             )}
             {item.status !== 'rejected' && item.status !== 'published' && (
@@ -346,7 +364,7 @@ function ItemDetailDialog({ item, open, onOpenChange }: { item: any; open: boole
                   <Label className="text-xs">Key Message</Label>
                   <Textarea value={form.key_message} onChange={e => setForm({ ...form, key_message: e.target.value })} rows={2} />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
                     <Label className="text-xs">CTA</Label>
                     <Input value={form.cta} onChange={e => setForm({ ...form, cta: e.target.value })} />
@@ -354,6 +372,10 @@ function ItemDetailDialog({ item, open, onOpenChange }: { item: any; open: boole
                   <div>
                     <Label className="text-xs">Publish Date</Label>
                     <Input type="date" value={form.publish_date} onChange={e => setForm({ ...form, publish_date: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Publish Time</Label>
+                    <Input type="time" value={form.publish_time} onChange={e => setForm({ ...form, publish_time: e.target.value })} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -414,6 +436,7 @@ export default function CalendarView() {
   const { data: editorialItems } = useAllEditorialItems();
   const updateItem = useUpdateEditorialItem();
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const [dragOverDate, setDragOverDate] = useState<string | null>(null);
 
   const handleQuickApprove = async (item: any) => {
     try {
@@ -422,6 +445,36 @@ export default function CalendarView() {
     } catch {
       toast.error('Failed to approve');
     }
+  };
+
+  const handleDrop = async (e: DragEvent<HTMLDivElement>, targetDateKey: string) => {
+    e.preventDefault();
+    setDragOverDate(null);
+    const itemId = e.dataTransfer.getData('application/editorial-item-id');
+    if (!itemId) return;
+
+    const item = (editorialItems || []).find((i: any) => i.id === itemId);
+    if (!item || item.publish_date === targetDateKey) return;
+
+    // Reset published items to approved when rescheduled
+    const statusUpdate = item.status === 'published' ? { status: 'approved' } : {};
+
+    try {
+      await updateItem.mutateAsync({ id: itemId, publish_date: targetDateKey, ...statusUpdate });
+      toast.success(`Moved to ${new Date(targetDateKey + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`);
+    } catch {
+      toast.error('Failed to reschedule');
+    }
+  };
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>, dateKey: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverDate(dateKey);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverDate(null);
   };
 
   const weekStart = startOfWeek(currentDate);
@@ -434,6 +487,10 @@ export default function CalendarView() {
       if (!item.publish_date) return;
       if (!map[item.publish_date]) map[item.publish_date] = [];
       map[item.publish_date].push(item);
+    });
+    // Sort by publish_time within each day
+    Object.values(map).forEach(items => {
+      items.sort((a, b) => (a.publish_time || '99:99').localeCompare(b.publish_time || '99:99'));
     });
     return map;
   }, [editorialItems]);
@@ -463,25 +520,27 @@ export default function CalendarView() {
             {weekDays[0].toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <Filter className="w-3.5 h-3.5" />
-          </Button>
-        </div>
+        <p className="text-xs text-muted-foreground">Drag cards to reschedule · Click to edit · ✓ to approve & publish</p>
       </div>
 
       {/* Week grid */}
       <div className="grid grid-cols-7 gap-0 border border-border rounded-xl overflow-hidden bg-muted/30 min-h-[calc(100vh-180px)]">
         {weekDays.map((day, idx) => {
           const dateKey = formatDateKey(day);
-          const { dayName, dayNum, monthShort } = formatDayHeader(day);
+          const { dayName, dayNum } = formatDayHeader(day);
           const isToday = dateKey === todayKey;
           const editorials = editorialByDate[dateKey] || [];
+          const isDragOver = dragOverDate === dateKey;
 
           return (
             <div
               key={dateKey}
-              className={`flex flex-col ${idx < 6 ? 'border-r border-border' : ''} ${isToday ? 'bg-primary/[0.03]' : 'bg-background'}`}
+              onDrop={(e) => handleDrop(e, dateKey)}
+              onDragOver={(e) => handleDragOver(e, dateKey)}
+              onDragLeave={handleDragLeave}
+              className={`flex flex-col ${idx < 6 ? 'border-r border-border' : ''} transition-colors ${
+                isDragOver ? 'bg-primary/10' : isToday ? 'bg-primary/[0.03]' : 'bg-background'
+              }`}
             >
               <div className={`px-3 py-2.5 text-center border-b border-border sticky top-0 z-10 ${isToday ? 'bg-primary/[0.06]' : 'bg-muted/50'}`}>
                 <div className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">{dayName}</div>
@@ -489,13 +548,13 @@ export default function CalendarView() {
                 {isToday && <div className="w-1.5 h-1.5 rounded-full bg-primary mx-auto mt-0.5" />}
               </div>
 
-              <div className="flex-1 p-1.5 space-y-1.5 overflow-y-auto">
+              <div className={`flex-1 p-1.5 space-y-1.5 overflow-y-auto min-h-[80px] transition-all ${isDragOver ? 'ring-2 ring-primary/30 ring-inset rounded-b-lg' : ''}`}>
                 {editorials.map((item: any) => (
                   <CalendarEditorialCard key={item.id} item={item} onClick={() => setSelectedItem(item)} onQuickApprove={() => handleQuickApprove(item)} />
                 ))}
                 {editorials.length === 0 && (
-                  <div className="flex items-center justify-center h-20 text-[10px] text-muted-foreground/40 italic">
-                    —
+                  <div className={`flex items-center justify-center h-20 text-[10px] italic ${isDragOver ? 'text-primary font-medium' : 'text-muted-foreground/40'}`}>
+                    {isDragOver ? 'Drop here' : '—'}
                   </div>
                 )}
               </div>
