@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
