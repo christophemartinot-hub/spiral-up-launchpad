@@ -199,7 +199,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
           <p className="font-display font-semibold text-sm mt-1 truncate">{item.working_title}</p>
           <p className="text-xs text-muted-foreground mt-0.5">
             <Calendar className="w-3 h-3 inline mr-1" />
-            {format(parseISO(item.publish_date), 'EEE, MMM d')} • {item.channel}
+            {format(parseISO(item.publish_date), 'EEE, MMM d')}{item.publish_time ? ` at ${item.publish_time}` : ''} • {item.channel}
           </p>
         </div>
         <div className="flex items-center gap-1">
