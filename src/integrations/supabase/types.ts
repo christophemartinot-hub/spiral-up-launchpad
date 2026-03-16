@@ -59,6 +59,7 @@ export type Database = {
           meta_description: string | null
           newsletter_version: string | null
           published_at: string | null
+          scheduled_publish_at: string | null
           seo_keywords: Json | null
           slug: string
           social_snippets: Json | null
@@ -84,6 +85,7 @@ export type Database = {
           meta_description?: string | null
           newsletter_version?: string | null
           published_at?: string | null
+          scheduled_publish_at?: string | null
           seo_keywords?: Json | null
           slug?: string
           social_snippets?: Json | null
@@ -109,6 +111,7 @@ export type Database = {
           meta_description?: string | null
           newsletter_version?: string | null
           published_at?: string | null
+          scheduled_publish_at?: string | null
           seo_keywords?: Json | null
           slug?: string
           social_snippets?: Json | null
