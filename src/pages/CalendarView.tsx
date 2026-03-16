@@ -447,30 +447,21 @@ export default function CalendarView() {
     }
   };
 
-  const handleDrop = async (e: DragEvent<HTMLDivElement>, targetDateKey: string) => {
-    e.preventDefault();
-    setDragOverDate(null);
-    const itemId = e.dataTransfer.getData('application/editorial-item-id');
-    if (!itemId) return;
-
+  const handleDropToSlot = async (itemId: string, targetDateKey: string, targetTime: string | null) => {
     const item = (editorialItems || []).find((i: any) => i.id === itemId);
-    if (!item || item.publish_date === targetDateKey) return;
+    if (!item) return;
+    if (item.publish_date === targetDateKey && (targetTime === null ? !item.publish_time : item.publish_time === targetTime)) return;
 
-    // Reset published items to approved when rescheduled
     const statusUpdate = item.status === 'published' ? { status: 'approved' } : {};
+    const timeUpdate = targetTime !== undefined ? { publish_time: targetTime } : {};
 
     try {
-      await updateItem.mutateAsync({ id: itemId, publish_date: targetDateKey, ...statusUpdate });
-      toast.success(`Moved to ${new Date(targetDateKey + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`);
+      await updateItem.mutateAsync({ id: itemId, publish_date: targetDateKey, ...timeUpdate, ...statusUpdate });
+      const label = new Date(targetDateKey + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      toast.success(`Moved to ${label}${targetTime ? ` at ${targetTime}` : ''}`);
     } catch {
       toast.error('Failed to reschedule');
     }
-  };
-
-  const handleDragOver = (e: DragEvent<HTMLDivElement>, dateKey: string) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDragOverDate(dateKey);
   };
 
   const handleDragLeave = () => {
@@ -481,16 +472,17 @@ export default function CalendarView() {
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const todayKey = formatDateKey(new Date());
 
-  const editorialByDate = useMemo(() => {
-    const map: Record<string, any[]> = {};
+  const TIME_SLOTS = Array.from({ length: 15 }, (_, i) => i + 7); // 7:00 - 21:00
+
+  const editorialByDateAndHour = useMemo(() => {
+    const map: Record<string, Record<string, any[]>> = {};
     (editorialItems || []).forEach((item: any) => {
       if (!item.publish_date) return;
-      if (!map[item.publish_date]) map[item.publish_date] = [];
-      map[item.publish_date].push(item);
-    });
-    // Sort by publish_time within each day
-    Object.values(map).forEach(items => {
-      items.sort((a, b) => (a.publish_time || '99:99').localeCompare(b.publish_time || '99:99'));
+      if (!map[item.publish_date]) map[item.publish_date] = {};
+      const hour = item.publish_time ? parseInt(item.publish_time.split(':')[0], 10) : -1;
+      const slotKey = hour >= 7 && hour <= 21 ? String(hour) : 'allday';
+      if (!map[item.publish_date][slotKey]) map[item.publish_date][slotKey] = [];
+      map[item.publish_date][slotKey].push(item);
     });
     return map;
   }, [editorialItems]);
@@ -523,44 +515,80 @@ export default function CalendarView() {
         <p className="text-xs text-muted-foreground">Drag cards to reschedule · Click to edit · ✓ to approve & publish</p>
       </div>
 
-      {/* Week grid */}
-      <div className="grid grid-cols-7 gap-0 border border-border rounded-xl overflow-hidden bg-muted/30 min-h-[calc(100vh-180px)]">
-        {weekDays.map((day, idx) => {
-          const dateKey = formatDateKey(day);
-          const { dayName, dayNum } = formatDayHeader(day);
-          const isToday = dateKey === todayKey;
-          const editorials = editorialByDate[dateKey] || [];
-          const isDragOver = dragOverDate === dateKey;
-
-          return (
-            <div
-              key={dateKey}
-              onDrop={(e) => handleDrop(e, dateKey)}
-              onDragOver={(e) => handleDragOver(e, dateKey)}
-              onDragLeave={handleDragLeave}
-              className={`flex flex-col ${idx < 6 ? 'border-r border-border' : ''} transition-colors ${
-                isDragOver ? 'bg-primary/10' : isToday ? 'bg-primary/[0.03]' : 'bg-background'
-              }`}
-            >
-              <div className={`px-3 py-2.5 text-center border-b border-border sticky top-0 z-10 ${isToday ? 'bg-primary/[0.06]' : 'bg-muted/50'}`}>
+      {/* Week grid with time slots */}
+      <div className="border border-border rounded-xl overflow-hidden bg-muted/30 min-h-[calc(100vh-180px)] overflow-y-auto">
+        {/* Header row */}
+        <div className="grid grid-cols-[60px_repeat(7,1fr)] sticky top-0 z-20 bg-muted/80 backdrop-blur-sm border-b border-border">
+          <div className="px-2 py-2.5 text-center border-r border-border">
+            <span className="text-[10px] text-muted-foreground font-medium uppercase">Time</span>
+          </div>
+          {weekDays.map((day, idx) => {
+            const dateKey = formatDateKey(day);
+            const { dayName, dayNum } = formatDayHeader(day);
+            const isToday = dateKey === todayKey;
+            return (
+              <div key={dateKey} className={`px-2 py-2.5 text-center ${idx < 6 ? 'border-r border-border' : ''} ${isToday ? 'bg-primary/[0.06]' : ''}`}>
                 <div className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">{dayName}</div>
                 <div className={`text-sm font-bold ${isToday ? 'text-primary' : ''}`}>{dayNum}</div>
                 {isToday && <div className="w-1.5 h-1.5 rounded-full bg-primary mx-auto mt-0.5" />}
               </div>
+            );
+          })}
+        </div>
 
-              <div className={`flex-1 p-1.5 space-y-1.5 overflow-y-auto min-h-[80px] transition-all ${isDragOver ? 'ring-2 ring-primary/30 ring-inset rounded-b-lg' : ''}`}>
-                {editorials.map((item: any) => (
+        {/* All-day row */}
+        <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border bg-muted/20">
+          <div className="px-2 py-2 text-center border-r border-border flex items-center justify-center">
+            <span className="text-[9px] text-muted-foreground font-medium uppercase">All day</span>
+          </div>
+          {weekDays.map((day, idx) => {
+            const dateKey = formatDateKey(day);
+            const isToday = dateKey === todayKey;
+            const isDragOver = dragOverDate === `${dateKey}-allday`;
+            const items = editorialByDateAndHour[dateKey]?.['allday'] || [];
+            return (
+              <div
+                key={dateKey}
+                onDrop={(e) => { e.preventDefault(); setDragOverDate(null); const itemId = e.dataTransfer.getData('application/editorial-item-id'); if (itemId) handleDropToSlot(itemId, dateKey, null); }}
+                onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverDate(`${dateKey}-allday`); }}
+                onDragLeave={handleDragLeave}
+                className={`p-1 min-h-[48px] ${idx < 6 ? 'border-r border-border' : ''} ${isDragOver ? 'bg-primary/10' : isToday ? 'bg-primary/[0.03]' : ''}`}
+              >
+                {items.map((item: any) => (
                   <CalendarEditorialCard key={item.id} item={item} onClick={() => setSelectedItem(item)} onQuickApprove={() => handleQuickApprove(item)} />
                 ))}
-                {editorials.length === 0 && (
-                  <div className={`flex items-center justify-center h-20 text-[10px] italic ${isDragOver ? 'text-primary font-medium' : 'text-muted-foreground/40'}`}>
-                    {isDragOver ? 'Drop here' : '—'}
-                  </div>
-                )}
               </div>
+            );
+          })}
+        </div>
+
+        {/* Time slot rows */}
+        {TIME_SLOTS.map((hour) => (
+          <div key={hour} className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border/50 last:border-b-0">
+            <div className="px-2 py-1 text-center border-r border-border flex items-start justify-center pt-1">
+              <span className="text-[10px] text-muted-foreground font-medium">{String(hour).padStart(2, '0')}:00</span>
             </div>
-          );
-        })}
+            {weekDays.map((day, idx) => {
+              const dateKey = formatDateKey(day);
+              const isToday = dateKey === todayKey;
+              const isDragOver = dragOverDate === `${dateKey}-${hour}`;
+              const items = editorialByDateAndHour[dateKey]?.[String(hour)] || [];
+              return (
+                <div
+                  key={dateKey}
+                  onDrop={(e) => { e.preventDefault(); setDragOverDate(null); const itemId = e.dataTransfer.getData('application/editorial-item-id'); if (itemId) handleDropToSlot(itemId, dateKey, `${String(hour).padStart(2, '0')}:00`); }}
+                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverDate(`${dateKey}-${hour}`); }}
+                  onDragLeave={handleDragLeave}
+                  className={`p-0.5 min-h-[52px] ${idx < 6 ? 'border-r border-border' : ''} transition-colors ${isDragOver ? 'bg-primary/10 ring-1 ring-inset ring-primary/30' : isToday ? 'bg-primary/[0.02]' : ''}`}
+                >
+                  {items.map((item: any) => (
+                    <CalendarEditorialCard key={item.id} item={item} onClick={() => setSelectedItem(item)} onQuickApprove={() => handleQuickApprove(item)} />
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
 
       {/* Detail Dialog */}
