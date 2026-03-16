@@ -195,32 +195,58 @@ Deno.serve(async (req) => {
     // 5. POST to Make.com webhook
     let webhookSuccess = false;
     let webhookError = "";
+    let webhookResponseBody: unknown = null;
     try {
       const res = await fetch(MAKE_WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      webhookSuccess = res.ok;
-      if (!res.ok) webhookError = `HTTP ${res.status}`;
+
+      // Capture Make.com response body for debugging
+      try {
+        const responseText = await res.text();
+        try { webhookResponseBody = JSON.parse(responseText); } catch { webhookResponseBody = responseText; }
+      } catch { /* ignore */ }
+
+      if (!res.ok) {
+        webhookSuccess = false;
+        webhookError = `HTTP ${res.status}: ${typeof webhookResponseBody === 'string' ? webhookResponseBody : JSON.stringify(webhookResponseBody)}`;
+      } else {
+        // Check if Make.com returned an error in the body (e.g. "Accepted" without execution)
+        const body = webhookResponseBody;
+        if (body && typeof body === 'object' && 'error' in (body as Record<string, unknown>)) {
+          webhookSuccess = false;
+          webhookError = `Make.com error: ${(body as Record<string, unknown>).error}`;
+        } else {
+          webhookSuccess = true;
+        }
+      }
+      console.log("Make.com response:", res.status, JSON.stringify(webhookResponseBody));
     } catch (err) {
       webhookError = err instanceof Error ? err.message : "Unknown error";
     }
 
-    // 6. Update status
+    // 6. Update status — only mark published on confirmed success
     if (webhookSuccess) {
       await supabase
         .from("editorial_items")
         .update({ status: "published", updated_at: new Date().toISOString() })
         .eq("id", editorialItemId);
+    } else {
+      // Mark as error so the user sees it failed
+      await supabase
+        .from("editorial_items")
+        .update({ status: "approved", rejection_reason: webhookError || "Publishing failed — check Make.com scenario", updated_at: new Date().toISOString() })
+        .eq("id", editorialItemId);
     }
 
-    // 7. Audit log
+    // 7. Audit log with full response body
     await supabase.from("audit_log").insert({
       action: "publish_social",
       entity_type: "editorial_item",
       entity_id: editorialItemId,
-      details: { payload, success: webhookSuccess, error: webhookError || undefined },
+      details: { payload, success: webhookSuccess, error: webhookError || undefined, make_response: webhookResponseBody },
     });
 
     return new Response(
@@ -230,6 +256,7 @@ Deno.serve(async (req) => {
         post_type: postType,
         image_url: finalImageUrl,
         error: webhookError || undefined,
+        make_response: webhookResponseBody,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
