@@ -286,7 +286,11 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                           {post.slug && (
                             <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">/{post.slug}</span>
                           )}
-                        </div>
+                          {(post as any).scheduled_publish_at && post.status !== 'published' && (
+                            <span className="text-[10px] text-primary flex items-center gap-0.5">
+                              <Clock className="w-2.5 h-2.5" /> {format(parseISO((post as any).scheduled_publish_at), "MMM d")}
+                            </span>
+                          )}
                       </button>
                     ))}
                     {(!grouped[status] || grouped[status].length === 0) && (
