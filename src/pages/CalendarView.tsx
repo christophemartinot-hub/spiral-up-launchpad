@@ -411,7 +411,7 @@ function ItemDetailDialog({ item, open, onOpenChange }: { item: any; open: boole
 // ─── Main ───
 export default function CalendarView() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const { data: editorialItems } = useEditorialItems(null);
+  const { data: editorialItems } = useAllEditorialItems();
   const updateItem = useUpdateEditorialItem();
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
 
