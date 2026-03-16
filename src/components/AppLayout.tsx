@@ -158,7 +158,7 @@ export default function AppLayout({ children, user, profile, roles, onSignOut, i
               className="md:hidden bg-card border-b border-border overflow-hidden"
             >
               <nav className="p-3 space-y-1">
-                {navItems.map((item) => {
+                {allNavItems.map((item) => {
                   const active = location.pathname === item.path;
                   return (
                     <Link
