@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ChannelType, CHANNEL_CONFIG } from '@/data/types';
-import { useEditorialItems, useUpdateEditorialItem } from '@/hooks/use-editorial';
+import { useAllEditorialItems, useUpdateEditorialItem } from '@/hooks/use-editorial';
 import { resolveBrandIcon } from '@/lib/brand-assets';
 import { toast } from 'sonner';
 
@@ -411,7 +411,7 @@ function ItemDetailDialog({ item, open, onOpenChange }: { item: any; open: boole
 // ─── Main ───
 export default function CalendarView() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const { data: editorialItems } = useEditorialItems(null);
+  const { data: editorialItems } = useAllEditorialItems();
   const updateItem = useUpdateEditorialItem();
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
 
