@@ -10,21 +10,43 @@ import { Button } from '@/components/ui/button';
 import type { User } from '@supabase/supabase-js';
 import type { AppRole } from '@/hooks/use-auth';
 
-const navItems = [
-  { path: '/', label: 'Command Center', icon: LayoutDashboard },
-  { path: '/strategy', label: 'Strategic Ideas', icon: Brain },
-  { path: '/brand', label: 'Brand Intelligence', icon: Brain },
-  { path: '/performance', label: 'Performance', icon: TrendingUp },
-  { path: '/studio', label: 'Content Studio', icon: Sparkles },
-  { path: '/blog', label: 'Blog Workflow', icon: PenTool },
-  { path: '/content', label: 'Content Library', icon: FolderOpen },
-  { path: '/editorial', label: 'Editorial Planning', icon: ClipboardList },
-  { path: '/calendar', label: 'Calendar', icon: Calendar },
-  { path: '/email', label: 'Email Distribution', icon: Mail },
-  { path: '/comments', label: 'Comment Response', icon: MessageSquare },
-  { path: '/analytics', label: 'Analytics', icon: BarChart3 },
-  { path: '/settings', label: 'Settings', icon: Settings },
+const navSections = [
+  {
+    label: 'Intelligence',
+    items: [
+      { path: '/', label: 'Command Center', icon: LayoutDashboard },
+      { path: '/strategy', label: 'Strategic Ideas', icon: Brain },
+      { path: '/brand', label: 'Brand Intelligence', icon: Brain },
+      { path: '/performance', label: 'Performance', icon: TrendingUp },
+      { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+    ],
+  },
+  {
+    label: 'Create',
+    items: [
+      { path: '/studio', label: 'Content Studio', icon: Sparkles },
+      { path: '/blog', label: 'Blog Workflow', icon: PenTool },
+      { path: '/content', label: 'Content Library', icon: FolderOpen },
+    ],
+  },
+  {
+    label: 'Plan & Distribute',
+    items: [
+      { path: '/editorial', label: 'Editorial Planning', icon: ClipboardList },
+      { path: '/calendar', label: 'Calendar', icon: Calendar },
+      { path: '/email', label: 'Email Distribution', icon: Mail },
+      { path: '/comments', label: 'Comment Response', icon: MessageSquare },
+    ],
+  },
+  {
+    label: 'System',
+    items: [
+      { path: '/settings', label: 'Settings', icon: Settings },
+    ],
+  },
 ];
+
+const allNavItems = navSections.flatMap(s => s.items);
 
 
 
