@@ -1,0 +1,1 @@
+ALTER TABLE public.blog_posts ADD COLUMN IF NOT EXISTS scheduled_publish_at timestamp with time zone DEFAULT NULL;
