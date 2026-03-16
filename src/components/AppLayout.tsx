@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Sparkles, FileText, PenTool, Calendar, ClipboardList,
+  LayoutDashboard, Sparkles, PenTool, Calendar, ClipboardList,
   BarChart3, FolderOpen, Settings, Menu, X, ChevronRight, Brain, Rocket,
   TrendingUp, Mail, MessageSquare, LogOut, Shield, Edit3, Eye
 } from 'lucide-react';
