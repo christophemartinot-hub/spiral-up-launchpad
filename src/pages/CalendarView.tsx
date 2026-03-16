@@ -481,16 +481,17 @@ export default function CalendarView() {
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const todayKey = formatDateKey(new Date());
 
-  const editorialByDate = useMemo(() => {
-    const map: Record<string, any[]> = {};
+  const TIME_SLOTS = Array.from({ length: 15 }, (_, i) => i + 7); // 7:00 - 21:00
+
+  const editorialByDateAndHour = useMemo(() => {
+    const map: Record<string, Record<string, any[]>> = {};
     (editorialItems || []).forEach((item: any) => {
       if (!item.publish_date) return;
-      if (!map[item.publish_date]) map[item.publish_date] = [];
-      map[item.publish_date].push(item);
-    });
-    // Sort by publish_time within each day
-    Object.values(map).forEach(items => {
-      items.sort((a, b) => (a.publish_time || '99:99').localeCompare(b.publish_time || '99:99'));
+      if (!map[item.publish_date]) map[item.publish_date] = {};
+      const hour = item.publish_time ? parseInt(item.publish_time.split(':')[0], 10) : -1;
+      const slotKey = hour >= 7 && hour <= 21 ? String(hour) : 'allday';
+      if (!map[item.publish_date][slotKey]) map[item.publish_date][slotKey] = [];
+      map[item.publish_date][slotKey].push(item);
     });
     return map;
   }, [editorialItems]);
