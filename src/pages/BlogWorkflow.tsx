@@ -565,8 +565,131 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
     </div>
   );
 }
+// ─── Recommended publish times for B2B / leadership content ───
+const RECOMMENDED_TIMES = [
+  { label: 'Tue 8:00 AM', day: 2, hour: 8, min: 0, reason: 'Peak LinkedIn engagement for B2B professionals' },
+  { label: 'Wed 10:00 AM', day: 3, hour: 10, min: 0, reason: 'Mid-week sweet spot — high open rates' },
+  { label: 'Thu 7:30 AM', day: 4, hour: 7, min: 30, reason: 'Early readers before the workday starts' },
+  { label: 'Tue 12:00 PM', day: 2, hour: 12, min: 0, reason: 'Lunch-break reading window' },
+];
 
-// ─── Preview Component ───
+function getNextSlot(dayOfWeek: number, hour: number, min: number): Date {
+  const now = new Date();
+  const diff = (dayOfWeek - now.getDay() + 7) % 7 || 7;
+  const target = setMinutes(setHours(addDays(now, diff), hour), min);
+  return isBefore(target, now) ? addDays(target, 7) : target;
+}
+
+function ScheduleCard({
+  scheduledAt,
+  onScheduleChange,
+  status,
+}: {
+  scheduledAt: Date | undefined;
+  onScheduleChange: (d: Date | undefined) => void;
+  status: string;
+}) {
+  const [timeStr, setTimeStr] = useState(scheduledAt ? format(scheduledAt, 'HH:mm') : '08:00');
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date) { onScheduleChange(undefined); return; }
+    const [h, m] = timeStr.split(':').map(Number);
+    onScheduleChange(setMinutes(setHours(date, h), m));
+  };
+
+  const handleTimeChange = (val: string) => {
+    setTimeStr(val);
+    if (scheduledAt) {
+      const [h, m] = val.split(':').map(Number);
+      onScheduleChange(setMinutes(setHours(scheduledAt, h), m));
+    }
+  };
+
+  const applyRecommendation = (rec: typeof RECOMMENDED_TIMES[0]) => {
+    const target = getNextSlot(rec.day, rec.hour, rec.min);
+    setTimeStr(format(target, 'HH:mm'));
+    onScheduleChange(target);
+  };
+
+  if (status === 'published') return null;
+
+  return (
+    <Card className="shadow-card border-primary/20">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-display flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5 text-primary" /> Schedule Publishing
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="space-y-1.5">
+          <Label className="text-xs">Publish Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-full justify-start text-left text-sm font-normal", !scheduledAt && "text-muted-foreground")}>
+                <CalendarIcon className="w-3.5 h-3.5 mr-2" />
+                {scheduledAt ? format(scheduledAt, 'PPP') : 'Select date…'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={scheduledAt}
+                onSelect={handleDateSelect}
+                disabled={(date) => isBefore(date, addDays(new Date(), -1))}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs">Publish Time (CET)</Label>
+          <Input type="time" value={timeStr} onChange={e => handleTimeChange(e.target.value)} className="text-sm" />
+        </div>
+
+        {scheduledAt && (
+          <p className="text-[10px] text-muted-foreground">
+            Will auto-publish: {format(scheduledAt, "PPP 'at' HH:mm")}
+          </p>
+        )}
+
+        {scheduledAt && (
+          <Button variant="ghost" size="sm" className="text-xs text-destructive" onClick={() => { onScheduleChange(undefined); }}>
+            Clear schedule (publish manually)
+          </Button>
+        )}
+
+        {/* Recommended times */}
+        <div className="pt-2 border-t border-border">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Lightbulb className="w-3 h-3 text-warning" />
+            <span className="text-[11px] font-medium text-foreground">Recommended times</span>
+          </div>
+          <div className="space-y-1.5">
+            {RECOMMENDED_TIMES.map((rec) => {
+              const target = getNextSlot(rec.day, rec.hour, rec.min);
+              return (
+                <button
+                  key={rec.label}
+                  onClick={() => applyRecommendation(rec)}
+                  className="w-full text-left p-2 rounded-md border border-border hover:border-primary/30 hover:bg-muted/30 transition-all"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium">{format(target, "EEE, MMM d 'at' HH:mm")}</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{rec.reason}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+
 function BlogPreview({
   title, slug, excerpt, content, heroImage, author, tags, publishedAt,
 }: {
