@@ -26,7 +26,7 @@ const navItems = [
   { path: '/settings', label: 'Settings', icon: Settings },
 ];
 
-const allItems = navSections.flatMap(s => s.items);
+
 
 const ROLE_DISPLAY: Record<AppRole, { label: string; icon: typeof Shield; color: string }> = {
   admin: { label: 'Admin', icon: Shield, color: 'text-primary' },
