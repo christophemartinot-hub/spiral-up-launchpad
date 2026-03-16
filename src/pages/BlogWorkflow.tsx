@@ -457,6 +457,10 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                     onScheduleChange={setEditScheduledAt}
                     status={selectedPost?.status || 'draft'}
                   />
+
+                  <Card className="shadow-card">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-display">SEO & Meta</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="space-y-1">
