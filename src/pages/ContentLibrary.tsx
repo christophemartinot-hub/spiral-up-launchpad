@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,8 @@ import { ContentStatusBadge } from '@/components/StatusBadge';
 import ChannelBadge from '@/components/ChannelBadge';
 import { demoContent, demoCampaigns, demoUsers } from '@/data/demo';
 import { PILLAR_CONFIG, ContentStatus, ChannelType, ContentPillar } from '@/data/types';
-import { Search, Filter } from 'lucide-react';
+import { Search, Megaphone, Settings } from 'lucide-react';
+import { useCampaigns } from '@/hooks/use-campaigns';
 
 export default function ContentLibrary() {
   const [search, setSearch] = useState('');
@@ -15,6 +17,7 @@ export default function ContentLibrary() {
   const [channelFilter, setChannelFilter] = useState<string>('all');
   const [pillarFilter, setPillarFilter] = useState<string>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { data: dbCampaigns } = useCampaigns();
 
   const filtered = useMemo(() => {
     return demoContent.filter(item => {
@@ -28,10 +31,38 @@ export default function ContentLibrary() {
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-display font-bold">Content Library</h1>
-        <p className="text-muted-foreground mt-1">{demoContent.length} content pieces across all campaigns.</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-display font-bold">Content Library</h1>
+          <p className="text-muted-foreground mt-1">{demoContent.length} content pieces across all campaigns.</p>
+        </div>
+        <div className="flex gap-2">
+          <Link to="/campaigns">
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Megaphone className="w-3.5 h-3.5" /> Campaigns
+            </Button>
+          </Link>
+          <Link to="/settings">
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Settings className="w-3.5 h-3.5" /> Platforms
+            </Button>
+          </Link>
+        </div>
       </div>
+
+      {/* Active campaigns banner */}
+      {(dbCampaigns || []).filter(c => c.status === 'active').length > 0 && (
+        <div className="flex flex-wrap gap-2 items-center">
+          <span className="text-xs font-medium text-muted-foreground">Active campaigns:</span>
+          {(dbCampaigns || []).filter(c => c.status === 'active').map(c => (
+            <Link key={c.id} to="/campaigns">
+              <span className="text-xs px-2.5 py-1 rounded-full bg-success/10 text-success border border-success/20 hover:bg-success/20 transition-colors cursor-pointer">
+                {c.name}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* Filters */}
       <Card className="shadow-card">
@@ -96,10 +127,26 @@ export default function ContentLibrary() {
                       <span className="text-sm">{PILLAR_CONFIG[item.pillar].emoji}</span>
                       <p className="text-sm font-semibold truncate">{item.title}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground">{campaign?.name} • {author?.name} • {item.type}</p>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      {campaign && (
+                        <Link
+                          to={`/campaigns/${campaign.id}`}
+                          onClick={e => e.stopPropagation()}
+                          className="text-primary hover:underline"
+                        >
+                          {campaign.name}
+                        </Link>
+                      )}
+                      <span>•</span>
+                      <span>{author?.name}</span>
+                      <span>•</span>
+                      <span>{item.type}</span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <ChannelBadge channel={item.channel} />
+                    <Link to="/settings" onClick={e => e.stopPropagation()}>
+                      <ChannelBadge channel={item.channel} />
+                    </Link>
                     <ContentStatusBadge status={item.status} />
                     {item.publishDate && <span className="text-xs text-muted-foreground">{item.publishDate}</span>}
                   </div>
@@ -117,6 +164,18 @@ export default function ContentLibrary() {
                     {item.cta && (
                       <div className="text-xs"><span className="font-medium text-muted-foreground">CTA:</span> <span className="text-foreground">{item.cta}</span></div>
                     )}
+                    <div className="flex gap-2 pt-1">
+                      <Link to="/campaigns" onClick={e => e.stopPropagation()}>
+                        <Button variant="outline" size="sm" className="text-xs gap-1">
+                          <Megaphone className="w-3 h-3" /> Manage Campaigns
+                        </Button>
+                      </Link>
+                      <Link to="/settings" onClick={e => e.stopPropagation()}>
+                        <Button variant="outline" size="sm" className="text-xs gap-1">
+                          <Settings className="w-3 h-3" /> Platform Settings
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 )}
               </CardContent>
