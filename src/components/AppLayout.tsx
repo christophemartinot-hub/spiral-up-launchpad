@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Sparkles, PenTool, Calendar, ClipboardList,
   BarChart3, FolderOpen, Settings, Menu, X, ChevronRight, Brain, Rocket,
-  TrendingUp, Mail, MessageSquare, LogOut, Shield, Edit3, Eye
+  TrendingUp, Mail, MessageSquare, LogOut, Shield, Edit3, Eye, Megaphone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
