@@ -14,6 +14,7 @@ import CalendarView from "@/pages/CalendarView";
 import ContentLibrary from "@/pages/ContentLibrary";
 import CampaignWizard from "@/pages/CampaignWizard";
 import CampaignDetail from "@/pages/CampaignDetail";
+import Campaigns from "@/pages/Campaigns";
 import SettingsPage from "@/pages/SettingsPage";
 import EditorialPlanning from "@/pages/EditorialPlanning";
 import PerformanceDashboard from "@/pages/PerformanceDashboard";
