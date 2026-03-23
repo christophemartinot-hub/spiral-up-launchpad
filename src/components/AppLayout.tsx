@@ -27,6 +27,7 @@ const navSections = [
       { path: '/studio', label: 'Content Studio', icon: Sparkles },
       { path: '/blog', label: 'Blog Workflow', icon: PenTool },
       { path: '/content', label: 'Content Library', icon: FolderOpen },
+      { path: '/campaigns', label: 'Campaigns', icon: Megaphone },
     ],
   },
   {
