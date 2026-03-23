@@ -14,6 +14,7 @@ import CalendarView from "@/pages/CalendarView";
 import ContentLibrary from "@/pages/ContentLibrary";
 import CampaignWizard from "@/pages/CampaignWizard";
 import CampaignDetail from "@/pages/CampaignDetail";
+import Campaigns from "@/pages/Campaigns";
 import SettingsPage from "@/pages/SettingsPage";
 import EditorialPlanning from "@/pages/EditorialPlanning";
 import PerformanceDashboard from "@/pages/PerformanceDashboard";
@@ -52,6 +53,7 @@ function AuthenticatedApp() {
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/calendar" element={<CalendarView />} />
         <Route path="/content" element={<ContentLibrary />} />
+        <Route path="/campaigns" element={<Campaigns />} />
         <Route path="/campaigns/new" element={<CampaignWizard />} />
         <Route path="/campaigns/:id" element={<CampaignDetail />} />
         <Route path="/editorial" element={<EditorialPlanning />} />

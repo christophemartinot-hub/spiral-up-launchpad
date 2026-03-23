@@ -361,6 +361,60 @@ export type Database = {
         }
         Relationships: []
       }
+      campaigns: {
+        Row: {
+          brief: string | null
+          budget: number | null
+          channels: Json
+          content_pillars: Json
+          created_at: string
+          description: string | null
+          end_date: string | null
+          goals: Json
+          id: string
+          name: string
+          owner_name: string | null
+          progress: number
+          start_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          brief?: string | null
+          budget?: number | null
+          channels?: Json
+          content_pillars?: Json
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          goals?: Json
+          id?: string
+          name?: string
+          owner_name?: string | null
+          progress?: number
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          brief?: string | null
+          budget?: number | null
+          channels?: Json
+          content_pillars?: Json
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          goals?: Json
+          id?: string
+          name?: string
+          owner_name?: string | null
+          progress?: number
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       comment_inbox: {
         Row: {
           author_avatar_url: string | null
