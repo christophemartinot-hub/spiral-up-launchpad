@@ -53,6 +53,7 @@ function AuthenticatedApp() {
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/calendar" element={<CalendarView />} />
         <Route path="/content" element={<ContentLibrary />} />
+        <Route path="/campaigns" element={<Campaigns />} />
         <Route path="/campaigns/new" element={<CampaignWizard />} />
         <Route path="/campaigns/:id" element={<CampaignDetail />} />
         <Route path="/editorial" element={<EditorialPlanning />} />
