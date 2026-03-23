@@ -10,28 +10,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usePlanningConfig, useUpdatePlanningConfig } from '@/hooks/use-editorial';
-
-type SocialConn = {
-  id: string;
-  channel: string;
-  account_name: string;
-  connected: boolean;
-  last_sync: string | null;
-  followers: number | null;
-  profile_url: string | null;
-  webhook_url: string | null;
-};
-
-function useSocialConnections() {
-  return useQuery({
-    queryKey: ['social-connections'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('social_connections').select('*').order('created_at');
-      if (error) throw error;
-      return (data ?? []) as SocialConn[];
-    },
-  });
-}
+import { useSocialConnections, SocialConn } from '@/hooks/use-social-connections';
 
 const INTELLIGENCE_MODES = [
   { value: 'assist', label: '💡 Assist', description: 'Suggestions only — based on brand knowledge and pillars. No learning from behavior.' },
