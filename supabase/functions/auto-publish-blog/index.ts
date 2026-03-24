@@ -110,7 +110,6 @@ Deno.serve(async (req) => {
       slug: blogPayload.slug,
       content: blogPayload.content,
       excerpt: blogPayload.excerpt,
-      hero_image: blogPayload.hero_image_url || "",
       author: blogPayload.author,
       tags: blogPayload.tags || [],
       status: "published",
