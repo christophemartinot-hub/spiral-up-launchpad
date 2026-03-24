@@ -30,14 +30,43 @@ const channelPerformance = [
 ];
 
 export default function Analytics() {
+  const { data: perfSummary, isLoading: perfLoading } = usePerformanceSummary();
+
+  const channelData = perfSummary ? Object.entries(perfSummary.byChannel).map(([name, v]: [string, any]) => ({
+    name, engagement: v.totalEngagement, impressions: v.totalImpressions,
+  })).sort((a, b) => b.engagement - a.engagement) : [];
+
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4">
       <motion.div initial="hidden" animate="show" variants={fadeIn} transition={{ duration: 0.4 }}>
-        <h1 className="text-2xl md:text-3xl font-display font-bold">Performance Analytics</h1>
-        <p className="text-muted-foreground mt-1">
-          Track, learn, and optimize Spiral Up's content performance.
+        <h1 className="text-xl md:text-2xl font-display font-bold">Analytics</h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          Track and optimize content performance across all channels.
         </p>
       </motion.div>
+
+      {/* Performance Summary from DB */}
+      {perfLoading ? (
+        <div className="flex justify-center py-6"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>
+      ) : perfSummary && channelData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-display text-base">Channel Performance (from data)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={channelData}>
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip />
+                  <Bar dataKey="engagement" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats Grid */}
       <motion.div initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }}
