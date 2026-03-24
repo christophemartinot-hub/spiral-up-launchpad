@@ -134,7 +134,7 @@ export default function Dashboard() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{item.working_title}</p>
                   </div>
-                  <StatusBadge status={item.status} />
+                  <Badge variant="outline" className="text-[10px] capitalize">{item.status}</Badge>
                   <span className="text-xs text-muted-foreground flex-shrink-0">
                     {format(parseISO(item.publish_date), 'MMM d')}
                   </span>
