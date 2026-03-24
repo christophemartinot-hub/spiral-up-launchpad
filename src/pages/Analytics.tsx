@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, Eye, Users, FileText, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { TrendingUp, Eye, Users, FileText, ArrowUpRight, ArrowDownRight, Loader2 } from 'lucide-react';
+import { usePerformanceSummary } from '@/hooks/use-performance';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
