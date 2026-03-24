@@ -6,7 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO, startOfWeek, endOfWeek, subDays } from 'date-fns';
 import { useEditorialPlans, useEditorialItems } from '@/hooks/use-editorial';
-import ChannelBadge from '@/components/ChannelBadge';
+
+const CHANNEL_ICONS: Record<string, string> = {
+  linkedin: '💼', blog: '📝', email: '✉️', instagram: '📸', twitter: '𝕏',
+  facebook: '📘', tiktok: '🎵', youtube: '▶️',
+};
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
