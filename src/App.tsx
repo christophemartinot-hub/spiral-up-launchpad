@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
@@ -46,21 +46,24 @@ function AuthenticatedApp() {
     <AppLayout user={auth.user} profile={auth.profile} roles={auth.roles} onSignOut={auth.signOut} isAdmin={auth.isAdmin} isEditor={auth.isEditor}>
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/strategy" element={<StrategicIdeas />} />
-        <Route path="/brand" element={<BrandIntelligence />} />
+        <Route path="/ideas" element={<StrategicIdeas />} />
         <Route path="/studio" element={<ContentStudio />} />
-        <Route path="/blog" element={<BlogWorkflow />} />
+        <Route path="/editorial" element={<EditorialPlanning />} />
         <Route path="/analytics" element={<Analytics />} />
-        <Route path="/calendar" element={<CalendarView />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        {/* Redirects for merged/removed pages */}
+        <Route path="/performance" element={<Navigate to="/analytics" replace />} />
+        <Route path="/strategy" element={<Navigate to="/ideas" replace />} />
+        <Route path="/calendar" element={<Navigate to="/editorial" replace />} />
+        {/* Pages still accessible via direct URL */}
+        <Route path="/brand" element={<BrandIntelligence />} />
+        <Route path="/blog" element={<BlogWorkflow />} />
         <Route path="/content" element={<ContentLibrary />} />
         <Route path="/campaigns" element={<Campaigns />} />
         <Route path="/campaigns/new" element={<CampaignWizard />} />
         <Route path="/campaigns/:id" element={<CampaignDetail />} />
-        <Route path="/editorial" element={<EditorialPlanning />} />
-        <Route path="/performance" element={<PerformanceDashboard />} />
         <Route path="/email" element={<EmailDistribution />} />
         <Route path="/comments" element={<CommentResponse />} />
-        <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -73,7 +76,6 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          
           <Route path="*" element={<AuthenticatedApp />} />
         </Routes>
       </BrowserRouter>

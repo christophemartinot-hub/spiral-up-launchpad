@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Sparkles, PenTool, Calendar, ClipboardList,
-  BarChart3, FolderOpen, Settings, Menu, X, ChevronRight, Brain, Rocket,
-  TrendingUp, Mail, MessageSquare, LogOut, Shield, Edit3, Eye, Megaphone
+  LayoutDashboard, Sparkles, Calendar, BarChart3, Settings, Menu, X,
+  ChevronRight, Brain, LogOut
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -12,50 +11,24 @@ import type { AppRole } from '@/hooks/use-auth';
 
 const navSections = [
   {
-    label: 'Intelligence',
+    label: 'Work',
     items: [
-      { path: '/', label: 'Command Center', icon: LayoutDashboard },
-      { path: '/strategy', label: 'Strategic Ideas', icon: Brain },
-      { path: '/brand', label: 'Brand Intelligence', icon: Brain },
-      { path: '/performance', label: 'Performance', icon: TrendingUp },
+      { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+      { path: '/ideas', label: 'Ideas', icon: Brain },
+      { path: '/studio', label: 'Create', icon: Sparkles },
+      { path: '/editorial', label: 'Plan & Publish', icon: Calendar },
+    ],
+  },
+  {
+    label: 'Review',
+    items: [
       { path: '/analytics', label: 'Analytics', icon: BarChart3 },
-    ],
-  },
-  {
-    label: 'Create',
-    items: [
-      { path: '/studio', label: 'Content Studio', icon: Sparkles },
-      { path: '/blog', label: 'Blog Workflow', icon: PenTool },
-      { path: '/content', label: 'Content Library', icon: FolderOpen },
-      { path: '/campaigns', label: 'Campaigns', icon: Megaphone },
-    ],
-  },
-  {
-    label: 'Plan & Distribute',
-    items: [
-      { path: '/editorial', label: 'Editorial Planning', icon: ClipboardList },
-      { path: '/calendar', label: 'Calendar', icon: Calendar },
-      { path: '/email', label: 'Email Distribution', icon: Mail },
-      { path: '/comments', label: 'Comment Response', icon: MessageSquare },
-    ],
-  },
-  {
-    label: 'System',
-    items: [
       { path: '/settings', label: 'Settings', icon: Settings },
     ],
   },
 ];
 
 const allNavItems = navSections.flatMap(s => s.items);
-
-
-
-const ROLE_DISPLAY: Record<AppRole, { label: string; icon: typeof Shield; color: string }> = {
-  admin: { label: 'Admin', icon: Shield, color: 'text-primary' },
-  editor: { label: 'Editor', icon: Edit3, color: 'text-amber-600' },
-  viewer: { label: 'Viewer', icon: Eye, color: 'text-muted-foreground' },
-};
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -67,19 +40,16 @@ interface AppLayoutProps {
   isEditor: boolean;
 }
 
-export default function AppLayout({ children, user, profile, roles, onSignOut, isAdmin, isEditor }: AppLayoutProps) {
+export default function AppLayout({ children, user, profile, onSignOut }: AppLayoutProps) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const displayName = profile?.display_name || user.email || 'User';
-  const topRole = roles[0] || 'viewer';
-  const roleInfo = ROLE_DISPLAY[topRole] || ROLE_DISPLAY.viewer;
-  const RoleIcon = roleInfo.icon;
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 flex-col bg-sidebar border-r border-sidebar-border">
+      <aside className="hidden md:flex w-56 flex-col bg-sidebar border-r border-sidebar-border">
         <div className="p-5">
           <Link to="/" className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg gradient-brand flex items-center justify-center">
@@ -91,10 +61,10 @@ export default function AppLayout({ children, user, profile, roles, onSignOut, i
             </div>
           </Link>
         </div>
-        <nav className="flex-1 px-3 space-y-4 overflow-y-auto">
+        <nav className="flex-1 px-3 space-y-6 overflow-y-auto">
           {navSections.map((section) => (
             <div key={section.label}>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40 px-3 mb-1.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40 px-3 mb-2">
                 {section.label}
               </p>
               <div className="space-y-0.5">
@@ -107,7 +77,7 @@ export default function AppLayout({ children, user, profile, roles, onSignOut, i
                       to={item.path}
                       className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                         active
-                          ? 'bg-sidebar-accent text-sidebar-primary'
+                          ? 'border-l-[3px] border-primary text-sidebar-primary bg-transparent pl-[9px]'
                           : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                       }`}
                     >
@@ -121,10 +91,6 @@ export default function AppLayout({ children, user, profile, roles, onSignOut, i
           ))}
         </nav>
         <div className="p-4 mx-3 mb-3 rounded-lg bg-sidebar-accent">
-          <div className="flex items-center gap-2 mb-1">
-            <RoleIcon className={`w-3 h-3 ${roleInfo.color}`} />
-            <span className="text-[10px] font-medium text-sidebar-foreground">{roleInfo.label}</span>
-          </div>
           <p className="text-sm font-semibold text-sidebar-accent-foreground truncate">{displayName}</p>
           <p className="text-[10px] text-sidebar-foreground truncate">{user.email}</p>
           <Button variant="ghost" size="sm" onClick={onSignOut} className="w-full mt-2 text-xs gap-1.5 h-7">
@@ -167,7 +133,7 @@ export default function AppLayout({ children, user, profile, roles, onSignOut, i
                       to={item.path}
                       onClick={() => setMobileOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                        active ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted'
+                        active ? 'border-l-[3px] border-primary text-primary pl-[9px]' : 'text-foreground hover:bg-muted'
                       }`}
                     >
                       <item.icon className="w-4 h-4" />
