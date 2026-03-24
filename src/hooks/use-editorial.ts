@@ -133,7 +133,7 @@ export function useUpdateEditorialItem() {
               console.log('Blog auto-published:', data?.url);
               qc.invalidateQueries({ queryKey: ['blog-posts'] });
             }
-          } else if (['linkedin', 'instagram', 'facebook'].includes(channel || '')) {
+          } else if (['linkedin', 'instagram', 'facebook', 'tiktok'].includes(channel || '')) {
             // Auto-publish social post via webhook
             const { data, error } = await supabase.functions.invoke('publish-social', {
               body: { editorialItemId: result.id },
@@ -141,6 +141,14 @@ export function useUpdateEditorialItem() {
             if (error) console.error('Auto-publish social failed:', error);
             else if (data?.error) console.error('Auto-publish social failed:', data.error);
             else console.log('Social auto-published:', data?.results);
+          } else if (channel === 'email') {
+            // Auto-publish email via send-email function
+            const { data, error } = await supabase.functions.invoke('send-email', {
+              body: { editorialItemId: result.id },
+            });
+            if (error) console.error('Auto-publish email failed:', error);
+            else if (data?.error) console.error('Auto-publish email failed:', data.error);
+            else console.log('Email auto-published');
           }
 
           // Refresh to reflect published status
