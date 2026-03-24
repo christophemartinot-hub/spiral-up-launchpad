@@ -491,6 +491,43 @@ export default function CalendarView() {
   const prev = () => setCurrentDate(addDays(currentDate, -7));
   const next = () => setCurrentDate(addDays(currentDate, 7));
 
+  // Bulk approve all pending items for the visible week
+  const weekPendingItems = useMemo(() => {
+    return (editorialItems || []).filter((item: any) => {
+      if (!item.publish_date) return false;
+      const dateKey = item.publish_date;
+      const weekStartKey = formatDateKey(weekDays[0]);
+      const weekEndKey = formatDateKey(weekDays[6]);
+      return dateKey >= weekStartKey && dateKey <= weekEndKey && ['suggested', 'under_review'].includes(item.status);
+    });
+  }, [editorialItems, weekDays]);
+
+  const [bulkApproving, setBulkApproving] = useState(false);
+
+  const handleApproveWeek = async () => {
+    if (weekPendingItems.length === 0) {
+      toast.info('No pending items this week');
+      return;
+    }
+    setBulkApproving(true);
+    let success = 0;
+    let failed = 0;
+    for (const item of weekPendingItems) {
+      try {
+        await updateItem.mutateAsync({ id: item.id, status: 'approved' });
+        success++;
+      } catch {
+        failed++;
+      }
+    }
+    setBulkApproving(false);
+    if (failed === 0) {
+      toast.success(`${success} item${success > 1 ? 's' : ''} approved & publishing triggered ✓`);
+    } else {
+      toast.warning(`${success} approved, ${failed} failed`);
+    }
+  };
+
   return (
     <div className="p-4 md:p-6 max-w-full mx-auto space-y-4 h-full">
       {/* Top bar */}
@@ -512,7 +549,20 @@ export default function CalendarView() {
             {weekDays[0].toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground">Drag cards to reschedule · Click to edit · ✓ to approve & publish</p>
+        <div className="flex items-center gap-3">
+          {weekPendingItems.length > 0 && (
+            <Button
+              size="sm"
+              className="gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+              onClick={handleApproveWeek}
+              disabled={bulkApproving}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              {bulkApproving ? 'Publishing…' : `Approve & Publish Week (${weekPendingItems.length})`}
+            </Button>
+          )}
+          <p className="text-xs text-muted-foreground">Drag to reschedule · ✓ to approve & publish</p>
+        </div>
       </div>
 
       {/* Week grid with time slots */}
