@@ -110,6 +110,13 @@ function CalendarEditorialCard({
       onClick={onClick}
       className={`group rounded-xl bg-card border border-border shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing overflow-hidden border-l-4 ${ACCENT_MAP[channel] || 'border-l-primary'}`}
     >
+      {/* Thumbnail */}
+      {item.image_url && (
+        <div className="w-full h-16 overflow-hidden bg-muted">
+          <img src={item.image_url} alt="" className="w-full h-full object-cover" />
+        </div>
+      )}
+
       {/* Header */}
       <div className="px-3 pt-2.5 pb-1 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -146,7 +153,7 @@ function CalendarEditorialCard({
       </div>
 
       {/* Visual indicator */}
-      {hasVisual && (
+      {hasVisual && !item.image_url && (
         <div className="px-3 pb-1.5 flex items-center gap-1.5">
           <Palette className="w-3 h-3 text-muted-foreground" />
           <span className="text-[9px] text-muted-foreground">{item.visual_type?.replace(/_/g, ' ')}</span>

@@ -196,6 +196,14 @@ Return only the final image prompt. Do not explain. Do not add labels. Do not ad
 
     const publicUrl = urlData.publicUrl;
 
+    // Save the image URL back to the editorial item
+    if (editorial_item_id) {
+      await supabase
+        .from("editorial_items")
+        .update({ image_url: publicUrl, updated_at: new Date().toISOString() })
+        .eq("id", editorial_item_id);
+    }
+
     console.log("Image generated and uploaded:", publicUrl);
 
     return new Response(
