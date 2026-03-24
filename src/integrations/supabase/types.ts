@@ -851,6 +851,7 @@ export type Database = {
           format_ratio: string | null
           id: string
           image_direction: string | null
+          image_url: string | null
           insight_delivered: string
           key_message: string | null
           objective: string | null
@@ -895,6 +896,7 @@ export type Database = {
           format_ratio?: string | null
           id?: string
           image_direction?: string | null
+          image_url?: string | null
           insight_delivered?: string
           key_message?: string | null
           objective?: string | null
@@ -939,6 +941,7 @@ export type Database = {
           format_ratio?: string | null
           id?: string
           image_direction?: string | null
+          image_url?: string | null
           insight_delivered?: string
           key_message?: string | null
           objective?: string | null
