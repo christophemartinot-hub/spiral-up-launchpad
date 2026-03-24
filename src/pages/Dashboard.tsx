@@ -134,7 +134,7 @@ export default function Dashboard() {
                   to="/editorial"
                   className="flex items-center gap-3 p-3 hover:bg-muted/30 transition-colors"
                 >
-                  <ChannelBadge channel={item.channel} />
+                  <span className="text-base flex-shrink-0">{CHANNEL_ICONS[item.channel] || '📌'}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{item.working_title}</p>
                   </div>
