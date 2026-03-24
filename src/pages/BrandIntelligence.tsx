@@ -16,15 +16,15 @@ const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
 export default function BrandIntelligence() {
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4">
       <motion.div initial="hidden" animate="show" variants={fadeIn} transition={{ duration: 0.4 }}>
-        <h1 className="text-2xl md:text-3xl font-display font-bold">Brand Intelligence</h1>
+        <h1 className="text-xl md:text-2xl font-display font-bold">Brand Intelligence</h1>
         <p className="text-muted-foreground mt-1">
           The knowledge layer that powers all Spiral Up AI content generation.
         </p>
       </motion.div>
 
-      <Tabs defaultValue="core" className="space-y-6">
+      <Tabs defaultValue="core" className="space-y-4">
         <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="core">Brand Core</TabsTrigger>
           <TabsTrigger value="founder">Founder</TabsTrigger>

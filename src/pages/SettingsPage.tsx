@@ -99,9 +99,9 @@ export default function SettingsPage() {
   const availableChannels = Object.keys(CHANNEL_CONFIG) as ChannelType[];
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-4">
       <div>
-        <h1 className="text-2xl md:text-3xl font-display font-bold">Settings</h1>
+        <h1 className="text-xl md:text-2xl font-display font-bold">Settings</h1>
         <p className="text-muted-foreground mt-1">Manage intelligence mode, social accounts, and preferences.</p>
       </div>
 

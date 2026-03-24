@@ -232,11 +232,11 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
   }, [posts]);
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4">
       <motion.div initial="hidden" animate="show" variants={fadeIn} transition={{ duration: 0.4 }}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-display font-bold">Blog Publishing</h1>
+            <h1 className="text-xl md:text-2xl font-display font-bold">Blog Publishing</h1>
             <p className="text-muted-foreground mt-1">
               Generate, review, approve &amp; publish to spiralingup.works
             </p>
@@ -248,7 +248,7 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
         </div>
       </motion.div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
           <TabsTrigger value="create">Generate</TabsTrigger>
@@ -753,7 +753,7 @@ function BlogPreview({
           <img src={heroImage} alt={title} className="w-full aspect-video object-cover" />
         )}
 
-        <CardContent className="p-6 md:p-10 space-y-6">
+        <CardContent className="p-6 md:p-10 space-y-4">
           {/* Tags */}
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
@@ -764,7 +764,7 @@ function BlogPreview({
           )}
 
           {/* Title */}
-          <h1 className="text-2xl md:text-3xl font-display font-bold leading-tight">{title || 'Untitled Post'}</h1>
+          <h1 className="text-xl md:text-2xl font-display font-bold leading-tight">{title || 'Untitled Post'}</h1>
 
           {/* Author & Date */}
           <div className="flex items-center gap-3 text-sm text-muted-foreground border-b border-border pb-4">

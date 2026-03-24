@@ -104,9 +104,9 @@ export default function EmailDistribution() {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4">
       <motion.div initial="hidden" animate="show" variants={fadeIn} transition={{ duration: 0.4 }}>
-        <h1 className="text-2xl md:text-3xl font-display font-bold">Email Distribution</h1>
+        <h1 className="text-xl md:text-2xl font-display font-bold">Email Distribution</h1>
         <p className="text-muted-foreground mt-1">
           Convert approved blog posts into email campaigns and send to your subscriber base.
         </p>

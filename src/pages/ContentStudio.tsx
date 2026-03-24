@@ -82,9 +82,9 @@ Stay unmistakably Spiral Up in voice.`;
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4">
       <motion.div initial="hidden" animate="show" variants={fadeIn} transition={{ duration: 0.4 }}>
-        <h1 className="text-2xl md:text-3xl font-display font-bold">Content Studio</h1>
+        <h1 className="text-xl md:text-2xl font-display font-bold">Content Studio</h1>
         <p className="text-muted-foreground mt-1">
           AI-powered content generation, fully aligned with Spiral Up's voice and strategy.
         </p>
