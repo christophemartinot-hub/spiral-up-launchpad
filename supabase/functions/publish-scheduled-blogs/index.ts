@@ -62,7 +62,6 @@ Deno.serve(async (req) => {
           slug: post.slug,
           content: post.content,
           excerpt: post.excerpt,
-          hero_image: post.hero_image_url || "",
           author: post.author,
           tags: post.tags || [],
           status: "published",
