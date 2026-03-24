@@ -30,10 +30,10 @@ export default function ContentLibrary() {
   }, [search, statusFilter, channelFilter, pillarFilter]);
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-display font-bold">Content Library</h1>
+          <h1 className="text-xl md:text-2xl font-display font-bold">Content Library</h1>
           <p className="text-muted-foreground mt-1">{demoContent.length} content pieces across all campaigns.</p>
         </div>
         <div className="flex gap-2">

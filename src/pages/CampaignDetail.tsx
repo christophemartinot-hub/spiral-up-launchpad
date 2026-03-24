@@ -32,7 +32,7 @@ export default function CampaignDetail() {
   }, {} as Record<string, number>);
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-4">
       <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft className="w-3.5 h-3.5" /> Back to Dashboard
       </Link>
@@ -41,7 +41,7 @@ export default function CampaignDetail() {
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl md:text-3xl font-display font-bold">{campaign.name}</h1>
+            <h1 className="text-xl md:text-2xl font-display font-bold">{campaign.name}</h1>
             <CampaignStatusBadge status={campaign.status} />
           </div>
           <p className="text-muted-foreground">{campaign.description}</p>

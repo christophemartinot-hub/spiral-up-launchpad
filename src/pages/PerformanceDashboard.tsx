@@ -62,15 +62,15 @@ export default function PerformanceDashboard() {
   })).sort((a, b) => b.value - a.value) : [];
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4">
       <motion.div initial="hidden" animate="show" variants={fadeIn} transition={{ duration: 0.4 }}>
-        <h1 className="text-2xl md:text-3xl font-display font-bold">Performance Intelligence</h1>
+        <h1 className="text-xl md:text-2xl font-display font-bold">Performance Intelligence</h1>
         <p className="text-muted-foreground mt-1">
           Learn from content performance to improve future editorial plans, suggestions, and visuals.
         </p>
       </motion.div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="overview">📊 Overview</TabsTrigger>
           <TabsTrigger value="outcomes">🎯 Outcome Signals</TabsTrigger>
@@ -93,7 +93,7 @@ export default function PerformanceDashboard() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Summary cards */}
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="shadow-card">
@@ -205,7 +205,7 @@ export default function PerformanceDashboard() {
           {configLoading || !configForm ? (
             <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">Configure how the AI learns from performance data.</p>
                 <Button size="sm" onClick={handleSaveConfig} disabled={updateConfig.isPending} className="gap-1.5">
@@ -305,7 +305,7 @@ function OutcomeSignals() {
   const chartData = outcomeMetrics.filter(m => m.value > 0).map(m => ({ name: m.label, value: m.value }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="bg-primary/5 border border-primary/15 rounded-lg p-4">
         <p className="text-sm font-display font-semibold text-primary mb-1">🎯 Outcome-Driven Metrics</p>
         <p className="text-xs text-muted-foreground">

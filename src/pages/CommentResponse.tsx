@@ -345,15 +345,15 @@ export default function CommentResponse() {
   const { data: counts } = useCommentCounts();
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4">
       <motion.div initial="hidden" animate="show" variants={fadeIn} transition={{ duration: 0.4 }}>
-        <h1 className="text-2xl md:text-3xl font-display font-bold">Comment Response</h1>
+        <h1 className="text-xl md:text-2xl font-display font-bold">Comment Response</h1>
         <p className="text-muted-foreground mt-1">
           AI-powered community management — analyze, respond, and learn from audience interactions.
         </p>
       </motion.div>
 
-      <Tabs defaultValue="inbox" className="space-y-6">
+      <Tabs defaultValue="inbox" className="space-y-4">
         <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="inbox" className="gap-1.5"><Inbox className="w-3.5 h-3.5" /> Inbox {counts?.byStatus?.new ? <Badge variant="secondary" className="text-[10px] ml-1">{counts.byStatus.new}</Badge> : null}</TabsTrigger>
           <TabsTrigger value="dashboard" className="gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Dashboard</TabsTrigger>

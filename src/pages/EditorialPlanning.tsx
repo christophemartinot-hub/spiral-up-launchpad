@@ -14,15 +14,15 @@ export default function EditorialPlanning() {
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4">
       <motion.div initial="hidden" animate="show" variants={fadeIn} transition={{ duration: 0.4 }}>
-        <h1 className="text-2xl md:text-3xl font-display font-bold">Editorial Planning</h1>
+        <h1 className="text-xl md:text-2xl font-display font-bold">Editorial Planning</h1>
         <p className="text-muted-foreground mt-1">
           Your AI editorial copilot — review, approve, and schedule brand-aligned content with visual directions.
         </p>
       </motion.div>
 
-      <Tabs defaultValue="agenda" className="space-y-6">
+      <Tabs defaultValue="agenda" className="space-y-4">
         <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="agenda">📋 Agenda</TabsTrigger>
           <TabsTrigger value="week-review">👁️ Week Review</TabsTrigger>
