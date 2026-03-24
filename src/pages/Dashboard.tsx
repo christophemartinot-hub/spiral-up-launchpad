@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { format, parseISO, startOfWeek, endOfWeek, subDays } from 'date-fns';
 import { useEditorialPlans, useEditorialItems } from '@/hooks/use-editorial';
 import ChannelBadge from '@/components/ChannelBadge';
-import { Badge } from '@/components/ui/badge';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
