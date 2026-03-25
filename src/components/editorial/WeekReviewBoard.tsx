@@ -373,6 +373,16 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                         <CardContent className="p-2.5 space-y-1.5">
                           {/* Channel + visual type + status */}
                           <div className="flex items-center gap-1 flex-wrap">
+                            <div className="flex items-center gap-1">
+                              <ChannelIcon channel={item.channel} size={11} />
+                              <span className="text-[9px] font-semibold uppercase tracking-wide" style={{
+                                color: CHANNEL_ICON_COMPONENTS[item.channel]?.color
+                                  ? undefined
+                                  : 'var(--muted-foreground)',
+                              }} className={`text-[9px] font-semibold uppercase tracking-wide ${CHANNEL_ICON_COMPONENTS[item.channel]?.color || 'text-muted-foreground'}`}>
+                                {item.channel === 'blog' ? 'Blog' : item.channel === 'email' || item.channel === 'newsletter' ? 'Email' : item.channel?.charAt(0).toUpperCase() + item.channel?.slice(1)}
+                              </span>
+                            </div>
                             {item.visual_type && (
                               <span className="text-[9px]">{VISUAL_TYPE_ICONS[item.visual_type] || '🎨'}</span>
                             )}
