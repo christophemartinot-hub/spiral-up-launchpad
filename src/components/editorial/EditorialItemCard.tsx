@@ -272,6 +272,22 @@ export default function EditorialItemCard({ item }: { item: any }) {
 
       {expanded && (
         <CardContent className="border-t pt-4 space-y-4">
+          {/* Hero image preview — prominent for blogs */}
+          {item.image_url && (
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                🖼️ {item.channel === 'blog' ? 'Blog Hero Image' : 'Visual Preview'}
+              </p>
+              <div className="relative rounded-lg overflow-hidden border border-border bg-muted/30">
+                <img
+                  src={item.image_url}
+                  alt={`Visual for: ${item.working_title}`}
+                  className="w-full max-h-72 object-cover"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Suggestion rationale */}
           {item.suggestion_rationale && (
             <div className="bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
@@ -452,11 +468,11 @@ export default function EditorialItemCard({ item }: { item: any }) {
                 {savingImage ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Save'}
               </Button>
             </div>
-            {item.image_url && (
+            {item.image_url && !expanded && (
               <img
                 src={item.image_url}
                 alt="Attached visual"
-                className="rounded-lg max-h-32 object-cover border border-border"
+                className="rounded-lg max-h-20 object-cover border border-border"
               />
             )}
           </div>
