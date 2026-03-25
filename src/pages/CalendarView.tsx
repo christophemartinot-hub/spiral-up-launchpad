@@ -176,7 +176,9 @@ function CalendarEditorialCard({
 }
 
 // ─── Detail / Edit Dialog ───
-function ItemDetailDialog({ item, open, onOpenChange }: { item: any; open: boolean; onOpenChange: (v: boolean) => void }) {
+function ItemDetailDialog({ item: initialItem, open, onOpenChange }: { item: any; open: boolean; onOpenChange: (v: boolean) => void }) {
+  const { data: allItems } = useAllEditorialItems();
+  const item = useMemo(() => (allItems || []).find((i: any) => i.id === initialItem.id) || initialItem, [allItems, initialItem]);
   const updateItem = useUpdateEditorialItem();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<any>({});
