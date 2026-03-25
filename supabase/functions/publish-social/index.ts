@@ -6,33 +6,77 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/wc79v8shf54gem9nwuq913fzpfikppi2";
-
-/** Map visual_type / content_format to a Make-friendly post_type */
-function resolvePostType(visualType: string, contentFormat: string, hasImage: boolean): string {
-  const vt = (visualType || "").toLowerCase();
-  const cf = (contentFormat || "").toLowerCase();
-  if (vt === "carousel" || cf === "carousel") return "carousel";
-  if (vt === "video_storyboard" || cf === "reel" || cf === "video") return "video";
-  if (vt === "document_post") return "document";
-  if (hasImage) return "image";
-  return "text";
-}
-
 /** Validate that a URL looks like a public image the platforms will accept */
 function isValidPublicImageUrl(url: unknown): url is string {
   if (!url || typeof url !== "string") return false;
   try {
     const u = new URL(url);
     if (!["http:", "https:"].includes(u.protocol)) return false;
-    // Basic extension check – platforms accept jpg/jpeg/png/webp
     const ext = u.pathname.split(".").pop()?.toLowerCase() ?? "";
-    // Also accept URLs without extension (e.g. Supabase Storage signed URLs)
     if (ext && !["jpg", "jpeg", "png", "webp", "gif"].includes(ext)) return false;
     return true;
   } catch {
     return false;
   }
+}
+
+/** Publish directly to LinkedIn API */
+async function publishToLinkedIn(
+  caption: string,
+  imageUrl: string | null,
+  title: string | null,
+  keyMessage: string | null
+): Promise<{ success: boolean; response: unknown; error?: string }> {
+  const linkedinToken = Deno.env.get("LINKEDIN_ACCESS_TOKEN");
+  const linkedinUrn = Deno.env.get("LINKEDIN_PERSON_URN");
+
+  if (!linkedinToken || !linkedinUrn) {
+    return { success: false, response: null, error: "LinkedIn credentials not configured" };
+  }
+
+  const linkedinPayload: Record<string, unknown> = {
+    author: linkedinUrn,
+    commentary: caption,
+    visibility: "PUBLIC",
+    distribution: {
+      feedDistribution: "MAIN_FEED",
+      targetEntities: [],
+      thirdPartyDistributionChannels: [],
+    },
+    lifecycleState: "PUBLISHED",
+    isReshareDisabledByAuthor: false,
+  };
+
+  if (imageUrl) {
+    linkedinPayload.content = {
+      article: {
+        source: imageUrl,
+        title: title || "",
+        description: keyMessage || "",
+      },
+    };
+  }
+
+  const res = await fetch("https://api.linkedin.com/rest/posts", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${linkedinToken}`,
+      "LinkedIn-Version": "202401",
+      "X-Restli-Protocol-Version": "2.0.0",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(linkedinPayload),
+  });
+
+  const responseText = await res.text();
+  let responseBody: unknown;
+  try { responseBody = JSON.parse(responseText); } catch { responseBody = responseText; }
+
+  if (!res.ok) {
+    return { success: false, response: responseBody, error: `LinkedIn API ${res.status}: ${responseText}` };
+  }
+
+  return { success: true, response: responseBody };
 }
 
 Deno.serve(async (req) => {
@@ -82,33 +126,6 @@ Deno.serve(async (req) => {
     // UNPUBLISH FLOW
     // ═══════════════════════════════════════════
     if (isUnpublish) {
-      const unpublishPayload = {
-        platforms: targetPlatforms,
-        post_type: "text",
-        caption: "",
-        image_url: null,
-        alt_text: null,
-        title: item.working_title || null,
-        content_id: `post_${item.id}`,
-        action: "unpublish",
-      };
-
-      console.log("Sending unpublish to Make.com:", JSON.stringify(unpublishPayload));
-
-      let webhookSuccess = false;
-      let webhookError = "";
-      try {
-        const res = await fetch(MAKE_WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(unpublishPayload),
-        });
-        webhookSuccess = res.ok;
-        if (!res.ok) webhookError = `HTTP ${res.status}`;
-      } catch (err) {
-        webhookError = err instanceof Error ? err.message : "Unknown error";
-      }
-
       // Reset status to approved
       await supabase
         .from("editorial_items")
@@ -119,11 +136,11 @@ Deno.serve(async (req) => {
         action: "unpublish_social",
         entity_type: "editorial_item",
         entity_id: editorialItemId,
-        details: { platforms: targetPlatforms, success: webhookSuccess, error: webhookError || undefined },
+        details: { platforms: targetPlatforms, success: true },
       });
 
       return new Response(
-        JSON.stringify({ success: webhookSuccess, action: "unpublished", platforms: targetPlatforms }),
+        JSON.stringify({ success: true, action: "unpublished", platforms: targetPlatforms }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -172,91 +189,81 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 2. Validate image URL — never send empty string
+    // 2. Validate image URL
     const validImage = isValidPublicImageUrl(imageUrl);
     const finalImageUrl = validImage ? imageUrl : null;
 
-    // 3. Resolve post_type
-    const postType = resolvePostType(item.visual_type, item.content_format, !!finalImageUrl);
+    // 3. Publish to each platform via direct API calls
+    const results: Record<string, { success: boolean; response: unknown; error?: string }> = {};
+    let allSuccess = true;
 
-    // 4. Build payload matching the exact Make.com structure
-    const payload = {
-      platforms: targetPlatforms,
-      post_type: postType,
-      caption: item.draft_content || "",
-      image_url: finalImageUrl,
-      alt_text: item.visual_concept || null,
-      title: item.working_title || null,
-      content_id: `post_${item.id}`,
-    };
-
-    console.log("Sending publish to Make.com:", JSON.stringify(payload));
-
-    // 5. POST to Make.com webhook
-    let webhookSuccess = false;
-    let webhookError = "";
-    let webhookResponseBody: unknown = null;
-    try {
-      const res = await fetch(MAKE_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      // Capture Make.com response body for debugging
-      try {
-        const responseText = await res.text();
-        try { webhookResponseBody = JSON.parse(responseText); } catch { webhookResponseBody = responseText; }
-      } catch { /* ignore */ }
-
-      if (!res.ok) {
-        webhookSuccess = false;
-        webhookError = `HTTP ${res.status}: ${typeof webhookResponseBody === 'string' ? webhookResponseBody : JSON.stringify(webhookResponseBody)}`;
+    for (const platform of targetPlatforms) {
+      if (platform === "linkedin") {
+        const result = await publishToLinkedIn(
+          item.draft_content || "",
+          finalImageUrl,
+          item.working_title || null,
+          item.key_message || null
+        );
+        results[platform] = result;
+        if (!result.success) allSuccess = false;
       } else {
-        // Check if Make.com returned an error in the body (e.g. "Accepted" without execution)
-        const body = webhookResponseBody;
-        if (body && typeof body === 'object' && 'error' in (body as Record<string, unknown>)) {
-          webhookSuccess = false;
-          webhookError = `Make.com error: ${(body as Record<string, unknown>).error}`;
-        } else {
-          webhookSuccess = true;
-        }
+        // Unsupported platform — log and skip
+        results[platform] = {
+          success: false,
+          response: null,
+          error: `Direct publishing not yet supported for platform: ${platform}. Only LinkedIn is currently supported.`,
+        };
+        allSuccess = false;
       }
-      console.log("Make.com response:", res.status, JSON.stringify(webhookResponseBody));
-    } catch (err) {
-      webhookError = err instanceof Error ? err.message : "Unknown error";
     }
 
-    // 6. Update status — only mark published on confirmed success
-    if (webhookSuccess) {
+    // 4. Update editorial item status
+    if (allSuccess) {
       await supabase
         .from("editorial_items")
         .update({ status: "published", updated_at: new Date().toISOString() })
         .eq("id", editorialItemId);
     } else {
-      // Mark as error so the user sees it failed
+      const errorSummary = Object.entries(results)
+        .filter(([, r]) => !r.success)
+        .map(([p, r]) => `${p}: ${r.error}`)
+        .join("; ");
+
       await supabase
         .from("editorial_items")
-        .update({ status: "approved", rejection_reason: webhookError || "Publishing failed — check Make.com scenario", updated_at: new Date().toISOString() })
+        .update({
+          status: "approved",
+          rejection_reason: errorSummary || "Publishing failed",
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", editorialItemId);
     }
 
-    // 7. Audit log with full response body
-    await supabase.from("audit_log").insert({
-      action: "publish_social",
-      entity_type: "editorial_item",
-      entity_id: editorialItemId,
-      details: { payload, success: webhookSuccess, error: webhookError || undefined, make_response: webhookResponseBody },
-    });
+    // 5. Audit log — one entry per platform for clarity
+    for (const [platform, result] of Object.entries(results)) {
+      await supabase.from("audit_log").insert({
+        action: result.success ? "linkedin_published" : `${platform}_publish_failed`,
+        entity_type: "editorial_item",
+        entity_id: editorialItemId,
+        details: {
+          channel: platform,
+          working_title: item.working_title,
+          publish_date: item.publish_date,
+          image_url: finalImageUrl,
+          success: result.success,
+          linkedin_response: result.response,
+          error: result.error || undefined,
+        },
+      });
+    }
 
     return new Response(
       JSON.stringify({
-        success: webhookSuccess,
+        success: allSuccess,
         platforms: targetPlatforms,
-        post_type: postType,
         image_url: finalImageUrl,
-        error: webhookError || undefined,
-        make_response: webhookResponseBody,
+        results,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
