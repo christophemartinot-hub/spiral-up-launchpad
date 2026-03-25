@@ -164,6 +164,25 @@ export default function EditorialItemCard({ item }: { item: any }) {
     }
   };
 
+  const handlePublishLinkedIn = async () => {
+    setPublishingLinkedIn(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('publish-to-linkedin', {
+        body: { item_id: item.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.skipped) {
+        toast.info(data.reason || 'Skipped — not a LinkedIn item');
+      } else {
+        toast.success('Published to LinkedIn ✅');
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'LinkedIn publish failed');
+    } finally {
+      setPublishingLinkedIn(false);
+    }
+
   const handleUnpublish = async () => {
     setPublishing(true);
     try {
