@@ -231,12 +231,16 @@ Deno.serve(async (req) => {
         );
         results[platform] = result;
         if (!result.success) allSuccess = false;
+      } else if (platform === "blog") {
+        const result = await publishToBlog(item, supabase);
+        results[platform] = result;
+        if (!result.success) allSuccess = false;
       } else {
         // Unsupported platform — log and skip
         results[platform] = {
           success: false,
           response: null,
-          error: `Direct publishing not yet supported for platform: ${platform}. Only LinkedIn is currently supported.`,
+          error: `Direct publishing not yet supported for platform: ${platform}. Only LinkedIn and Blog are currently supported.`,
         };
         allSuccess = false;
       }
