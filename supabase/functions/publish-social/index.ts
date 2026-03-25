@@ -79,6 +79,58 @@ async function publishToLinkedIn(
   return { success: true, response: responseBody };
 }
 
+/** Publish to Facebook or Instagram via Buffer REST API */
+async function publishToBuffer(
+  platform: "facebook" | "instagram",
+  caption: string,
+  imageUrl: string | null,
+): Promise<{ success: boolean; response: unknown; error?: string; skipped?: boolean }> {
+  const bufferToken = Deno.env.get("BUFFER_ACCESS_TOKEN");
+  if (!bufferToken) {
+    return { success: false, response: null, error: "BUFFER_ACCESS_TOKEN not configured" };
+  }
+
+  const profileIds: Record<string, string> = {
+    facebook: "5e837d5420c4a32a2146aa63",
+    instagram: "69b5bbc77be9f8b17157f30c",
+  };
+
+  // Instagram requires an image
+  if (platform === "instagram" && !imageUrl) {
+    return { success: false, response: null, skipped: true, error: "Instagram requires an image" };
+  }
+
+  const body: Record<string, unknown> = {
+    text: caption,
+    profile_ids: [profileIds[platform]],
+  };
+  if (imageUrl) {
+    body.media = { photo: imageUrl };
+  }
+
+  try {
+    const res = await fetch("https://api.bufferapp.com/1/updates/create.json", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${bufferToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const responseText = await res.text();
+    let responseBody: unknown;
+    try { responseBody = JSON.parse(responseText); } catch { responseBody = responseText; }
+
+    if (!res.ok) {
+      return { success: false, response: responseBody, error: `Buffer API ${res.status}: ${responseText}` };
+    }
+    return { success: true, response: responseBody };
+  } catch (err) {
+    return { success: false, response: null, error: err instanceof Error ? err.message : "Buffer publish fetch failed" };
+  }
+}
+
 /** Publish to spiralingup.works blog via webhook */
 async function publishToBlog(
   item: Record<string, unknown>,
