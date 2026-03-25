@@ -433,11 +433,12 @@ export default function EditorialItemCard({ item }: { item: any }) {
           {/* Image URL attachment */}
           <div className="space-y-2">
             <p className="text-xs font-medium text-muted-foreground mb-1">📷 Attached Image URL</p>
+            <p className="text-[10px] text-muted-foreground">Paste a direct image URL, or an Unsplash photo page URL — it will be auto-converted.</p>
             <div className="flex gap-2">
               <Input
                 value={imageUrlInput}
                 onChange={e => setImageUrlInput(e.target.value)}
-                placeholder="https://example.com/image.jpg"
+                placeholder="https://images.unsplash.com/photo-... or https://unsplash.com/photos/..."
                 className="text-xs"
               />
               <Button
@@ -447,8 +448,16 @@ export default function EditorialItemCard({ item }: { item: any }) {
                 onClick={async () => {
                   setSavingImage(true);
                   try {
+                    let finalUrl = imageUrlInput.trim();
+                    // Auto-convert Unsplash page URLs to direct image URLs
+                    const unsplashMatch = finalUrl.match(/unsplash\.com\/photos\/(?:[^/]+-)?([a-zA-Z0-9_-]+)$/);
+                    if (unsplashMatch) {
+                      const photoId = unsplashMatch[1];
+                      finalUrl = `https://images.unsplash.com/photo-${photoId}?w=1200&q=80&auto=format&fit=crop`;
+                      setImageUrlInput(finalUrl);
+                    }
                     updateItem.mutate(
-                      { id: item.id, image_url: imageUrlInput || '' },
+                      { id: item.id, image_url: finalUrl || '' },
                       {
                         onSuccess: () => {
                           toast.success('Image URL saved');
