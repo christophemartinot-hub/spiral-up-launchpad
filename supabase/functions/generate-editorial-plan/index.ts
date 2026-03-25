@@ -526,7 +526,7 @@ Return a JSON object with these fields:
 - related_offer: relevant Spiral Up offer if any
 - cta: call to action
 - post_angle: the unique angle/hook
-- draft_content: full draft copy (200-400 words for posts, 800+ for blog)
+- draft_content: full draft copy. For social posts: 200-400 words. For BLOG posts: MUST be a COMPLETE, fully developed article of 800-1500 words with introduction, developed arguments, real examples, and conclusion. NOT an outline or teaser — the full article ready to publish.
 - carousel_idea: optional carousel or visual idea
 - key_message: the core message in one sentence
 - suggested_cta: specific CTA text
@@ -740,7 +740,8 @@ RULES:
 - Each item must have a unique angle — avoid generic or repetitive themes
 - CTAs should vary and align with the content
 - Draft content should be publication-ready quality
-- Blog posts should be longer (800+ words), social posts shorter (150-300 words)
+- Blog posts MUST have COMPLETE, fully developed draft_content of 800-1500 words — with introduction, developed paragraphs, real examples, practical frameworks, and conclusion. NOT outlines, teasers, or bullet-point summaries. The article must be ready to publish as-is on a website.
+- Social posts should be 150-300 words
 - Always explain WHY each suggestion aligns with Spiral Up brand
 - Content must be human, direct, pragmatic — never generic AI marketing
 - Spread publish dates across the cycle
