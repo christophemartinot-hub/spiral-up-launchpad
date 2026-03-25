@@ -183,33 +183,24 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
   };
 
   const resolveIllustration = (item: any): string | null => {
-    const fields = [
-      ...(item.recommended_assets || []),
-      item.visual_concept || '',
-      item.working_title || '',
-      item.content_pillar || '',
-      item.key_message || '',
-    ].join(' ').toLowerCase();
+    // ... keep existing code
+  };
 
-    if (fields.includes('spiraling down') || fields.includes('spiral down') || fields.includes('spiraling_down')) {
-      return resolveBrandIllustration('spiraling_down');
+  const handleDropToDay = async (e: DragEvent<HTMLDivElement>, targetDateKey: string) => {
+    e.preventDefault();
+    setDragOverDay(null);
+    const itemId = e.dataTransfer.getData('application/editorial-item-id');
+    if (!itemId) return;
+    const item = (allItems || []).find((i: any) => i.id === itemId);
+    if (!item || item.publish_date === targetDateKey) return;
+    const statusUpdate = item.status === 'published' ? { status: 'approved' } : {};
+    try {
+      await updateItem.mutateAsync({ id: itemId, publish_date: targetDateKey, ...statusUpdate });
+      const label = new Date(targetDateKey + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      toast.success(`Moved to ${label}`);
+    } catch {
+      toast.error('Failed to reschedule');
     }
-    if (fields.includes('spiraling up') || fields.includes('spiral up') || fields.includes('spiraling_up')) {
-      return resolveBrandIllustration('spiraling_up');
-    }
-    if (fields.includes('stagnat')) {
-      return resolveBrandIllustration('stagnating');
-    }
-
-    const principles = ['synergize', 'provide', 'inspect', 'respond', 'learn'];
-    for (const p of principles) {
-      if (fields.includes(p)) return resolveBrandIllustration(p);
-    }
-    if (fields.includes('act') && fields.includes('accept')) {
-      return resolveBrandIllustration('act_accept');
-    }
-
-    return null;
   };
 
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
