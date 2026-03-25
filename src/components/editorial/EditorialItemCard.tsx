@@ -39,6 +39,8 @@ export default function EditorialItemCard({ item }: { item: any }) {
   const [publishing, setPublishing] = useState(false);
   const [sendingToMake, setSendingToMake] = useState(false);
   const [publishingLinkedIn, setPublishingLinkedIn] = useState(false);
+  const [imageUrlInput, setImageUrlInput] = useState(item.image_url || '');
+  const [savingImage, setSavingImage] = useState(false);
   const updateItem = useUpdateEditorialItem();
   const regenerate = useRegenerateItem();
   const recordFeedback = useRecordFeedback();
@@ -406,6 +408,53 @@ export default function EditorialItemCard({ item }: { item: any }) {
           )}
 
           <VisualBriefPanel item={item} />
+
+          {/* Image URL attachment */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground mb-1">📷 Attached Image URL</p>
+            <div className="flex gap-2">
+              <Input
+                value={imageUrlInput}
+                onChange={e => setImageUrlInput(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className="text-xs"
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={savingImage || imageUrlInput === (item.image_url || '')}
+                onClick={async () => {
+                  setSavingImage(true);
+                  try {
+                    updateItem.mutate(
+                      { id: item.id, image_url: imageUrlInput || '' },
+                      {
+                        onSuccess: () => {
+                          toast.success('Image URL saved');
+                          setSavingImage(false);
+                        },
+                        onError: (err) => {
+                          toast.error(err instanceof Error ? err.message : 'Failed to save');
+                          setSavingImage(false);
+                        },
+                      }
+                    );
+                  } catch {
+                    setSavingImage(false);
+                  }
+                }}
+              >
+                {savingImage ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Save'}
+              </Button>
+            </div>
+            {item.image_url && (
+              <img
+                src={item.image_url}
+                alt="Attached visual"
+                className="rounded-lg max-h-32 object-cover border border-border"
+              />
+            )}
+          </div>
 
           {showRejectInput && (
             <div className="space-y-2 bg-red-50 dark:bg-red-950 p-3 rounded-lg">

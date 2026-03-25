@@ -149,9 +149,11 @@ Deno.serve(async (req) => {
     // PUBLISH FLOW
     // ═══════════════════════════════════════════
 
-    // 1. Generate image if visual concept exists
-    let imageUrl: string | null = null;
-    if (item.visual_concept) {
+    // 0. Use manually attached image_url if present
+    let imageUrl: string | null = isValidPublicImageUrl(item.image_url) ? item.image_url : null;
+
+    // 1. Generate image if visual concept exists and no manual image
+    if (!imageUrl && item.visual_concept) {
       try {
         console.log("Generating social image for:", item.visual_concept);
         const imgRes = await fetch(
@@ -189,9 +191,31 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 2. Validate image URL
-    const validImage = isValidPublicImageUrl(imageUrl);
-    const finalImageUrl = validImage ? imageUrl : null;
+    // 2. Fallback: look up a brand asset matching visual_type or content_pillar
+    if (!imageUrl && (item.visual_type || item.content_pillar)) {
+      try {
+        const searchTerms = [item.visual_type, item.content_pillar].filter(Boolean);
+        console.log("Looking up brand asset for:", searchTerms);
+        for (const term of searchTerms) {
+          if (imageUrl) break;
+          const { data: assets } = await supabase
+            .from("brand_assets")
+            .select("file_url, name")
+            .eq("asset_status", "approved")
+            .ilike("name", `%${term}%`)
+            .limit(1);
+          if (assets && assets.length > 0 && isValidPublicImageUrl(assets[0].file_url)) {
+            imageUrl = assets[0].file_url;
+            console.log("Brand asset found:", assets[0].name, imageUrl);
+          }
+        }
+      } catch (assetErr) {
+        console.warn("Brand asset lookup failed:", assetErr);
+      }
+    }
+
+    // 3. Validate final image URL
+    const finalImageUrl = isValidPublicImageUrl(imageUrl) ? imageUrl : null;
 
     // 3. Publish to each platform via direct API calls
     const results: Record<string, { success: boolean; response: unknown; error?: string }> = {};
