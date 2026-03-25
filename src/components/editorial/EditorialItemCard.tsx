@@ -547,7 +547,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
                         e.stopPropagation();
                         await navigator.clipboard.writeText(item.draft_content || '');
                         window.open('https://buffer.com', '_blank');
-                        toast.success('Copied for Facebook ✅ — paste into Buffer');
+                        toast.success('Copied ✅ — paste into Buffer for Facebook');
                       }}
                     >
                       📘 Copy for Facebook
@@ -561,7 +561,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
                         const text = (item.draft_content || '').slice(0, 2200) + '\n\n#SpiralUpWorks';
                         await navigator.clipboard.writeText(text);
                         window.open('https://buffer.com', '_blank');
-                        toast.success('Copied for Instagram ✅ — paste into Buffer');
+                        toast.success('Copied ✅ — paste into Buffer for Instagram');
                       }}
                     >
                       📸 Copy for Instagram
