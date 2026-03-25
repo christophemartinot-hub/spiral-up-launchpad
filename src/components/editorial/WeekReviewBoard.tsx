@@ -3,9 +3,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   Check, X, Loader2, CheckCheck, Eye, ChevronLeft, ChevronRight,
   Palette, Calendar, Target, Lightbulb, Instagram, Linkedin, Facebook, PenLine, Globe, Home,
+  Pencil, Save,
 } from 'lucide-react';
 import { format, parseISO, startOfWeek, endOfWeek, addWeeks, eachDayOfInterval, isSameDay } from 'date-fns';
 import { useAllEditorialItems, useUpdateEditorialItem } from '@/hooks/use-editorial';
@@ -427,132 +431,285 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
         <Dialog open={!!detailItem} onOpenChange={(open) => !open && setDetailItem(null)}>
           <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
             {detailItem && (
-              <>
-                <DialogHeader>
-                  <div className="flex items-center gap-2">
-                    <ChannelIcon channel={detailItem.channel} size={18} />
-                    <DialogTitle className="font-display">{detailItem.working_title}</DialogTitle>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap mt-1">
-                    <Badge variant="outline" className="text-[10px]">{detailItem.content_format}</Badge>
-                    <Badge variant="secondary" className="text-[10px]">{detailItem.content_pillar}</Badge>
-                    <span className="text-xs text-muted-foreground">
-                      <Calendar className="w-3 h-3 inline mr-1" />
-                      {format(parseISO(detailItem.publish_date), 'EEE, MMM d')}
-                    </span>
-                    <Badge variant="outline" className="text-[10px] capitalize">
-                      {detailItem.status === 'published' ? '✅ Published' : detailItem.status.replace(/_/g, ' ')}
-                    </Badge>
-                  </div>
-                </DialogHeader>
-
-                <div className="space-y-4 mt-4">
-                  {/* Suggestion rationale */}
-                  {detailItem.suggestion_rationale && (
-                    <div className="bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-                      <p className="text-xs font-medium text-amber-700 dark:text-amber-300 mb-1 flex items-center gap-1">
-                        <Lightbulb className="w-3 h-3" /> Why this is suggested
-                      </p>
-                      <p className="text-xs text-amber-600 dark:text-amber-400">{detailItem.suggestion_rationale}</p>
-                    </div>
-                  )}
-
-                  {/* Outcome */}
-                  {(detailItem.audience_challenge || detailItem.insight_delivered) && (
-                    <div className="bg-primary/5 border border-primary/15 rounded-lg p-3 space-y-2">
-                      <p className="text-xs font-display font-semibold text-primary">🎯 Outcome Definition</p>
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        <div><p className="text-[10px] text-muted-foreground">Challenge</p><p className="text-xs">{detailItem.audience_challenge || '—'}</p></div>
-                        <div><p className="text-[10px] text-muted-foreground">Insight</p><p className="text-xs">{detailItem.insight_delivered || '—'}</p></div>
-                        <div><p className="text-[10px] text-muted-foreground">Takeaway</p><p className="text-xs">{detailItem.practical_takeaway || '—'}</p></div>
-                        <div><p className="text-[10px] text-muted-foreground">Expected Action</p><p className="text-xs capitalize">{(detailItem.expected_audience_action || '—').replace(/_/g, ' ')}</p></div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Key message & objective */}
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div><p className="text-xs font-medium text-muted-foreground">Key Message</p><p className="text-sm">{detailItem.key_message || '—'}</p></div>
-                    <div><p className="text-xs font-medium text-muted-foreground">Objective</p><p className="text-sm">{detailItem.objective || '—'}</p></div>
-                  </div>
-
-                  {/* Post angle */}
-                  {detailItem.post_angle && (
-                    <div><p className="text-xs font-medium text-muted-foreground">Post Angle</p><p className="text-sm italic">{detailItem.post_angle}</p></div>
-                  )}
-
-                  {/* Draft */}
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Draft Content</p>
-                    <div className="bg-muted/50 rounded-lg p-3 text-sm whitespace-pre-wrap max-h-48 overflow-y-auto">
-                      {detailItem.draft_content || 'No draft yet.'}
-                    </div>
-                  </div>
-
-                  {/* CTA */}
-                  {(detailItem.suggested_cta || detailItem.cta) && (
-                    <div className="flex items-center gap-2">
-                      <Target className="w-3.5 h-3.5 text-muted-foreground" />
-                      <p className="text-sm">{detailItem.suggested_cta || detailItem.cta}</p>
-                    </div>
-                  )}
-
-                  {/* Visual Brief */}
-                  <VisualBriefPanel item={detailItem} />
-
-                  {/* Quick actions */}
-                  {(detailItem.status === 'suggested' || detailItem.status === 'under_review') && (
-                    <div className="flex gap-2 pt-2 border-t">
-                      <Button
-                        size="sm"
-                        className="gap-1.5 bg-green-600 hover:bg-green-700 text-white"
-                        onClick={() => {
-                          updateItem.mutate({ id: detailItem.id, status: 'approved' }, {
-                            onSuccess: () => {
-                              recordFeedback.mutate({
-                                editorial_item_id: detailItem.id,
-                                plan_id: detailItem.plan_id,
-                                action_type: 'approved_clean',
-                                original_title: detailItem.working_title || '',
-                                original_content: (detailItem.draft_content || '').slice(0, 2000),
-                                original_cta: detailItem.suggested_cta || detailItem.cta || '',
-                                original_visual_type: detailItem.visual_type || '',
-                                original_content_pillar: detailItem.content_pillar || '',
-                                original_topic: detailItem.key_message || detailItem.working_title || '',
-                                channel: detailItem.channel || '',
-                                content_format: detailItem.content_format || '',
-                              });
-                              toast.success('Approved ✓');
-                              setDetailItem(null);
-                            },
-                          });
-                        }}
-                      >
-                        <Check className="w-3.5 h-3.5" /> Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="gap-1.5"
-                        onClick={() => {
-                          updateItem.mutate({ id: detailItem.id, status: 'rejected' }, {
-                            onSuccess: () => {
-                              toast.success('Rejected');
-                              setDetailItem(null);
-                            },
-                          });
-                        }}
-                      >
-                        <X className="w-3.5 h-3.5" /> Reject
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </>
+              <WeekReviewDetailDialog
+                item={detailItem}
+                allItems={allItems}
+                onClose={() => setDetailItem(null)}
+                updateItem={updateItem}
+                recordFeedback={recordFeedback}
+              />
             )}
           </DialogContent>
         </Dialog>
       </div>
     </TooltipProvider>
+  );
+}
+
+// ─── Detail / Edit Dialog ───
+function WeekReviewDetailDialog({
+  item: initialItem, allItems, onClose, updateItem, recordFeedback,
+}: {
+  item: any; allItems: any[] | undefined; onClose: () => void;
+  updateItem: ReturnType<typeof useUpdateEditorialItem>;
+  recordFeedback: ReturnType<typeof useRecordFeedback>;
+}) {
+  const item = useMemo(
+    () => (allItems || []).find((i: any) => i.id === initialItem.id) || initialItem,
+    [allItems, initialItem]
+  );
+
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<any>({});
+
+  const startEdit = () => {
+    setForm({
+      working_title: item.working_title || '',
+      key_message: item.key_message || '',
+      objective: item.objective || '',
+      post_angle: item.post_angle || '',
+      draft_content: item.draft_content || '',
+      cta: item.cta || item.suggested_cta || '',
+      publish_date: item.publish_date || '',
+      publish_time: item.publish_time || '',
+      visual_type: item.visual_type || '',
+      visual_concept: item.visual_concept || '',
+      visual_headline: item.visual_headline || '',
+      visual_subheadline: item.visual_subheadline || '',
+      image_url: item.image_url || '',
+    });
+    setEditing(true);
+  };
+
+  const saveEdit = async () => {
+    try {
+      await updateItem.mutateAsync({ id: item.id, ...form });
+      toast.success('Item updated');
+      setEditing(false);
+    } catch {
+      toast.error('Failed to save');
+    }
+  };
+
+  return (
+    <>
+      <DialogHeader>
+        <div className="flex items-center gap-2">
+          <ChannelIcon channel={item.channel} size={18} />
+          <DialogTitle className="font-display">{item.working_title}</DialogTitle>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap mt-1">
+          <Badge variant="outline" className="text-[10px]">{item.content_format}</Badge>
+          <Badge variant="secondary" className="text-[10px]">{item.content_pillar}</Badge>
+          <span className="text-xs text-muted-foreground">
+            <Calendar className="w-3 h-3 inline mr-1" />
+            {format(parseISO(item.publish_date), 'EEE, MMM d')}
+          </span>
+          <Badge variant="outline" className="text-[10px] capitalize">
+            {item.status === 'published' ? '✅ Published' : item.status.replace(/_/g, ' ')}
+          </Badge>
+        </div>
+      </DialogHeader>
+
+      <div className="space-y-4 mt-4">
+        {/* Action bar */}
+        <div className="flex gap-2 flex-wrap">
+          {(item.status === 'suggested' || item.status === 'under_review') && (
+            <>
+              <Button
+                size="sm"
+                className="gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => {
+                  updateItem.mutate({ id: item.id, status: 'approved' }, {
+                    onSuccess: () => {
+                      recordFeedback.mutate({
+                        editorial_item_id: item.id,
+                        plan_id: item.plan_id,
+                        action_type: 'approved_clean',
+                        original_title: item.working_title || '',
+                        original_content: (item.draft_content || '').slice(0, 2000),
+                        original_cta: item.suggested_cta || item.cta || '',
+                        original_visual_type: item.visual_type || '',
+                        original_content_pillar: item.content_pillar || '',
+                        original_topic: item.key_message || item.working_title || '',
+                        channel: item.channel || '',
+                        content_format: item.content_format || '',
+                      });
+                      toast.success('Approved ✓');
+                      onClose();
+                    },
+                  });
+                }}
+              >
+                <Check className="w-3.5 h-3.5" /> Approve & Publish
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="gap-1.5"
+                onClick={() => {
+                  updateItem.mutate({ id: item.id, status: 'rejected' }, {
+                    onSuccess: () => { toast.success('Rejected'); onClose(); },
+                  });
+                }}
+              >
+                <X className="w-3.5 h-3.5" /> Reject
+              </Button>
+            </>
+          )}
+          {!editing && (
+            <Button size="sm" variant="outline" className="gap-1.5" onClick={startEdit}>
+              <Pencil className="w-3.5 h-3.5" /> Edit
+            </Button>
+          )}
+        </div>
+
+        {/* Suggestion rationale */}
+        {!editing && item.suggestion_rationale && (
+          <div className="bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+            <p className="text-xs font-medium text-amber-700 dark:text-amber-300 mb-1 flex items-center gap-1">
+              <Lightbulb className="w-3 h-3" /> Why this is suggested
+            </p>
+            <p className="text-xs text-amber-600 dark:text-amber-400">{item.suggestion_rationale}</p>
+          </div>
+        )}
+
+        {editing ? (
+          /* ─── Edit Form ─── */
+          <div className="border rounded-lg p-4 space-y-4 bg-muted/20">
+            <p className="text-sm font-display font-semibold flex items-center gap-2">
+              <Pencil className="w-4 h-4 text-primary" /> Edit Content & Visuals
+            </p>
+
+            {/* Content fields */}
+            <div className="space-y-3">
+              <div>
+                <Label className="text-xs">Title</Label>
+                <Input value={form.working_title} onChange={e => setForm({ ...form, working_title: e.target.value })} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Key Message</Label>
+                  <Textarea value={form.key_message} onChange={e => setForm({ ...form, key_message: e.target.value })} rows={2} />
+                </div>
+                <div>
+                  <Label className="text-xs">Objective</Label>
+                  <Textarea value={form.objective} onChange={e => setForm({ ...form, objective: e.target.value })} rows={2} />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Post Angle</Label>
+                <Input value={form.post_angle} onChange={e => setForm({ ...form, post_angle: e.target.value })} />
+              </div>
+              <div>
+                <Label className="text-xs">Draft Content</Label>
+                <Textarea value={form.draft_content} onChange={e => setForm({ ...form, draft_content: e.target.value })} rows={6} />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label className="text-xs">CTA</Label>
+                  <Input value={form.cta} onChange={e => setForm({ ...form, cta: e.target.value })} />
+                </div>
+                <div>
+                  <Label className="text-xs">Publish Date</Label>
+                  <Input type="date" value={form.publish_date} onChange={e => setForm({ ...form, publish_date: e.target.value })} />
+                </div>
+                <div>
+                  <Label className="text-xs">Publish Time</Label>
+                  <Input type="time" value={form.publish_time} onChange={e => setForm({ ...form, publish_time: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            {/* Visual fields */}
+            <div className="border-t pt-4 space-y-3">
+              <p className="text-xs font-display font-semibold flex items-center gap-2">
+                <Palette className="w-3.5 h-3.5 text-primary" /> Visual Direction
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Visual Type</Label>
+                  <Input value={form.visual_type} onChange={e => setForm({ ...form, visual_type: e.target.value })} />
+                </div>
+                <div>
+                  <Label className="text-xs">Visual Headline</Label>
+                  <Input value={form.visual_headline} onChange={e => setForm({ ...form, visual_headline: e.target.value })} />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Visual Subheadline</Label>
+                <Input value={form.visual_subheadline} onChange={e => setForm({ ...form, visual_subheadline: e.target.value })} />
+              </div>
+              <div>
+                <Label className="text-xs">Visual Concept</Label>
+                <Textarea value={form.visual_concept} onChange={e => setForm({ ...form, visual_concept: e.target.value })} rows={2} />
+              </div>
+              <div>
+                <Label className="text-xs">Image URL</Label>
+                <Input value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} placeholder="Paste image or Unsplash URL..." />
+              </div>
+              {form.image_url && (
+                <div className="rounded-lg overflow-hidden border h-32">
+                  <img src={form.image_url} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button size="sm" onClick={saveEdit} disabled={updateItem.isPending} className="gap-1.5">
+                <Save className="w-3.5 h-3.5" /> Save Changes
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+            </div>
+          </div>
+        ) : (
+          /* ─── Read-only View ─── */
+          <>
+            {/* Outcome */}
+            {(item.audience_challenge || item.insight_delivered) && (
+              <div className="bg-primary/5 border border-primary/15 rounded-lg p-3 space-y-2">
+                <p className="text-xs font-display font-semibold text-primary">🎯 Outcome Definition</p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <div><p className="text-[10px] text-muted-foreground">Challenge</p><p className="text-xs">{item.audience_challenge || '—'}</p></div>
+                  <div><p className="text-[10px] text-muted-foreground">Insight</p><p className="text-xs">{item.insight_delivered || '—'}</p></div>
+                  <div><p className="text-[10px] text-muted-foreground">Takeaway</p><p className="text-xs">{item.practical_takeaway || '—'}</p></div>
+                  <div><p className="text-[10px] text-muted-foreground">Expected Action</p><p className="text-xs capitalize">{(item.expected_audience_action || '—').replace(/_/g, ' ')}</p></div>
+                </div>
+              </div>
+            )}
+
+            {/* Key message & objective */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div><p className="text-xs font-medium text-muted-foreground">Key Message</p><p className="text-sm">{item.key_message || '—'}</p></div>
+              <div><p className="text-xs font-medium text-muted-foreground">Objective</p><p className="text-sm">{item.objective || '—'}</p></div>
+            </div>
+
+            {/* Post angle */}
+            {item.post_angle && (
+              <div><p className="text-xs font-medium text-muted-foreground">Post Angle</p><p className="text-sm italic">{item.post_angle}</p></div>
+            )}
+
+            {/* Draft */}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-1">Draft Content</p>
+              <div className="bg-muted/50 rounded-lg p-3 text-sm whitespace-pre-wrap max-h-48 overflow-y-auto">
+                {item.draft_content || 'No draft yet.'}
+              </div>
+            </div>
+
+            {/* CTA */}
+            {(item.suggested_cta || item.cta) && (
+              <div className="flex items-center gap-2">
+                <Target className="w-3.5 h-3.5 text-muted-foreground" />
+                <p className="text-sm">{item.suggested_cta || item.cta}</p>
+              </div>
+            )}
+
+            {/* Visual Brief */}
+            <VisualBriefPanel item={item} />
+          </>
+        )}
+      </div>
+    </>
   );
 }
