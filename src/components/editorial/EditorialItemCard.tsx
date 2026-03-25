@@ -38,6 +38,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
   const [showRejectInput, setShowRejectInput] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [sendingToMake, setSendingToMake] = useState(false);
+  const [publishingLinkedIn, setPublishingLinkedIn] = useState(false);
   const updateItem = useUpdateEditorialItem();
   const regenerate = useRegenerateItem();
   const recordFeedback = useRecordFeedback();
