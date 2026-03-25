@@ -274,6 +274,7 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
             <Badge variant="outline" className="text-xs">
               {weekItems.length} item{weekItems.length !== 1 ? 's' : ''} this week
             </Badge>
+            <span className="text-[10px] text-muted-foreground hidden sm:inline">Drag to reschedule</span>
             {suggestedItems.length > 0 && (
               <>
                 <Button variant="outline" size="sm" onClick={selectAllSuggested} className="gap-1.5 text-xs">
