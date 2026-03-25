@@ -326,7 +326,16 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                     return (
                       <Card
                         key={item.id}
-                        className={`group/card cursor-pointer transition-all hover:shadow-md overflow-hidden ${
+                        draggable
+                        onDragStart={(e: DragEvent<HTMLDivElement>) => {
+                          e.dataTransfer.setData('application/editorial-item-id', item.id);
+                          e.dataTransfer.effectAllowed = 'move';
+                          (e.currentTarget as HTMLElement).classList.add('opacity-40', 'scale-95');
+                        }}
+                        onDragEnd={(e: DragEvent<HTMLDivElement>) => {
+                          (e.currentTarget as HTMLElement).classList.remove('opacity-40', 'scale-95');
+                        }}
+                        className={`group/card cursor-grab active:cursor-grabbing transition-all hover:shadow-md overflow-hidden ${
                           isSelected ? 'ring-2 ring-green-500 shadow-md' :
                           isPublished ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/20' :
                           isApproved ? 'border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20' : ''
