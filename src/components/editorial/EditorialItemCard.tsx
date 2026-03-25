@@ -146,7 +146,6 @@ export default function EditorialItemCard({ item }: { item: any }) {
     }
   };
 
-  const [sendingToMake, setSendingToMake] = useState(false);
 
   const handleSendToMake = async () => {
     setSendingToMake(true);
