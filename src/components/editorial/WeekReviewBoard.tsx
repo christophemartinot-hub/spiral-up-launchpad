@@ -3,9 +3,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   Check, X, Loader2, CheckCheck, Eye, ChevronLeft, ChevronRight,
   Palette, Calendar, Target, Lightbulb, Instagram, Linkedin, Facebook, PenLine, Globe, Home,
+  Pencil, Save,
 } from 'lucide-react';
 import { format, parseISO, startOfWeek, endOfWeek, addWeeks, eachDayOfInterval, isSameDay } from 'date-fns';
 import { useAllEditorialItems, useUpdateEditorialItem } from '@/hooks/use-editorial';
