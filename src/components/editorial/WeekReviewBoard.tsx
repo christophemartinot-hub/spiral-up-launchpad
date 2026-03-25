@@ -183,7 +183,33 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
   };
 
   const resolveIllustration = (item: any): string | null => {
-    // ... keep existing code
+    const fields = [
+      ...(item.recommended_assets || []),
+      item.visual_concept || '',
+      item.working_title || '',
+      item.content_pillar || '',
+      item.key_message || '',
+    ].join(' ').toLowerCase();
+
+    if (fields.includes('spiraling down') || fields.includes('spiral down') || fields.includes('spiraling_down')) {
+      return resolveBrandIllustration('spiraling_down');
+    }
+    if (fields.includes('spiraling up') || fields.includes('spiral up') || fields.includes('spiraling_up')) {
+      return resolveBrandIllustration('spiraling_up');
+    }
+    if (fields.includes('stagnat')) {
+      return resolveBrandIllustration('stagnating');
+    }
+
+    const principles = ['synergize', 'provide', 'inspect', 'respond', 'learn'];
+    for (const p of principles) {
+      if (fields.includes(p)) return resolveBrandIllustration(p);
+    }
+    if (fields.includes('act') && fields.includes('accept')) {
+      return resolveBrandIllustration('act_accept');
+    }
+
+    return null;
   };
 
   const handleDropToDay = async (e: DragEvent<HTMLDivElement>, targetDateKey: string) => {
