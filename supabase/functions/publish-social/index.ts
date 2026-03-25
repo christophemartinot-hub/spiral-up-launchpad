@@ -400,8 +400,8 @@ Deno.serve(async (req) => {
     for (const [platform, result] of Object.entries(results)) {
       await supabase.from("audit_log").insert({
         action: result.success
-          ? (platform === "blog" ? "blog_published" : "linkedin_published")
-          : `${platform}_publish_failed`,
+          ? `${platform}_published`
+          : (result.skipped ? `${platform}_skipped_no_image` : `${platform}_publish_failed`),
         entity_type: "editorial_item",
         entity_id: editorialItemId,
         details: {
