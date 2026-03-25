@@ -202,7 +202,10 @@ export default function EditorialItemCard({ item }: { item: any }) {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast.success('Unpublished — status reset to approved, Make notified');
+      toast.success('Unpublished — status reset to approved');
+      queryClient.invalidateQueries({ queryKey: ['editorial-items'] });
+      queryClient.invalidateQueries({ queryKey: ['editorial-items-all'] });
+      queryClient.invalidateQueries({ queryKey: ['editorial-items-pending'] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to unpublish');
     } finally {
