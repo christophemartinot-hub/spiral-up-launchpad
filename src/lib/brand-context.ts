@@ -19,6 +19,7 @@ export async function buildBrandContext(): Promise<string> {
     { data: bookInfo },
     { data: events },
     { data: bookChapters },
+    { data: contentLibrary },
   ] = await Promise.all([
     supabase.from('brand_core').select('*').limit(1).single(),
     supabase.from('founder_profile').select('*').limit(1).single(),
@@ -31,6 +32,7 @@ export async function buildBrandContext(): Promise<string> {
     supabase.from('book_info').select('*').limit(1).single(),
     supabase.from('events_workshops').select('*').order('sort_order'),
     supabase.from('book_chapters').select('*').order('sort_order'),
+    supabase.from('brand_content_library').select('title, excerpt, writing_style_notes').order('published_at', { ascending: false }).limit(3),
   ]);
 
   const sections: string[] = [];
