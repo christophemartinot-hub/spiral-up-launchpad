@@ -551,9 +551,10 @@ Return ONLY valid JSON, no markdown.`;
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'google/gemini-3-flash-preview',
+          max_tokens: 8192,
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: 'Generate a fresh content suggestion with visual direction.' },
+            { role: 'user', content: 'Generate a fresh content suggestion with visual direction. For blog posts, draft_content MUST be a complete, publication-ready article of 800-1500 words — not an outline or teaser.' },
           ],
         }),
       });
@@ -608,6 +609,7 @@ Return ONLY valid JSON, no markdown.`;
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'google/gemini-3-flash-preview',
+          max_tokens: 4096,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: 'Generate a visual direction for this content.' },
@@ -671,6 +673,7 @@ Return ONLY valid JSON, no markdown.`;
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'google/gemini-3-flash-preview',
+          max_tokens: 4096,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: 'Generate an email version of this blog post.' },
@@ -789,9 +792,10 @@ Return ONLY a valid JSON array, no markdown wrapping.`;
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'google/gemini-3-flash-preview',
+        max_tokens: 32000,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Generate an editorial plan with visual directions for the cycle ${cycleStart} to ${cycleEnd}.` },
+          { role: 'user', content: `Generate an editorial plan with visual directions for the cycle ${cycleStart} to ${cycleEnd}. CRITICAL: For blog posts, draft_content MUST be a complete, fully developed, publication-ready article of 800-1500 words with full paragraphs, arguments, examples, and conclusions — NOT an outline, teaser, or list of bullet points. The article must be ready to publish as-is.` },
         ],
       }),
     });
