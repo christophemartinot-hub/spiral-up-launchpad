@@ -456,6 +456,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
             )}
           </div>
 
+          {showRejectInput && (
             <div className="space-y-2 bg-red-50 dark:bg-red-950 p-3 rounded-lg">
               <p className="text-xs font-medium text-red-700 dark:text-red-300">Reason for rejection (helps AI improve)</p>
               <Textarea rows={2} value={rejectionReason} onChange={e => setRejectionReason(e.target.value)} placeholder="e.g. Too generic, already covered this topic..." />
