@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, DragEvent } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +57,7 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [detailItem, setDetailItem] = useState<any>(null);
   const [approving, setApproving] = useState(false);
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
 
   // Always default to current week + offset
   const weekStart = useMemo(() => {
@@ -211,6 +212,23 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
     return null;
   };
 
+  const handleDropToDay = async (e: DragEvent<HTMLDivElement>, targetDateKey: string) => {
+    e.preventDefault();
+    setDragOverDay(null);
+    const itemId = e.dataTransfer.getData('application/editorial-item-id');
+    if (!itemId) return;
+    const item = (allItems || []).find((i: any) => i.id === itemId);
+    if (!item || item.publish_date === targetDateKey) return;
+    const statusUpdate = item.status === 'published' ? { status: 'approved' } : {};
+    try {
+      await updateItem.mutateAsync({ id: itemId, publish_date: targetDateKey, ...statusUpdate });
+      const label = new Date(targetDateKey + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      toast.success(`Moved to ${label}`);
+    } catch {
+      toast.error('Failed to reschedule');
+    }
+  };
+
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
 
   return (
@@ -256,6 +274,7 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
             <Badge variant="outline" className="text-xs">
               {weekItems.length} item{weekItems.length !== 1 ? 's' : ''} this week
             </Badge>
+            <span className="text-[10px] text-muted-foreground hidden sm:inline">Drag to reschedule</span>
             {suggestedItems.length > 0 && (
               <>
                 <Button variant="outline" size="sm" onClick={selectAllSuggested} className="gap-1.5 text-xs">
@@ -289,8 +308,13 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                   <p className={`text-sm font-bold ${isToday ? 'text-primary' : ''}`}>{format(day, 'd')}</p>
                 </div>
 
-                {/* Day items */}
-                <div className="space-y-3">
+                {/* Droppable day column */}
+                <div
+                  className={`space-y-3 min-h-[120px] rounded-lg p-1 transition-colors ${dragOverDay === key ? 'bg-primary/10 ring-2 ring-inset ring-primary/30' : ''}`}
+                  onDrop={(e) => handleDropToDay(e, key)}
+                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverDay(key); }}
+                  onDragLeave={() => setDragOverDay(null)}
+                >
                   {dayItems.map((item: any) => {
                     const illustration = resolveIllustration(item);
                     const icon = resolveBrandIcon(item.content_pillar || item.working_title || '');
@@ -303,7 +327,16 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                     return (
                       <Card
                         key={item.id}
-                        className={`group/card cursor-pointer transition-all hover:shadow-md overflow-hidden ${
+                        draggable
+                        onDragStart={(e: DragEvent<HTMLDivElement>) => {
+                          e.dataTransfer.setData('application/editorial-item-id', item.id);
+                          e.dataTransfer.effectAllowed = 'move';
+                          (e.currentTarget as HTMLElement).classList.add('opacity-40', 'scale-95');
+                        }}
+                        onDragEnd={(e: DragEvent<HTMLDivElement>) => {
+                          (e.currentTarget as HTMLElement).classList.remove('opacity-40', 'scale-95');
+                        }}
+                        className={`group/card cursor-grab active:cursor-grabbing transition-all hover:shadow-md overflow-hidden ${
                           isSelected ? 'ring-2 ring-green-500 shadow-md' :
                           isPublished ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/20' :
                           isApproved ? 'border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20' : ''
