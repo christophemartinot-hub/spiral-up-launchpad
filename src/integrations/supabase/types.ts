@@ -271,6 +271,57 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_content_library: {
+        Row: {
+          author: string | null
+          category: string | null
+          content: string | null
+          excerpt: string | null
+          id: string
+          image_url: string | null
+          imported_at: string | null
+          published_at: string | null
+          read_time: string | null
+          slug: string | null
+          source: string | null
+          tags: string[] | null
+          title: string
+          writing_style_notes: string | null
+        }
+        Insert: {
+          author?: string | null
+          category?: string | null
+          content?: string | null
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          imported_at?: string | null
+          published_at?: string | null
+          read_time?: string | null
+          slug?: string | null
+          source?: string | null
+          tags?: string[] | null
+          title: string
+          writing_style_notes?: string | null
+        }
+        Update: {
+          author?: string | null
+          category?: string | null
+          content?: string | null
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          imported_at?: string | null
+          published_at?: string | null
+          read_time?: string | null
+          slug?: string | null
+          source?: string | null
+          tags?: string[] | null
+          title?: string
+          writing_style_notes?: string | null
+        }
+        Relationships: []
+      }
       brand_content_pillars: {
         Row: {
           created_at: string

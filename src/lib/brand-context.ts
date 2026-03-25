@@ -19,6 +19,7 @@ export async function buildBrandContext(): Promise<string> {
     { data: bookInfo },
     { data: events },
     { data: bookChapters },
+    { data: contentLibrary },
   ] = await Promise.all([
     supabase.from('brand_core').select('*').limit(1).single(),
     supabase.from('founder_profile').select('*').limit(1).single(),
@@ -31,6 +32,7 @@ export async function buildBrandContext(): Promise<string> {
     supabase.from('book_info').select('*').limit(1).single(),
     supabase.from('events_workshops').select('*').order('sort_order'),
     supabase.from('book_chapters').select('*').order('sort_order'),
+    supabase.from('brand_content_library').select('title, excerpt, writing_style_notes').order('published_at', { ascending: false }).limit(3),
   ]);
 
   const sections: string[] = [];
@@ -167,6 +169,25 @@ ${(brandCore.key_beliefs as string[] || []).length > 0 ? `Key Beliefs:\n${(brand
       return `- [${(e.content_type || '').replace(/_/g, ' ')}] "${e.title}"\n  ${(e.content || '').slice(0, 300)}...`;
     });
     sections.push(`## EXAMPLE CONTENT (match this style)\n${lines.join('\n')}`);
+  }
+
+  // ── Brand Content Library (writing voice reference) ──
+  if (contentLibrary && contentLibrary.length > 0) {
+    const refLines = contentLibrary.map((r: any) => {
+      let line = `- "${r.title}": ${r.excerpt || ''}`;
+      if (r.writing_style_notes) line += `\n  Style notes: ${r.writing_style_notes}`;
+      return line;
+    });
+    sections.push(`## WRITING VOICE REFERENCE
+You are writing in the voice of Christophe Martinot. Study these reference posts and match:
+- Opening style: always a scene, story, or short punchy observation
+- Sentence rhythm: short sentences. One idea per line. Then a longer reflection.
+- Structure: personal observation → real example (use fictional company names) → broader insight → practical takeaway
+- Tone: direct, human, experienced — never academic or corporate
+- Never use jargon. Never use bullet points in blog posts. Always use H2/H3 headers with evocative titles.
+
+Reference posts:
+${refLines.join('\n')}`);
   }
 
   const systemPrompt = `You are the AI content engine for Spiral Up. Every piece of content you generate must align with the brand intelligence below.
