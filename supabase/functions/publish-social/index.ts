@@ -371,6 +371,8 @@ Deno.serve(async (req) => {
           platform,
           item.draft_content || "",
           finalImageUrl,
+          item.publish_date || null,
+          item.publish_time || null,
         );
         results[platform] = result;
         if (result.skipped) {
