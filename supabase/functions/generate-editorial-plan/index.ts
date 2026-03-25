@@ -526,7 +526,7 @@ Return a JSON object with these fields:
 - related_offer: relevant Spiral Up offer if any
 - cta: call to action
 - post_angle: the unique angle/hook
-- draft_content: full draft copy (200-400 words for posts, 800+ for blog)
+- draft_content: full draft copy. For social posts: 200-400 words. For BLOG posts: MUST be a COMPLETE, fully developed article of 800-1500 words with introduction, developed arguments, real examples, and conclusion. NOT an outline or teaser — the full article ready to publish.
 - carousel_idea: optional carousel or visual idea
 - key_message: the core message in one sentence
 - suggested_cta: specific CTA text
@@ -551,9 +551,10 @@ Return ONLY valid JSON, no markdown.`;
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'google/gemini-3-flash-preview',
+          max_tokens: 8192,
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: 'Generate a fresh content suggestion with visual direction.' },
+            { role: 'user', content: 'Generate a fresh content suggestion with visual direction. For blog posts, draft_content MUST be a complete, publication-ready article of 800-1500 words — not an outline or teaser.' },
           ],
         }),
       });
@@ -608,6 +609,7 @@ Return ONLY valid JSON, no markdown.`;
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'google/gemini-3-flash-preview',
+          max_tokens: 4096,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: 'Generate a visual direction for this content.' },
@@ -671,6 +673,7 @@ Return ONLY valid JSON, no markdown.`;
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'google/gemini-3-flash-preview',
+          max_tokens: 4096,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: 'Generate an email version of this blog post.' },
@@ -737,7 +740,8 @@ RULES:
 - Each item must have a unique angle — avoid generic or repetitive themes
 - CTAs should vary and align with the content
 - Draft content should be publication-ready quality
-- Blog posts should be longer (800+ words), social posts shorter (150-300 words)
+- Blog posts MUST have COMPLETE, fully developed draft_content of 800-1500 words — with introduction, developed paragraphs, real examples, practical frameworks, and conclusion. NOT outlines, teasers, or bullet-point summaries. The article must be ready to publish as-is on a website.
+- Social posts should be 150-300 words
 - Always explain WHY each suggestion aligns with Spiral Up brand
 - Content must be human, direct, pragmatic — never generic AI marketing
 - Spread publish dates across the cycle
@@ -789,9 +793,10 @@ Return ONLY a valid JSON array, no markdown wrapping.`;
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'google/gemini-3-flash-preview',
+        max_tokens: 32000,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Generate an editorial plan with visual directions for the cycle ${cycleStart} to ${cycleEnd}.` },
+          { role: 'user', content: `Generate an editorial plan with visual directions for the cycle ${cycleStart} to ${cycleEnd}. CRITICAL: For blog posts, draft_content MUST be a complete, fully developed, publication-ready article of 800-1500 words with full paragraphs, arguments, examples, and conclusions — NOT an outline, teaser, or list of bullet points. The article must be ready to publish as-is.` },
         ],
       }),
     });
