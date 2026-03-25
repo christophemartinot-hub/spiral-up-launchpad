@@ -112,6 +112,7 @@ Deno.serve(async (req) => {
       excerpt: blogPayload.excerpt,
       author: blogPayload.author,
       tags: blogPayload.tags || [],
+      image_url: item.image_url || blogPayload.hero_image_url || "",
       status: "published",
       published_at: publishedAt,
     };
