@@ -307,8 +307,13 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                   <p className={`text-sm font-bold ${isToday ? 'text-primary' : ''}`}>{format(day, 'd')}</p>
                 </div>
 
-                {/* Day items */}
-                <div className="space-y-3">
+                {/* Droppable day column */}
+                <div
+                  className={`space-y-3 min-h-[120px] rounded-lg p-1 transition-colors ${dragOverDay === key ? 'bg-primary/10 ring-2 ring-inset ring-primary/30' : ''}`}
+                  onDrop={(e) => handleDropToDay(e, key)}
+                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverDay(key); }}
+                  onDragLeave={() => setDragOverDay(null)}
+                >
                   {dayItems.map((item: any) => {
                     const illustration = resolveIllustration(item);
                     const icon = resolveBrandIcon(item.content_pillar || item.working_title || '');
