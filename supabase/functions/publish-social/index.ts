@@ -346,6 +346,23 @@ Deno.serve(async (req) => {
         const result = await publishToBlog(item, supabase);
         results[platform] = result;
         if (!result.success) allSuccess = false;
+      } else if (platform === "facebook" || platform === "instagram") {
+        const result = await publishToBuffer(
+          platform,
+          item.draft_content || "",
+          finalImageUrl,
+        );
+        results[platform] = result;
+        if (result.skipped) {
+          // Instagram skipped due to no image — audit separately
+          await supabase.from("audit_log").insert({
+            action: `${platform}_skipped_no_image`,
+            entity_type: "editorial_item",
+            entity_id: editorialItemId,
+            details: { reason: result.error },
+          });
+        }
+        if (!result.success) allSuccess = false;
       } else {
         // Unsupported platform — log and skip
         results[platform] = {
