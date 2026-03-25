@@ -539,6 +539,33 @@ export default function EditorialItemCard({ item }: { item: any }) {
                       {publishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                       Publish to Social
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        await navigator.clipboard.writeText(item.draft_content || '');
+                        window.open('https://buffer.com', '_blank');
+                        toast.success('Copied for Facebook ✅ — paste into Buffer');
+                      }}
+                    >
+                      📘 Copy for Facebook
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        const text = (item.draft_content || '').slice(0, 2200) + '\n\n#SpiralUpWorks';
+                        await navigator.clipboard.writeText(text);
+                        window.open('https://buffer.com', '_blank');
+                        toast.success('Copied for Instagram ✅ — paste into Buffer');
+                      }}
+                    >
+                      📸 Copy for Instagram
+                    </Button>
                     {item.status === 'scheduled' && item.channel === 'linkedin' && (
                       <Button size="sm" variant="outline" onClick={handlePublishLinkedIn} disabled={publishingLinkedIn} className="gap-1.5 text-blue-600">
                         {publishingLinkedIn ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
