@@ -138,8 +138,16 @@ export default function EditorialItemCard({ item }: { item: any }) {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      const successCount = (data.results || []).filter((r: any) => r.success).length;
-      toast.success(`Published to ${successCount} channel${successCount !== 1 ? 's' : ''} via webhook ⚡`);
+      if (data?.success) {
+        toast.success('Published successfully ✅');
+      } else {
+        const results = data?.results || {};
+        const errors = Object.entries(results)
+          .filter(([, r]: [string, any]) => !r.success)
+          .map(([p, r]: [string, any]) => `${p}: ${r.error}`)
+          .join('; ');
+        throw new Error(errors || 'Publishing failed');
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to publish');
     } finally {
