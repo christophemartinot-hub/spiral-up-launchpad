@@ -87,7 +87,7 @@ serve(async (req) => {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${linkedinToken}`,
-        "LinkedIn-Version": "202401",
+        "LinkedIn-Version": "202603",
         "X-Restli-Protocol-Version": "2.0.0",
         "Content-Type": "application/json",
       },
