@@ -182,6 +182,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
     } finally {
       setPublishingLinkedIn(false);
     }
+  };
 
   const handleUnpublish = async () => {
     setPublishing(true);
