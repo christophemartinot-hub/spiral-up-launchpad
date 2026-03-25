@@ -57,6 +57,7 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [detailItem, setDetailItem] = useState<any>(null);
   const [approving, setApproving] = useState(false);
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
 
   // Always default to current week + offset
   const weekStart = useMemo(() => {
