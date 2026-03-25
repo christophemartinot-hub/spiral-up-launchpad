@@ -468,11 +468,11 @@ export default function EditorialItemCard({ item }: { item: any }) {
                 {savingImage ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Save'}
               </Button>
             </div>
-            {item.image_url && (
+            {item.image_url && !expanded && (
               <img
                 src={item.image_url}
                 alt="Attached visual"
-                className="rounded-lg max-h-32 object-cover border border-border"
+                className="rounded-lg max-h-20 object-cover border border-border"
               />
             )}
           </div>
