@@ -447,6 +447,12 @@ export default function EditorialItemCard({ item }: { item: any }) {
                       {publishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                       Publish to Social
                     </Button>
+                    {item.status === 'scheduled' && item.channel === 'linkedin' && (
+                      <Button size="sm" variant="outline" onClick={handlePublishLinkedIn} disabled={publishingLinkedIn} className="gap-1.5 text-blue-600">
+                        {publishingLinkedIn ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                        Publish to LinkedIn
+                      </Button>
+                    )}
                   </>
                 )}
                 {item.status === 'published' && (
