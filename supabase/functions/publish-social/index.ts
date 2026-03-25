@@ -79,6 +79,65 @@ async function publishToLinkedIn(
   return { success: true, response: responseBody };
 }
 
+/** Publish to spiralingup.works blog via webhook */
+async function publishToBlog(
+  item: Record<string, unknown>,
+  supabase: ReturnType<typeof createClient>
+): Promise<{ success: boolean; response: unknown; error?: string }> {
+  const webhookSecret = Deno.env.get("WEBSITE_WEBHOOK_SECRET");
+  if (!webhookSecret) {
+    return { success: false, response: null, error: "WEBSITE_WEBHOOK_SECRET not configured" };
+  }
+
+  const title = (item.working_title as string) || "";
+  const content = (item.draft_content as string) || "";
+  const slug =
+    title.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-") +
+    "-" +
+    Date.now();
+  const excerpt = content.substring(0, 200);
+  const wordCount = content.split(/\s+/).filter(Boolean).length;
+  const readMinutes = Math.max(1, Math.ceil(wordCount / 200));
+  const readTime = `${readMinutes} min read`;
+
+  const payload = {
+    title,
+    slug,
+    content,
+    excerpt,
+    image_url: item.image_url || null,
+    tags: item.content_pillar ? [item.content_pillar] : ["Leadership"],
+    category: (item.content_pillar as string) || "Leadership",
+    read_time: readTime,
+  };
+
+  try {
+    const res = await fetch(
+      "https://eevyrvxnazncasfaybwx.supabase.co/functions/v1/receive-blog-post",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-webhook-secret": webhookSecret,
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const responseText = await res.text();
+    let responseBody: unknown;
+    try { responseBody = JSON.parse(responseText); } catch { responseBody = responseText; }
+
+    if (!res.ok) {
+      return { success: false, response: responseBody, error: `Blog webhook ${res.status}: ${responseText}` };
+    }
+
+    return { success: true, response: responseBody };
+  } catch (err) {
+    return { success: false, response: null, error: err instanceof Error ? err.message : "Blog publish fetch failed" };
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -231,12 +290,16 @@ Deno.serve(async (req) => {
         );
         results[platform] = result;
         if (!result.success) allSuccess = false;
+      } else if (platform === "blog") {
+        const result = await publishToBlog(item, supabase);
+        results[platform] = result;
+        if (!result.success) allSuccess = false;
       } else {
         // Unsupported platform — log and skip
         results[platform] = {
           success: false,
           response: null,
-          error: `Direct publishing not yet supported for platform: ${platform}. Only LinkedIn is currently supported.`,
+          error: `Direct publishing not yet supported for platform: ${platform}. Only LinkedIn and Blog are currently supported.`,
         };
         allSuccess = false;
       }
@@ -267,7 +330,9 @@ Deno.serve(async (req) => {
     // 5. Audit log — one entry per platform for clarity
     for (const [platform, result] of Object.entries(results)) {
       await supabase.from("audit_log").insert({
-        action: result.success ? "linkedin_published" : `${platform}_publish_failed`,
+        action: result.success
+          ? (platform === "blog" ? "blog_published" : "linkedin_published")
+          : `${platform}_publish_failed`,
         entity_type: "editorial_item",
         entity_id: editorialItemId,
         details: {
