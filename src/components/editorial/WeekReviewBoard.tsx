@@ -713,9 +713,3 @@ function WeekReviewDetailDialog({
     </>
   );
 }
-          </DialogContent>
-        </Dialog>
-      </div>
-    </TooltipProvider>
-  );
-}
