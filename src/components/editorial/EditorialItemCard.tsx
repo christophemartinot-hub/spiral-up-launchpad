@@ -38,6 +38,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
   const [showRejectInput, setShowRejectInput] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [sendingToMake, setSendingToMake] = useState(false);
+  const [publishingLinkedIn, setPublishingLinkedIn] = useState(false);
   const updateItem = useUpdateEditorialItem();
   const regenerate = useRegenerateItem();
   const recordFeedback = useRecordFeedback();
@@ -160,6 +161,26 @@ export default function EditorialItemCard({ item }: { item: any }) {
       toast.error(err instanceof Error ? err.message : 'Failed to send to Make');
     } finally {
       setSendingToMake(false);
+    }
+  };
+
+  const handlePublishLinkedIn = async () => {
+    setPublishingLinkedIn(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('publish-to-linkedin', {
+        body: { item_id: item.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.skipped) {
+        toast.info(data.reason || 'Skipped — not a LinkedIn item');
+      } else {
+        toast.success('Published to LinkedIn ✅');
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'LinkedIn publish failed');
+    } finally {
+      setPublishingLinkedIn(false);
     }
   };
 
@@ -426,6 +447,12 @@ export default function EditorialItemCard({ item }: { item: any }) {
                       {publishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                       Publish to Social
                     </Button>
+                    {item.status === 'scheduled' && item.channel === 'linkedin' && (
+                      <Button size="sm" variant="outline" onClick={handlePublishLinkedIn} disabled={publishingLinkedIn} className="gap-1.5 text-blue-600">
+                        {publishingLinkedIn ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                        Publish to LinkedIn
+                      </Button>
+                    )}
                   </>
                 )}
                 {item.status === 'published' && (
