@@ -330,7 +330,9 @@ Deno.serve(async (req) => {
     // 5. Audit log — one entry per platform for clarity
     for (const [platform, result] of Object.entries(results)) {
       await supabase.from("audit_log").insert({
-        action: result.success ? "linkedin_published" : `${platform}_publish_failed`,
+        action: result.success
+          ? (platform === "blog" ? "blog_published" : "linkedin_published")
+          : `${platform}_publish_failed`,
         entity_type: "editorial_item",
         entity_id: editorialItemId,
         details: {
