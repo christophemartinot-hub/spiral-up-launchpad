@@ -432,7 +432,8 @@ Deno.serve(async (req) => {
           publish_date: item.publish_date,
           image_url: finalImageUrl,
           success: result.success,
-          linkedin_response: result.response,
+          buffer_post_id: (result as any).postId || undefined,
+          platform_response: result.response,
           error: result.error || undefined,
         },
       });
