@@ -272,6 +272,22 @@ export default function EditorialItemCard({ item }: { item: any }) {
 
       {expanded && (
         <CardContent className="border-t pt-4 space-y-4">
+          {/* Hero image preview — prominent for blogs */}
+          {item.image_url && (
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                🖼️ {item.channel === 'blog' ? 'Blog Hero Image' : 'Visual Preview'}
+              </p>
+              <div className="relative rounded-lg overflow-hidden border border-border bg-muted/30">
+                <img
+                  src={item.image_url}
+                  alt={`Visual for: ${item.working_title}`}
+                  className="w-full max-h-72 object-cover"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Suggestion rationale */}
           {item.suggestion_rationale && (
             <div className="bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
