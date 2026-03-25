@@ -171,6 +171,25 @@ ${(brandCore.key_beliefs as string[] || []).length > 0 ? `Key Beliefs:\n${(brand
     sections.push(`## EXAMPLE CONTENT (match this style)\n${lines.join('\n')}`);
   }
 
+  // ── Brand Content Library (writing voice reference) ──
+  if (contentLibrary && contentLibrary.length > 0) {
+    const refLines = contentLibrary.map((r: any) => {
+      let line = `- "${r.title}": ${r.excerpt || ''}`;
+      if (r.writing_style_notes) line += `\n  Style notes: ${r.writing_style_notes}`;
+      return line;
+    });
+    sections.push(`## WRITING VOICE REFERENCE
+You are writing in the voice of Christophe Martinot. Study these reference posts and match:
+- Opening style: always a scene, story, or short punchy observation
+- Sentence rhythm: short sentences. One idea per line. Then a longer reflection.
+- Structure: personal observation → real example (use fictional company names) → broader insight → practical takeaway
+- Tone: direct, human, experienced — never academic or corporate
+- Never use jargon. Never use bullet points in blog posts. Always use H2/H3 headers with evocative titles.
+
+Reference posts:
+${refLines.join('\n')}`);
+  }
+
   const systemPrompt = `You are the AI content engine for Spiral Up. Every piece of content you generate must align with the brand intelligence below.
 
 ${sections.join('\n\n')}
