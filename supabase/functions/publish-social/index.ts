@@ -79,18 +79,20 @@ async function publishToLinkedIn(
   return { success: true, response: responseBody };
 }
 
-/** Publish to Facebook or Instagram via Buffer REST API */
+/** Publish to Facebook or Instagram via Buffer GraphQL API */
 async function publishToBuffer(
   platform: "facebook" | "instagram",
   caption: string,
   imageUrl: string | null,
-): Promise<{ success: boolean; response: unknown; error?: string; skipped?: boolean }> {
+  publishDate: string | null,
+  publishTime: string | null,
+): Promise<{ success: boolean; response: unknown; error?: string; skipped?: boolean; postId?: string }> {
   const bufferToken = Deno.env.get("BUFFER_ACCESS_TOKEN");
   if (!bufferToken) {
     return { success: false, response: null, error: "BUFFER_ACCESS_TOKEN not configured" };
   }
 
-  const profileIds: Record<string, string> = {
+  const channelIds: Record<string, string> = {
     facebook: "5e837d5420c4a32a2146aa63",
     instagram: "69b5bbc77be9f8b17157f30c",
   };
@@ -100,22 +102,33 @@ async function publishToBuffer(
     return { success: false, response: null, skipped: true, error: "Instagram requires an image" };
   }
 
-  const body: Record<string, unknown> = {
+  const time = publishTime || "09:00";
+  const date = publishDate || new Date().toISOString().split("T")[0];
+  const dueAt = `${date}T${time}:00Z`;
+
+  const input: Record<string, unknown> = {
+    channelId: channelIds[platform],
     text: caption,
-    profile_ids: [profileIds[platform]],
+    publishingScheduleType: "SCHEDULED",
+    dueAt,
   };
   if (imageUrl) {
-    body.media = { photo: imageUrl };
+    input.mediaUrls = [imageUrl];
   }
 
+  const graphqlBody = {
+    query: `mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { post { id status } } }`,
+    variables: { input },
+  };
+
   try {
-    const res = await fetch("https://api.bufferapp.com/1/updates/create.json", {
+    const res = await fetch("https://api.buffer.com/graphql", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${bufferToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(graphqlBody),
     });
 
     const responseText = await res.text();
@@ -123,14 +136,21 @@ async function publishToBuffer(
     try { responseBody = JSON.parse(responseText); } catch { responseBody = responseText; }
 
     if (!res.ok) {
-      return { success: false, response: responseBody, error: `Buffer API ${res.status}: ${responseText}` };
+      return { success: false, response: responseBody, error: `Buffer GraphQL ${res.status}: ${responseText}` };
     }
-    return { success: true, response: responseBody };
+
+    // Check for GraphQL-level errors
+    const parsed = responseBody as Record<string, unknown>;
+    if (parsed.errors) {
+      return { success: false, response: responseBody, error: `Buffer GraphQL errors: ${JSON.stringify(parsed.errors)}` };
+    }
+
+    const post = (parsed.data as any)?.createPost?.post;
+    return { success: true, response: responseBody, postId: post?.id };
   } catch (err) {
-    return { success: false, response: null, error: err instanceof Error ? err.message : "Buffer publish fetch failed" };
+    return { success: false, response: null, error: err instanceof Error ? err.message : "Buffer GraphQL fetch failed" };
   }
 }
-
 /** Publish to spiralingup.works blog via webhook */
 async function publishToBlog(
   item: Record<string, unknown>,
@@ -351,6 +371,8 @@ Deno.serve(async (req) => {
           platform,
           item.draft_content || "",
           finalImageUrl,
+          item.publish_date || null,
+          item.publish_time || null,
         );
         results[platform] = result;
         if (result.skipped) {
@@ -410,7 +432,8 @@ Deno.serve(async (req) => {
           publish_date: item.publish_date,
           image_url: finalImageUrl,
           success: result.success,
-          linkedin_response: result.response,
+          buffer_post_id: (result as any).postId || undefined,
+          platform_response: result.response,
           error: result.error || undefined,
         },
       });
