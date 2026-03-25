@@ -409,7 +409,53 @@ export default function EditorialItemCard({ item }: { item: any }) {
 
           <VisualBriefPanel item={item} />
 
-          {showRejectInput && (
+          {/* Image URL attachment */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground mb-1">📷 Attached Image URL</p>
+            <div className="flex gap-2">
+              <Input
+                value={imageUrlInput}
+                onChange={e => setImageUrlInput(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className="text-xs"
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={savingImage || imageUrlInput === (item.image_url || '')}
+                onClick={async () => {
+                  setSavingImage(true);
+                  try {
+                    updateItem.mutate(
+                      { id: item.id, image_url: imageUrlInput || '' },
+                      {
+                        onSuccess: () => {
+                          toast.success('Image URL saved');
+                          setSavingImage(false);
+                        },
+                        onError: (err) => {
+                          toast.error(err instanceof Error ? err.message : 'Failed to save');
+                          setSavingImage(false);
+                        },
+                      }
+                    );
+                  } catch {
+                    setSavingImage(false);
+                  }
+                }}
+              >
+                {savingImage ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Save'}
+              </Button>
+            </div>
+            {item.image_url && (
+              <img
+                src={item.image_url}
+                alt="Attached visual"
+                className="rounded-lg max-h-32 object-cover border border-border"
+              />
+            )}
+          </div>
+
             <div className="space-y-2 bg-red-50 dark:bg-red-950 p-3 rounded-lg">
               <p className="text-xs font-medium text-red-700 dark:text-red-300">Reason for rejection (helps AI improve)</p>
               <Textarea rows={2} value={rejectionReason} onChange={e => setRejectionReason(e.target.value)} placeholder="e.g. Too generic, already covered this topic..." />
