@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.publish-scheduled-blogs]
 verify_jwt = false
+
+[functions.publish-to-make]
+verify_jwt = false

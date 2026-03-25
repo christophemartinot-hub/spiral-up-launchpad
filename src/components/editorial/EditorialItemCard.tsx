@@ -146,6 +146,24 @@ export default function EditorialItemCard({ item }: { item: any }) {
     }
   };
 
+  const [sendingToMake, setSendingToMake] = useState(false);
+
+  const handleSendToMake = async () => {
+    setSendingToMake(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('publish-to-make', {
+        body: { item_id: item.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success('Sent to Make for publishing ✅');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send to Make');
+    } finally {
+      setSendingToMake(false);
+    }
+  };
+
   const handleUnpublish = async () => {
     setPublishing(true);
     try {
