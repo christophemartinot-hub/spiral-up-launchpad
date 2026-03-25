@@ -31,6 +31,17 @@ const CHANNEL_ICONS: Record<string, string> = {
   twitter: '𝕏', facebook: '👤', youtube: '▶️',
 };
 
+const normalizeImageUrl = (rawUrl: string) => {
+  const trimmedUrl = rawUrl.trim();
+  if (!trimmedUrl) return '';
+
+  const unsplashMatch = trimmedUrl.match(/unsplash\.com\/photos\/(?:[^/?#]+-)?([a-zA-Z0-9_-]+)(?:\/download)?(?:\?.*)?$/);
+  if (!unsplashMatch) return trimmedUrl;
+
+  const photoId = unsplashMatch[1];
+  return `https://unsplash.com/photos/${photoId}/download?force=true&w=1600&q=80&fit=max`;
+};
+
 export default function EditorialItemCard({ item }: { item: any }) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -448,14 +459,8 @@ export default function EditorialItemCard({ item }: { item: any }) {
                 onClick={async () => {
                   setSavingImage(true);
                   try {
-                    let finalUrl = imageUrlInput.trim();
-                    // Auto-convert Unsplash page URLs to direct image URLs
-                    const unsplashMatch = finalUrl.match(/unsplash\.com\/photos\/(?:[^/?]+-)?([a-zA-Z0-9_-]+)(?:\?.*)?$/);
-                    if (unsplashMatch) {
-                      const photoId = unsplashMatch[1];
-                      finalUrl = `https://images.unsplash.com/photo-${photoId}?w=1200&q=80&auto=format&fit=crop`;
-                      setImageUrlInput(finalUrl);
-                    }
+                    const finalUrl = normalizeImageUrl(imageUrlInput);
+                    setImageUrlInput(finalUrl);
                     updateItem.mutate(
                       { id: item.id, image_url: finalUrl || '' },
                       {
