@@ -450,7 +450,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
                   try {
                     let finalUrl = imageUrlInput.trim();
                     // Auto-convert Unsplash page URLs to direct image URLs
-                    const unsplashMatch = finalUrl.match(/unsplash\.com\/photos\/(?:[^/]+-)?([a-zA-Z0-9_-]+)$/);
+                    const unsplashMatch = finalUrl.match(/unsplash\.com\/photos\/(?:[^/?]+-)?([a-zA-Z0-9_-]+)(?:\?.*)?$/);
                     if (unsplashMatch) {
                       const photoId = unsplashMatch[1];
                       finalUrl = `https://images.unsplash.com/photo-${photoId}?w=1200&q=80&auto=format&fit=crop`;
