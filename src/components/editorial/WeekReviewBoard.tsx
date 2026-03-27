@@ -324,6 +324,18 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                     const isPublished = item.status === 'published';
                     const isVisualChannel = ['instagram', 'linkedin', 'facebook', 'blog'].includes(item.channel);
 
+                    const normalizeImageUrl = (rawUrl: string) => {
+                      const trimmedUrl = rawUrl.trim();
+                      if (!trimmedUrl) return '';
+                      if (trimmedUrl.includes('images.unsplash.com')) return trimmedUrl;
+                      const unsplashMatch = trimmedUrl.match(/unsplash\.com\/photos\/([^/?#]+)/);
+                      if (unsplashMatch) return `https://source.unsplash.com/${unsplashMatch[1]}/1600x900`;
+                      return trimmedUrl;
+                    };
+
+                    const thumbnailUrl = item.image_url ? normalizeImageUrl(item.image_url) : null;
+                    const visualSrc = thumbnailUrl || illustration;
+
                     return (
                       <Card
                         key={item.id}
@@ -344,9 +356,9 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
                         onClick={() => setDetailItem(item)}
                       >
                         {/* Visual thumbnail */}
-                        {illustration ? (
+                        {visualSrc ? (
                           <div className={`${isVisualChannel ? 'h-24' : 'h-16'} overflow-hidden bg-muted/30 relative`}>
-                            <img src={illustration} alt="" className="w-full h-full object-cover" />
+                            <img src={visualSrc} alt="" className="w-full h-full object-cover" />
                             <div className="absolute top-1 left-1">
                               <div className="bg-background/80 backdrop-blur-sm rounded-full p-0.5">
                                 <ChannelIcon channel={item.channel} size={12} />
