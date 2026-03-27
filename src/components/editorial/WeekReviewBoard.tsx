@@ -189,27 +189,33 @@ export default function WeekReviewBoard({ activePlanId }: Props) {
       item.working_title || '',
       item.content_pillar || '',
       item.key_message || '',
+      item.post_angle || '',
+      item.insight_delivered || '',
     ].join(' ').toLowerCase();
 
-    if (fields.includes('spiraling down') || fields.includes('spiral down') || fields.includes('spiraling_down')) {
+    if (fields.includes('spiraling down') || fields.includes('spiral down') || fields.includes('spiraling_down') || fields.includes('downward')) {
       return resolveBrandIllustration('spiraling_down');
     }
-    if (fields.includes('spiraling up') || fields.includes('spiral up') || fields.includes('spiraling_up')) {
+    if (fields.includes('spiraling up') || fields.includes('spiral up') || fields.includes('spiraling_up') || fields.includes('upward')) {
       return resolveBrandIllustration('spiraling_up');
     }
     if (fields.includes('stagnat')) {
       return resolveBrandIllustration('stagnating');
     }
 
-    const principles = ['synergize', 'provide', 'inspect', 'respond', 'learn'];
-    for (const p of principles) {
-      if (fields.includes(p)) return resolveBrandIllustration(p);
-    }
     if (fields.includes('act') && fields.includes('accept')) {
       return resolveBrandIllustration('act_accept');
     }
+    const principles = ['synergize', 'provide', 'inspect', 'respond', 'learn', 'decisive', 'decision'];
+    for (const p of principles) {
+      if (fields.includes(p)) {
+        if (p === 'decisive' || p === 'decision') return resolveBrandIllustration('act_accept');
+        return resolveBrandIllustration(p);
+      }
+    }
 
-    return null;
+    // Fallback: use spiraling_up as generic brand illustration
+    return resolveBrandIllustration('spiraling_up');
   };
 
   const handleDropToDay = async (e: DragEvent<HTMLDivElement>, targetDateKey: string) => {
