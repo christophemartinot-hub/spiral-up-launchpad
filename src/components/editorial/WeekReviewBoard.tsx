@@ -681,11 +681,16 @@ function WeekReviewDetailDialog({
                 <Label className="text-xs">Image URL</Label>
                 <Input value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} placeholder="Paste image or Unsplash URL..." />
               </div>
-              {form.image_url && (
-                <div className="rounded-lg overflow-hidden border h-32">
-                  <img src={form.image_url} alt="Preview" className="w-full h-full object-cover" />
-                </div>
-              )}
+              {form.image_url && (() => {
+                const normalizedUrl = form.image_url.includes('images.unsplash.com') ? form.image_url
+                  : form.image_url.match(/unsplash\.com\/photos\/([^/?#]+)/) ? `https://source.unsplash.com/${form.image_url.match(/unsplash\.com\/photos\/([^/?#]+)/)![1]}/1600x900`
+                  : form.image_url;
+                return (
+                  <div className="rounded-lg overflow-hidden border h-32">
+                    <img src={normalizedUrl} alt="Preview" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="flex gap-2 pt-2">
