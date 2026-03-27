@@ -35,11 +35,17 @@ const normalizeImageUrl = (rawUrl: string) => {
   const trimmedUrl = rawUrl.trim();
   if (!trimmedUrl) return '';
 
-  const unsplashMatch = trimmedUrl.match(/unsplash\.com\/photos\/(?:[^/?#]+-)?([a-zA-Z0-9_-]+)(?:\/download)?(?:\?.*)?$/);
-  if (!unsplashMatch) return trimmedUrl;
+  // Already a direct images.unsplash.com URL — keep it
+  if (trimmedUrl.includes('images.unsplash.com')) return trimmedUrl;
 
-  const photoId = unsplashMatch[1];
-  return `https://unsplash.com/photos/${photoId}/download?force=true&w=1600&q=80&fit=max`;
+  // Unsplash page URL — use source.unsplash.com redirect (no API key needed)
+  const unsplashMatch = trimmedUrl.match(/unsplash\.com\/photos\/(?:([^/?#]+))/);
+  if (unsplashMatch) {
+    const slug = unsplashMatch[1];
+    return `https://source.unsplash.com/${slug}/1600x900`;
+  }
+
+  return trimmedUrl;
 };
 
 export default function EditorialItemCard({ item }: { item: any }) {
@@ -482,11 +488,14 @@ export default function EditorialItemCard({ item }: { item: any }) {
                 {savingImage ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Save'}
               </Button>
             </div>
-            {item.image_url && !expanded && (
+            {/* Live preview of current input (normalized) */}
+            {imageUrlInput && (
               <img
-                src={item.image_url}
-                alt="Attached visual"
-                className="rounded-lg max-h-20 object-cover border border-border"
+                src={normalizeImageUrl(imageUrlInput)}
+                alt="Preview"
+                className="rounded-lg max-h-40 object-cover border border-border"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                onLoad={(e) => { (e.target as HTMLImageElement).style.display = 'block'; }}
               />
             )}
           </div>
