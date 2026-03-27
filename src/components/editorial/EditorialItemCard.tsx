@@ -35,11 +35,15 @@ const normalizeImageUrl = (rawUrl: string) => {
   const trimmedUrl = rawUrl.trim();
   if (!trimmedUrl) return '';
 
-  const unsplashMatch = trimmedUrl.match(/unsplash\.com\/photos\/(?:[^/?#]+-)?([a-zA-Z0-9_-]+)(?:\/download)?(?:\?.*)?$/);
+  // Already a direct images.unsplash.com URL — keep it
+  if (trimmedUrl.includes('images.unsplash.com')) return trimmedUrl;
+
+  // Match unsplash.com/photos/[optional-slug-]photoId
+  const unsplashMatch = trimmedUrl.match(/unsplash\.com\/photos\/(?:[^/?#]+-)?([a-zA-Z0-9_-]{8,})(?:\/.*)?(?:\?.*)?$/);
   if (!unsplashMatch) return trimmedUrl;
 
   const photoId = unsplashMatch[1];
-  return `https://unsplash.com/photos/${photoId}/download?force=true&w=1600&q=80&fit=max`;
+  return `https://images.unsplash.com/photo-${photoId}?w=1600&q=80&fit=max&auto=format`;
 };
 
 export default function EditorialItemCard({ item }: { item: any }) {
