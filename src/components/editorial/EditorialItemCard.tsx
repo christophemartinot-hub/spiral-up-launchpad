@@ -272,6 +272,15 @@ export default function EditorialItemCard({ item }: { item: any }) {
             {format(parseISO(item.publish_date), 'EEE, MMM d')}{item.publish_time ? ` at ${item.publish_time}` : ''} • {item.channel}
           </p>
         </div>
+        {/* Thumbnail preview on collapsed card */}
+        {item.image_url && !expanded && (
+          <img
+            src={normalizeImageUrl(item.image_url)}
+            alt=""
+            className="w-16 h-16 rounded-md object-cover border border-border flex-shrink-0"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        )}
         <div className="flex items-center gap-1">
           {item.status === 'suggested' && (
             <>
@@ -297,9 +306,10 @@ export default function EditorialItemCard({ item }: { item: any }) {
               </p>
               <div className="relative rounded-lg overflow-hidden border border-border bg-muted/30">
                 <img
-                  src={item.image_url}
+                  src={normalizeImageUrl(item.image_url)}
                   alt={`Visual for: ${item.working_title}`}
                   className="w-full max-h-72 object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               </div>
             </div>
