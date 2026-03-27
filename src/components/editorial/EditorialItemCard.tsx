@@ -306,9 +306,10 @@ export default function EditorialItemCard({ item }: { item: any }) {
               </p>
               <div className="relative rounded-lg overflow-hidden border border-border bg-muted/30">
                 <img
-                  src={item.image_url}
+                  src={normalizeImageUrl(item.image_url)}
                   alt={`Visual for: ${item.working_title}`}
                   className="w-full max-h-72 object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               </div>
             </div>
