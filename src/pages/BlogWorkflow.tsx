@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { brandProfile } from '@/data/brand';
 import { streamContent } from '@/lib/ai';
+import { supabase } from '@/integrations/supabase/client';
 import {
   useBlogPosts, useBlogPost, useCreateBlogPost, useUpdateBlogPost,
   useDeleteBlogPost, usePublishBlogPost, useUnpublishBlogPost, generateSlug,
