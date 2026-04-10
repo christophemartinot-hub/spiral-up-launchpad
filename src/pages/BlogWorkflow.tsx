@@ -70,6 +70,8 @@ export default function BlogWorkflow() {
   const [editNewsletter, setEditNewsletter] = useState('');
   const [editVisualConcept, setEditVisualConcept] = useState('');
   const [editScheduledAt, setEditScheduledAt] = useState<Date | undefined>(undefined);
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
+  const [draggedPostId, setDraggedPostId] = useState<string | null>(null);
 
   const selectedPost = posts.find(p => p.id === selectedId) ?? null;
 
