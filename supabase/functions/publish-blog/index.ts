@@ -93,13 +93,23 @@ Deno.serve(async (req) => {
 
     // Publish: upsert to external blog_posts table
     const publishedAt = new Date().toISOString();
+    const wordCount = (post.content || "").split(/\s+/).filter(Boolean).length;
+    const readMinutes = Math.max(1, Math.ceil(wordCount / 200));
+    const readTime = `${readMinutes} min read`;
+    const category = post.content_pillar || "Leadership";
+    const tags = (post.tags && (post.tags as string[]).length > 0)
+      ? post.tags
+      : (post.content_pillar ? [post.content_pillar] : ["Leadership"]);
+
     const externalPayload = {
       title: post.title,
       slug: post.slug,
       content: post.content,
-      excerpt: post.excerpt,
+      excerpt: post.excerpt || post.content?.substring(0, 200) || "",
       author: post.author,
-      tags: post.tags || [],
+      tags,
+      category,
+      read_time: readTime,
       image_url: post.hero_image_url || "",
       status: "published",
       published_at: publishedAt,
