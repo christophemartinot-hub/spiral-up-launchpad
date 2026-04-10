@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,8 +23,8 @@ import { format, parseISO, setHours, setMinutes, addDays, nextTuesday, nextWedne
 import {
   Sparkles, FileText, Globe, Eye, Copy, Check, Loader2,
   Save, CheckCircle, Send, Trash2, ExternalLink, Pencil, ArrowLeft,
-  CalendarIcon, Clock, Lightbulb, ImagePlus, RefreshCw,
-  Upload,
+  CalendarIcon, Clock, ImagePlus, RefreshCw, Lightbulb,
+  Upload, ArrowRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -56,6 +56,43 @@ export default function BlogWorkflow() {
   const [pillar, setPillar] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [suggestedTopics, setSuggestedTopics] = useState<string[]>([]);
+  const [isLoadingTopics, setIsLoadingTopics] = useState(false);
+
+  // Fetch AI-suggested topics when pillar changes
+  useEffect(() => {
+    if (!pillar) { setSuggestedTopics([]); return; }
+    const selectedPillar = brandProfile.contentPillars.find(p => p.id === pillar);
+    if (!selectedPillar) return;
+
+    let cancelled = false;
+    setIsLoadingTopics(true);
+    setSuggestedTopics([]);
+
+    supabase.functions.invoke('generate-content', {
+      body: {
+        messages: [{
+          role: 'user',
+          content: `Suggest exactly 5 compelling blog post topics for the "${selectedPillar.name}" content pillar (${selectedPillar.description}). Typical themes: ${selectedPillar.topics.join(', ')}. Return ONLY a JSON array of 5 short topic strings, no markdown, no explanation. Example: ["Topic one","Topic two","Topic three","Topic four","Topic five"]`
+        }],
+        stream: false,
+      },
+    }).then(({ data, error }) => {
+      if (cancelled) return;
+      setIsLoadingTopics(false);
+      if (error || !data) return;
+      const text = typeof data === 'string' ? data : data.content || data.choices?.[0]?.message?.content || '';
+      try {
+        const jsonMatch = text.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          const topics = JSON.parse(jsonMatch[0]);
+          if (Array.isArray(topics)) setSuggestedTopics(topics.slice(0, 5));
+        }
+      } catch { /* ignore */ }
+    });
+
+    return () => { cancelled = true; };
+  }, [pillar]);
 
   // Editor state
   const [editTitle, setEditTitle] = useState('');
@@ -466,6 +503,30 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                 <div className="space-y-2">
                   <Label>Blog Topic *</Label>
                   <Input placeholder="e.g. Why leaders must go first in any transformation" value={topic} onChange={e => setTopic(e.target.value)} />
+                  {/* AI-suggested topics */}
+                  {isLoadingTopics && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Generating topic ideas…</span>
+                    </div>
+                  )}
+                  {suggestedTopics.length > 0 && !isLoadingTopics && (
+                    <div className="space-y-1.5 pt-1">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Lightbulb className="w-3 h-3 text-primary" /> AI-suggested topics
+                      </p>
+                      {suggestedTopics.map(t => (
+                        <button
+                          key={t}
+                          onClick={() => setTopic(t)}
+                          className="w-full text-left text-xs p-2 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/50 transition-all"
+                        >
+                          <ArrowRight className="w-3 h-3 inline mr-1.5 text-primary" />
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Content Pillar</Label>
