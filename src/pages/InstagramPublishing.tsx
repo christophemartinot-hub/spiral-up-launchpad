@@ -788,6 +788,12 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
                       );
                     })()}
                   </div>
+                ) : selectedPost.media_type === 'reel' && Array.isArray(selectedPost.media_urls) && (selectedPost.media_urls as string[])[0] ? (
+                  <video
+                    src={(selectedPost.media_urls as string[])[0]}
+                    controls
+                    className="w-full aspect-[9/16] max-h-[500px] object-cover bg-black"
+                  />
                 ) : selectedPost.cover_image_url ? (
                   <img src={selectedPost.cover_image_url} alt="" className="w-full aspect-square object-cover" />
                 ) : (
