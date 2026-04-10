@@ -33,6 +33,7 @@ const STATUS_ORDER = ['draft', 'review', 'approved', 'published'];
 export default function LinkedInPublishing() {
   const heroFileRef = useRef<HTMLInputElement>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [generatingImage, setGeneratingImage] = useState(false);
   const { data: posts = [], isLoading } = useLinkedinPosts();
   const createPost = useCreateLinkedinPost();
   const updatePost = useUpdateLinkedinPost();

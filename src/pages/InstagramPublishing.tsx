@@ -34,6 +34,7 @@ const MEDIA_TYPE_ICONS: Record<string, typeof Image> = { post: Image, carousel: 
 export default function InstagramPublishing() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [generatingImage, setGeneratingImage] = useState(false);
   const { data: posts = [], isLoading } = useInstagramPosts();
   const createPost = useCreateInstagramPost();
   const updatePost = useUpdateInstagramPost();
