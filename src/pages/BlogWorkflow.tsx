@@ -23,7 +23,7 @@ import { format, parseISO, setHours, setMinutes, addDays, nextTuesday, nextWedne
 import {
   Sparkles, FileText, Globe, Eye, Copy, Check, Loader2,
   Save, CheckCircle, Send, Trash2, ExternalLink, Pencil, ArrowLeft,
-  CalendarIcon, Clock, ImagePlus, RefreshCw,
+  CalendarIcon, Clock, ImagePlus, RefreshCw, Lightbulb,
   Upload, ArrowRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
