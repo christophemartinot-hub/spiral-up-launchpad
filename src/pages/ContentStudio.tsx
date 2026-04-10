@@ -10,8 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { brandProfile, contentTypes } from '@/data/brand';
 import { streamContent } from '@/lib/ai';
-import { Sparkles, Copy, Download, RefreshCw, Check, ArrowRight, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Sparkles, Copy, Download, RefreshCw, Check, ArrowRight, Loader2, FileText, CalendarPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
