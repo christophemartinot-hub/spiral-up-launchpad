@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Sparkles, Calendar, BarChart3, Settings, Menu, X,
-  ChevronRight, Brain, LogOut, BookOpen
+  ChevronRight, Brain, LogOut, BookOpen, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ const navSections = [
       { path: '/', label: 'Dashboard', icon: LayoutDashboard },
       { path: '/ideas', label: 'Ideas', icon: Brain },
       { path: '/studio', label: 'Create', icon: Sparkles },
+      { path: '/blog', label: 'Blog Publishing', icon: FileText },
       { path: '/editorial', label: 'Plan & Publish', icon: Calendar },
     ],
   },
