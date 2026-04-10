@@ -31,6 +31,20 @@ Deno.serve(async (req) => {
 
     const { blogPostId, action } = await req.json();
 
+    // Debug: verify what's in the external DB
+    if (action === "verify") {
+      const { data: extPosts, error: extErr } = await websiteDb
+        .from("blog_posts")
+        .select("id, slug, title, status, published_at, image_url")
+        .order("published_at", { ascending: false })
+        .limit(10);
+      
+      return new Response(
+        JSON.stringify({ external_posts: extPosts, error: extErr?.message }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (!blogPostId) {
       return new Response(
         JSON.stringify({ error: "blogPostId required" }),
@@ -52,7 +66,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (post.status !== "approved" && action !== "unpublish") {
+    if (post.status !== "approved" && post.status !== "published" && action !== "unpublish") {
       return new Response(
         JSON.stringify({ error: "Blog post must be approved before publishing" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -118,19 +132,34 @@ Deno.serve(async (req) => {
     let externalId = post.external_id;
 
     if (externalId) {
-      // Update existing
-      const { error: updateErr } = await websiteDb
+      // Verify the external record actually exists
+      const { data: extCheck } = await websiteDb
         .from("blog_posts")
-        .update(externalPayload)
-        .eq("id", externalId);
+        .select("id")
+        .eq("id", externalId)
+        .maybeSingle();
 
-      if (updateErr) {
-        return new Response(
-          JSON.stringify({ error: "Failed to update on website", details: updateErr.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      if (extCheck) {
+        // Update existing
+        const { error: updateErr } = await websiteDb
+          .from("blog_posts")
+          .update(externalPayload)
+          .eq("id", externalId);
+
+        if (updateErr) {
+          return new Response(
+            JSON.stringify({ error: "Failed to update on website", details: updateErr.message }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      } else {
+        // Stale external_id — record was deleted, insert fresh
+        console.log(`Stale external_id ${externalId}, inserting new record`);
+        externalId = null;
       }
-    } else {
+    }
+
+    if (!externalId) {
       // Insert new
       const { data: inserted, error: insertErr } = await websiteDb
         .from("blog_posts")
