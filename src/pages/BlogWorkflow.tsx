@@ -37,6 +37,8 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default function BlogWorkflow() {
+  const heroFileRef = useRef<HTMLInputElement>(null);
+  const [uploadingHeroImage, setUploadingHeroImage] = useState(false);
   const { data: posts = [], isLoading } = useBlogPosts();
   const createPost = useCreateBlogPost();
   const updatePost = useUpdateBlogPost();
