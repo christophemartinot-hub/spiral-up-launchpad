@@ -105,7 +105,8 @@ Stay unmistakably Spiral Up in voice.`;
       const paragraphs = generatedContent.split('\n\n').filter(p => p.trim() && !p.startsWith('#'));
       const excerpt = paragraphs[0]?.trim().slice(0, 300) || '';
 
-      const { error } = await supabase.from('blog_posts').insert({
+      // Insert blog draft first
+      const { data: blogData, error } = await supabase.from('blog_posts').insert({
         title,
         slug,
         content: generatedContent,
@@ -113,10 +114,34 @@ Stay unmistakably Spiral Up in voice.`;
         meta_description: metaDescription,
         content_pillar: selectedPillar?.name || '',
         status: 'draft',
-      });
+      }).select('id').single();
       if (error) throw error;
-      toast.success('Blog draft created!', {
+
+      toast.success('Blog draft created! Generating hero image...', {
         action: { label: 'Open Blog', onClick: () => navigate('/blog') },
+      });
+
+      // Generate hero image in the background
+      const visualConcept = `Professional editorial hero image for a blog post titled "${title}". Topic: ${topic}. ${selectedPillar?.name ? `Content pillar: ${selectedPillar.name}.` : ''} Style: clean, modern, editorial quality, suitable as a blog header image.`;
+
+      supabase.functions.invoke('generate-social-image', {
+        body: {
+          visual_concept: visualConcept,
+          visual_type: 'editorial',
+          channel: 'blog',
+          title,
+          content: excerpt,
+        },
+      }).then(async ({ data: imgData, error: imgError }) => {
+        if (imgError || !imgData?.image_url) {
+          console.warn('Hero image generation failed:', imgError || 'No image returned');
+          return;
+        }
+        // Update the blog post with the hero image
+        await supabase.from('blog_posts')
+          .update({ hero_image_url: imgData.image_url })
+          .eq('id', blogData.id);
+        toast.success('Hero image generated and attached!');
       });
     } catch (e: any) {
       toast.error('Failed to create blog draft: ' + (e.message || 'Unknown error'));
