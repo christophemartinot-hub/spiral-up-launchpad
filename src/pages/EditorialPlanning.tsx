@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EditorialAgenda from '@/components/editorial/EditorialAgenda';
 import WeekReviewBoard from '@/components/editorial/WeekReviewBoard';
+import WeeklyOverview from '@/components/editorial/WeeklyOverview';
 import PlanningConfigPanel from '@/components/editorial/PlanningConfigPanel';
 import VisualConfigPanel from '@/components/editorial/VisualConfigPanel';
 import PlanHistory from '@/components/editorial/PlanHistory';
@@ -22,8 +23,9 @@ export default function EditorialPlanning() {
         </p>
       </motion.div>
 
-      <Tabs defaultValue="agenda" className="space-y-4">
+      <Tabs defaultValue="weekly" className="space-y-4">
         <TabsList className="flex-wrap h-auto gap-1">
+          <TabsTrigger value="weekly">📅 Weekly Overview</TabsTrigger>
           <TabsTrigger value="agenda">📋 Agenda</TabsTrigger>
           <TabsTrigger value="week-review">👁️ Week Review</TabsTrigger>
           <TabsTrigger value="intelligence">🧠 Intelligence</TabsTrigger>
@@ -32,6 +34,9 @@ export default function EditorialPlanning() {
           <TabsTrigger value="history">📁 Plan History</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="weekly">
+          <WeeklyOverview />
+        </TabsContent>
         <TabsContent value="agenda">
           <EditorialAgenda activePlanId={activePlanId} onPlanChange={setActivePlanId} />
         </TabsContent>
