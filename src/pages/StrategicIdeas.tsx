@@ -382,6 +382,74 @@ function StrategicIdeaCard({ idea }: { idea: any }) {
             <Trash2 className="w-3 h-3" />
           </Button>
         </div>
+
+        {/* Push to Publishing Pipelines */}
+        {idea.status === 'approved' && (
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
+            <span className="text-[10px] font-semibold text-muted-foreground uppercase">Push to:</span>
+            <Button
+              variant="outline" size="sm" className="text-[10px] h-7 gap-1"
+              disabled={createBlog.isPending}
+              onClick={async () => {
+                const pillar = idea.related_pillar || '';
+                await createBlog.mutateAsync({
+                  title: idea.title,
+                  excerpt: idea.tension_statement || idea.description?.slice(0, 200) || '',
+                  content: '',
+                  content_pillar: pillar,
+                  meta_description: idea.description?.slice(0, 160) || '',
+                  status: 'draft',
+                } as any);
+                updateIdea.mutate({ id: idea.id, converted_to: 'blog' });
+                toast.success('Blog draft created from strategic idea');
+                navigate('/blog');
+              }}
+            >
+              <FileText className="w-3 h-3" /> Blog
+            </Button>
+            <Button
+              variant="outline" size="sm" className="text-[10px] h-7 gap-1"
+              disabled={createLinkedin.isPending}
+              onClick={async () => {
+                await createLinkedin.mutateAsync({
+                  hook: idea.tension_statement || idea.title,
+                  content: idea.description || '',
+                  content_pillar: idea.related_pillar || '',
+                  hashtags: [],
+                  status: 'draft',
+                });
+                updateIdea.mutate({ id: idea.id, converted_to: 'linkedin' });
+                toast.success('LinkedIn draft created from strategic idea');
+                navigate('/linkedin');
+              }}
+            >
+              <Linkedin className="w-3 h-3" /> LinkedIn
+            </Button>
+            <Button
+              variant="outline" size="sm" className="text-[10px] h-7 gap-1"
+              disabled={createInstagram.isPending}
+              onClick={async () => {
+                await createInstagram.mutateAsync({
+                  caption: idea.description || idea.title,
+                  media_type: 'post',
+                  content_pillar: idea.related_pillar || '',
+                  hashtags: [],
+                  status: 'draft',
+                });
+                updateIdea.mutate({ id: idea.id, converted_to: 'instagram' });
+                toast.success('Instagram draft created from strategic idea');
+                navigate('/instagram');
+              }}
+            >
+              <Instagram className="w-3 h-3" /> Instagram
+            </Button>
+            {idea.converted_to && (
+              <Badge className="text-[10px] border-0 bg-success/10 text-success ml-auto">
+                ✓ Pushed to {idea.converted_to}
+              </Badge>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
