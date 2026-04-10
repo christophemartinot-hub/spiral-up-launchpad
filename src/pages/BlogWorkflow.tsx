@@ -51,6 +51,7 @@ export default function BlogWorkflow() {
   const [topic, setTopic] = useState('');
   const [pillar, setPillar] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   // Editor state
   const [editTitle, setEditTitle] = useState('');
