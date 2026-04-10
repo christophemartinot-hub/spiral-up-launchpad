@@ -212,6 +212,8 @@ Deno.serve(async (req) => {
 
     // Handle streaming chat messages
     if (body.messages) {
+      const shouldStream = body.stream !== false;
+
       const response = await fetch(anthropicUrl, {
         method: 'POST',
         headers: {
@@ -227,7 +229,7 @@ Deno.serve(async (req) => {
             role: m.role,
             content: m.content,
           })),
-          stream: true,
+          stream: shouldStream,
         }),
       });
 
@@ -237,6 +239,13 @@ Deno.serve(async (req) => {
         const t = await response.text();
         console.error('Anthropic API error:', status, t);
         return new Response(JSON.stringify({ error: 'AI generation failed' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      // Non-streaming: return content directly
+      if (!shouldStream) {
+        const data = await response.json();
+        const content = data.content?.[0]?.text || '';
+        return new Response(JSON.stringify({ content }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
       // Convert Anthropic SSE stream to OpenAI-compatible SSE format for the client
@@ -265,7 +274,6 @@ Deno.serve(async (req) => {
                 try {
                   const event = JSON.parse(jsonStr);
                   if (event.type === 'content_block_delta' && event.delta?.text) {
-                    // Emit OpenAI-compatible SSE
                     const openaiChunk = { choices: [{ delta: { content: event.delta.text } }] };
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify(openaiChunk)}\n\n`));
                   } else if (event.type === 'message_stop') {

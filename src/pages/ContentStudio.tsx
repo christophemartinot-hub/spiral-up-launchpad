@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { brandProfile, contentTypes } from '@/data/brand';
 import { streamContent } from '@/lib/ai';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles, Copy, Download, RefreshCw, Check, ArrowRight, Loader2, FileText, CalendarPlus } from 'lucide-react';
+import { Sparkles, Copy, Download, RefreshCw, Check, ArrowRight, Loader2, FileText, CalendarPlus, Lightbulb } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
@@ -28,6 +28,47 @@ export default function ContentStudio() {
   const [copied, setCopied] = useState(false);
   const [isPushingBlog, setIsPushingBlog] = useState(false);
   const [isPushingEditorial, setIsPushingEditorial] = useState(false);
+  const [suggestedTopics, setSuggestedTopics] = useState<string[]>([]);
+  const [isLoadingTopics, setIsLoadingTopics] = useState(false);
+
+  // Fetch AI-suggested topics when pillar changes
+  useEffect(() => {
+    if (!pillar) {
+      setSuggestedTopics([]);
+      return;
+    }
+    const selectedPillar = brandProfile.contentPillars.find(p => p.id === pillar);
+    if (!selectedPillar) return;
+
+    const selectedType = contentTypes.find(t => t.id === contentType);
+    let cancelled = false;
+    setIsLoadingTopics(true);
+    setSuggestedTopics([]);
+
+    supabase.functions.invoke('generate-content', {
+      body: {
+        messages: [{
+          role: 'user',
+          content: `Suggest exactly 5 compelling ${selectedType?.label || 'blog post'} topics for the "${selectedPillar.name}" content pillar (${selectedPillar.description}). Typical themes: ${selectedPillar.topics.join(', ')}. Return ONLY a JSON array of 5 short topic strings, no markdown, no explanation. Example: ["Topic one","Topic two","Topic three","Topic four","Topic five"]`
+        }],
+        stream: false,
+      },
+    }).then(({ data, error }) => {
+      if (cancelled) return;
+      setIsLoadingTopics(false);
+      if (error || !data) return;
+      const text = typeof data === 'string' ? data : data.content || data.choices?.[0]?.message?.content || '';
+      try {
+        const jsonMatch = text.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          const topics = JSON.parse(jsonMatch[0]);
+          if (Array.isArray(topics)) setSuggestedTopics(topics.slice(0, 5));
+        }
+      } catch { /* ignore parse errors */ }
+    });
+
+    return () => { cancelled = true; };
+  }, [pillar, contentType]);
 
   const handleGenerate = useCallback(async () => {
     if (!topic.trim()) {
@@ -291,6 +332,30 @@ Stay unmistakably Spiral Up in voice.`;
                   value={topic}
                   onChange={e => setTopic(e.target.value)}
                 />
+                {/* AI-suggested topics */}
+                {isLoadingTopics && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <span>Generating topic ideas…</span>
+                  </div>
+                )}
+                {suggestedTopics.length > 0 && !isLoadingTopics && (
+                  <div className="space-y-1.5 pt-1">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Lightbulb className="w-3 h-3 text-primary" /> AI-suggested topics
+                    </p>
+                    {suggestedTopics.map(t => (
+                      <button
+                        key={t}
+                        onClick={() => setTopic(t)}
+                        className="w-full text-left text-xs p-2 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/50 transition-all"
+                      >
+                        <ArrowRight className="w-3 h-3 inline mr-1.5 text-primary" />
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -317,30 +382,6 @@ Stay unmistakably Spiral Up in voice.`;
             </CardContent>
           </Card>
 
-          {/* Quick Prompts */}
-          <Card className="shadow-card">
-            <CardHeader><CardTitle className="font-display text-base">Quick Prompts</CardTitle></CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {[
-                  'Why "agile transformation" is an oxymoron',
-                  'The hidden cost of organizational debt',
-                  '5 signs your transformation is performative',
-                  'From hierarchy to network: a practical playbook',
-                  'What leaders get wrong about resilience',
-                ].map(prompt => (
-                  <button
-                    key={prompt}
-                    onClick={() => setTopic(prompt)}
-                    className="w-full text-left text-xs p-2.5 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/50 transition-all"
-                  >
-                    <ArrowRight className="w-3 h-3 inline mr-1.5 text-primary" />
-                    {prompt}
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Output Panel */}
