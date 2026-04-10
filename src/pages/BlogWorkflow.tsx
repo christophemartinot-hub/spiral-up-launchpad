@@ -269,7 +269,7 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
       setUploadingHeroImage(false);
       if (heroFileRef.current) heroFileRef.current.value = '';
     }
-  }, []);
+  }, [selectedId, updatePost]);
 
   const handleGenerateHeroImage = useCallback(async () => {
     if (!editTitle.trim()) { toast.error('Add a title first'); return; }
