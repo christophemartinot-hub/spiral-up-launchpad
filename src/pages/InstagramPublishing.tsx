@@ -682,8 +682,61 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
                     <p className="text-[10px] text-muted-foreground">Spiral Up</p>
                   </div>
                 </div>
-                {/* Image */}
-                {selectedPost.cover_image_url ? (
+                {/* Image / Carousel */}
+                {selectedPost.media_type === 'carousel' && Array.isArray(selectedPost.media_urls) && (selectedPost.media_urls as string[]).some(Boolean) ? (
+                  <div className="relative">
+                    {(() => {
+                      const slideImages = (selectedPost.media_urls as (string | null)[]);
+                      const currentImg = slideImages[previewSlideIndex];
+                      return (
+                        <>
+                          {currentImg ? (
+                            <img src={currentImg} alt={`Slide ${previewSlideIndex + 1}`} className="w-full aspect-[4/5] object-cover" />
+                          ) : (
+                            <div className="w-full aspect-[4/5] bg-muted/50 flex items-center justify-center">
+                              <span className="text-sm text-muted-foreground">Slide {previewSlideIndex + 1}</span>
+                            </div>
+                          )}
+                          {slideImages.length > 1 && (
+                            <>
+                              <Button
+                                variant="ghost" size="icon"
+                                className="absolute left-1 top-1/2 -translate-y-1/2 bg-black/40 text-white hover:bg-black/60 rounded-full w-7 h-7"
+                                onClick={() => setPreviewSlideIndex(Math.max(0, previewSlideIndex - 1))}
+                                disabled={previewSlideIndex === 0}
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost" size="icon"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 bg-black/40 text-white hover:bg-black/60 rounded-full w-7 h-7"
+                                onClick={() => setPreviewSlideIndex(Math.min(slideImages.length - 1, previewSlideIndex + 1))}
+                                disabled={previewSlideIndex === slideImages.length - 1}
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </Button>
+                              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                                {slideImages.map((_, i) => (
+                                  <button
+                                    key={i}
+                                    onClick={() => setPreviewSlideIndex(i)}
+                                    className={cn(
+                                      'w-1.5 h-1.5 rounded-full transition-all',
+                                      i === previewSlideIndex ? 'bg-white scale-125' : 'bg-white/50'
+                                    )}
+                                  />
+                                ))}
+                              </div>
+                              <span className="absolute top-2 right-2 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded-full">
+                                {previewSlideIndex + 1}/{slideImages.length}
+                              </span>
+                            </>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                ) : selectedPost.cover_image_url ? (
                   <img src={selectedPost.cover_image_url} alt="" className="w-full aspect-square object-cover" />
                 ) : (
                   <div className="w-full aspect-square bg-muted/50 flex items-center justify-center">
@@ -698,9 +751,11 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
                   )}
                   {selectedPost.media_type === 'carousel' && Array.isArray(selectedPost.carousel_slides) && (selectedPost.carousel_slides as string[]).length > 0 && (
                     <div className="mt-3 pt-3 border-t border-border">
-                      <p className="text-xs font-medium mb-2">Carousel Slides ({(selectedPost.carousel_slides as string[]).length})</p>
+                      <p className="text-xs font-medium mb-2">Slide Text ({(selectedPost.carousel_slides as string[]).length})</p>
                       {(selectedPost.carousel_slides as string[]).map((slide, i) => (
-                        <div key={i} className="text-xs p-2 mb-1 bg-muted/30 rounded">{i + 1}. {slide}</div>
+                        <div key={i} className={cn("text-xs p-2 mb-1 rounded cursor-pointer transition-colors", i === previewSlideIndex ? "bg-primary/10 border border-primary/30" : "bg-muted/30")} onClick={() => setPreviewSlideIndex(i)}>
+                          <span className="font-medium">{i + 1}.</span> {slide}
+                        </div>
                       ))}
                     </div>
                   )}
