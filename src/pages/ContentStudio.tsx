@@ -86,6 +86,125 @@ Stay unmistakably Spiral Up in voice.`;
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handlePushToBlog = async () => {
+    if (!generatedContent) return;
+    setIsPushingBlog(true);
+    try {
+      const slug = topic.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+      const selectedPillar = brandProfile.contentPillars.find(p => p.id === pillar);
+      
+      // Try to extract a title from the content (first markdown heading or topic)
+      const titleMatch = generatedContent.match(/^#\s+(.+)$/m);
+      const title = titleMatch ? titleMatch[1].trim() : topic;
+      
+      // Try to extract meta description
+      const metaMatch = generatedContent.match(/meta\s*description[:\s]*(.+)/i);
+      const metaDescription = metaMatch ? metaMatch[1].trim().slice(0, 160) : '';
+      
+      // Extract first paragraph as excerpt
+      const paragraphs = generatedContent.split('\n\n').filter(p => p.trim() && !p.startsWith('#'));
+      const excerpt = paragraphs[0]?.trim().slice(0, 300) || '';
+
+      const { error } = await supabase.from('blog_posts').insert({
+        title,
+        slug,
+        content: generatedContent,
+        excerpt,
+        meta_description: metaDescription,
+        content_pillar: selectedPillar?.name || '',
+        status: 'draft',
+      });
+      if (error) throw error;
+      toast.success('Blog draft created!', {
+        action: { label: 'Open Blog', onClick: () => navigate('/blog') },
+      });
+    } catch (e: any) {
+      toast.error('Failed to create blog draft: ' + (e.message || 'Unknown error'));
+    } finally {
+      setIsPushingBlog(false);
+    }
+  };
+
+  const handlePushToEditorial = async () => {
+    if (!generatedContent) return;
+    setIsPushingEditorial(true);
+    try {
+      const selectedPillar = brandProfile.contentPillars.find(p => p.id === pillar);
+      
+      // Get or create an active editorial plan
+      const { data: plans } = await supabase
+        .from('editorial_plans')
+        .select('id')
+        .in('status', ['draft', 'active'])
+        .order('cycle_start', { ascending: false })
+        .limit(1);
+
+      let planId: string;
+      if (plans && plans.length > 0) {
+        planId = plans[0].id;
+      } else {
+        // Create a new plan for the current week
+        const now = new Date();
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - now.getDay() + 1);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        
+        const { data: newPlan, error: planError } = await supabase
+          .from('editorial_plans')
+          .insert({
+            cycle_start: monday.toISOString().split('T')[0],
+            cycle_end: sunday.toISOString().split('T')[0],
+            status: 'draft',
+          })
+          .select('id')
+          .single();
+        if (planError) throw planError;
+        planId = newPlan.id;
+      }
+
+      const formatMap: Record<string, string> = {
+        blog_post: 'blog_post',
+        linkedin_post: 'linkedin_post',
+        newsletter: 'newsletter',
+        event_promo: 'linkedin_post',
+        landing_page: 'blog_post',
+        lead_magnet: 'blog_post',
+        email_sequence: 'newsletter',
+        campaign_copy: 'linkedin_post',
+      };
+      const channelMap: Record<string, string> = {
+        blog_post: 'blog',
+        linkedin_post: 'linkedin',
+        newsletter: 'email',
+        event_promo: 'linkedin',
+        landing_page: 'blog',
+        lead_magnet: 'blog',
+        email_sequence: 'email',
+        campaign_copy: 'linkedin',
+      };
+
+      const { error } = await supabase.from('editorial_items').insert({
+        plan_id: planId,
+        working_title: topic,
+        draft_content: generatedContent,
+        content_format: formatMap[contentType] || 'linkedin_post',
+        channel: channelMap[contentType] || 'linkedin',
+        content_pillar: selectedPillar?.name || '',
+        publish_date: new Date().toISOString().split('T')[0],
+        status: 'draft',
+      });
+      if (error) throw error;
+      toast.success('Added to editorial plan!', {
+        action: { label: 'Open Planner', onClick: () => navigate('/editorial') },
+      });
+    } catch (e: any) {
+      toast.error('Failed to add to editorial plan: ' + (e.message || 'Unknown error'));
+    } finally {
+      setIsPushingEditorial(false);
+    }
+  };
+
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4">
       <motion.div initial="hidden" animate="show" variants={fadeIn} transition={{ duration: 0.4 }}>
