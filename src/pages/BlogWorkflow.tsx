@@ -259,7 +259,10 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from('brand-assets').getPublicUrl(path);
       setEditHeroImage(publicUrl);
-      toast.success('Image uploaded!');
+      if (selectedId) {
+        await updatePost.mutateAsync({ id: selectedId, hero_image_url: publicUrl });
+      }
+      toast.success('Image uploaded & saved!');
     } catch (err: any) {
       toast.error(err.message || 'Upload failed');
     } finally {
