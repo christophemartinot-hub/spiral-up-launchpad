@@ -20,6 +20,51 @@ function isValidPublicImageUrl(url: unknown): url is string {
   }
 }
 
+/** Upload an image to LinkedIn natively and return the image URN */
+async function uploadImageToLinkedIn(
+  imageUrl: string,
+  linkedinToken: string,
+  linkedinUrn: string
+): Promise<{ imageUrn: string | null; error?: string }> {
+  try {
+    const imgRes = await fetch(imageUrl);
+    if (!imgRes.ok) return { imageUrn: null, error: `Failed to download image: ${imgRes.status}` };
+    const imageBytes = new Uint8Array(await imgRes.arrayBuffer());
+
+    const initRes = await fetch("https://api.linkedin.com/rest/images?action=initializeUpload", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${linkedinToken}`,
+        "LinkedIn-Version": "202603",
+        "X-Restli-Protocol-Version": "2.0.0",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ initializeUploadRequest: { owner: linkedinUrn } }),
+    });
+    const initText = await initRes.text();
+    if (!initRes.ok) return { imageUrn: null, error: `initializeUpload ${initRes.status}: ${initText}` };
+
+    let initData: any;
+    try { initData = JSON.parse(initText); } catch { return { imageUrn: null, error: `Invalid JSON: ${initText}` }; }
+
+    const uploadUrl = initData.value?.uploadUrl;
+    const imageUrn = initData.value?.image;
+    if (!uploadUrl || !imageUrn) return { imageUrn: null, error: `Missing uploadUrl/URN: ${initText}` };
+
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: { "Authorization": `Bearer ${linkedinToken}`, "Content-Type": "application/octet-stream" },
+      body: imageBytes,
+    });
+    if (!uploadRes.ok) { const e = await uploadRes.text(); return { imageUrn: null, error: `Upload ${uploadRes.status}: ${e}` }; }
+    await uploadRes.text();
+
+    return { imageUrn };
+  } catch (err) {
+    return { imageUrn: null, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 /** Publish directly to LinkedIn API */
 async function publishToLinkedIn(
   caption: string,
@@ -34,7 +79,6 @@ async function publishToLinkedIn(
     return { success: false, response: null, error: "LinkedIn credentials not configured" };
   }
 
-  // Ensure #SpiralUpWorks is present
   const tag = '#SpiralUpWorks';
   const finalCaption = caption.includes(tag) ? caption : `${caption}\n\n${tag}`;
 
@@ -51,14 +95,20 @@ async function publishToLinkedIn(
     isReshareDisabledByAuthor: false,
   };
 
+  // Upload image natively to LinkedIn
   if (imageUrl) {
-    linkedinPayload.content = {
-      article: {
-        source: imageUrl,
-        title: title || "",
-        description: keyMessage || "",
-      },
-    };
+    const uploadResult = await uploadImageToLinkedIn(imageUrl, linkedinToken, linkedinUrn);
+    if (uploadResult.imageUrn) {
+      linkedinPayload.content = {
+        media: {
+          id: uploadResult.imageUrn,
+          title: title || "",
+        },
+      };
+      console.log("Image attached as native media:", uploadResult.imageUrn);
+    } else {
+      console.warn("Image upload failed, publishing without image:", uploadResult.error);
+    }
   }
 
   const res = await fetch("https://api.linkedin.com/rest/posts", {
