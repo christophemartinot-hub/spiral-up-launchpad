@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Sparkles, Calendar, BarChart3, Settings, Menu, X,
-  ChevronRight, Brain, LogOut, BookOpen
+  ChevronRight, Brain, LogOut, BookOpen, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
