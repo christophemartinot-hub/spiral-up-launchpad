@@ -542,6 +542,27 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <Input placeholder="Image URL" value={editHeroImage} onChange={e => setEditHeroImage(e.target.value)} />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant={editHeroImage ? 'outline' : 'default'}
+                          onClick={handleGenerateHeroImage}
+                          disabled={isGeneratingImage}
+                          className="flex-1"
+                        >
+                          {isGeneratingImage
+                            ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Generating...</>
+                            : editHeroImage
+                              ? <><RefreshCw className="w-3 h-3 mr-1" /> Regenerate</>
+                              : <><ImagePlus className="w-3 h-3 mr-1" /> Generate Image</>
+                          }
+                        </Button>
+                        {editHeroImage && (
+                          <Button size="sm" variant="ghost" onClick={() => setEditHeroImage('')} className="text-destructive">
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
                       {editHeroImage && (
                         <img src={editHeroImage} alt="Hero" className="w-full rounded-lg border border-border aspect-video object-cover" />
                       )}
