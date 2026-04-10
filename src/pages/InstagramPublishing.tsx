@@ -105,6 +105,10 @@ export default function InstagramPublishing() {
     setEditPillar(post.content_pillar || '');
     setEditReelScript(post.reel_script || '');
     setEditCarouselSlides(Array.isArray(post.carousel_slides) ? post.carousel_slides as string[] : []);
+    // Load slide images from media_urls if available
+    const mediaUrls = Array.isArray(post.media_urls) ? post.media_urls as (string | null)[] : [];
+    setCarouselSlideImages(mediaUrls);
+    setPreviewSlideIndex(0);
     setSelectedId(post.id);
     setActiveTab('editor');
   }, []);
