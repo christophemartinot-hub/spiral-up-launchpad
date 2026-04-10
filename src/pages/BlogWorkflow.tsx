@@ -409,6 +409,9 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                         )}
                       >
                         <button onClick={() => loadPostToEditor(post)} className="w-full text-left">
+                          {post.hero_image_url && (
+                            <img src={post.hero_image_url} alt="" className="w-full h-20 object-cover rounded mb-2" />
+                          )}
                           <p className="text-sm font-medium line-clamp-2">{post.title || 'Untitled'}</p>
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{post.excerpt}</p>
                           <div className="flex items-center gap-2 mt-2 flex-wrap">
