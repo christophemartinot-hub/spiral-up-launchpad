@@ -61,6 +61,9 @@ export default function InstagramPublishing() {
   const [editPillar, setEditPillar] = useState('');
   const [editReelScript, setEditReelScript] = useState('');
   const [editCarouselSlides, setEditCarouselSlides] = useState<string[]>([]);
+  const [carouselSlideImages, setCarouselSlideImages] = useState<(string | null)[]>([]);
+  const [generatingSlideImages, setGeneratingSlideImages] = useState(false);
+  const [previewSlideIndex, setPreviewSlideIndex] = useState(0);
 
   // Drag state
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
