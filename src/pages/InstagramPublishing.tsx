@@ -209,7 +209,7 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
       content_pillar: editPillar,
       reel_script: editReelScript,
       carousel_slides: editCarouselSlides,
-      media_urls: carouselSlideImages,
+      media_urls: editMediaType === 'reel' ? (editReelVideoUrl ? [editReelVideoUrl] : []) : carouselSlideImages,
     });
     toast.success('Saved!');
   };
