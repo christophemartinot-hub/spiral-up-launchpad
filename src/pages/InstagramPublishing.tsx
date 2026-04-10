@@ -18,6 +18,7 @@ import {
 import {
   Sparkles, Eye, Loader2, Save, Send, Trash2, Pencil,
   Lightbulb, ImagePlus, Upload, ArrowRight, Instagram, CheckCircle, Plus, X, Film, Image, Layers,
+  ChevronLeft, ChevronRight, ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -60,6 +61,9 @@ export default function InstagramPublishing() {
   const [editPillar, setEditPillar] = useState('');
   const [editReelScript, setEditReelScript] = useState('');
   const [editCarouselSlides, setEditCarouselSlides] = useState<string[]>([]);
+  const [carouselSlideImages, setCarouselSlideImages] = useState<(string | null)[]>([]);
+  const [generatingSlideImages, setGeneratingSlideImages] = useState(false);
+  const [previewSlideIndex, setPreviewSlideIndex] = useState(0);
 
   // Drag state
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
@@ -101,6 +105,10 @@ export default function InstagramPublishing() {
     setEditPillar(post.content_pillar || '');
     setEditReelScript(post.reel_script || '');
     setEditCarouselSlides(Array.isArray(post.carousel_slides) ? post.carousel_slides as string[] : []);
+    // Load slide images from media_urls if available
+    const mediaUrls = Array.isArray(post.media_urls) ? post.media_urls as (string | null)[] : [];
+    setCarouselSlideImages(mediaUrls);
+    setPreviewSlideIndex(0);
     setSelectedId(post.id);
     setActiveTab('editor');
   }, []);
@@ -198,6 +206,7 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
       content_pillar: editPillar,
       reel_script: editReelScript,
       carousel_slides: editCarouselSlides,
+      media_urls: carouselSlideImages,
     });
     toast.success('Saved!');
   };
@@ -474,9 +483,76 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
                             </Button>
                           </div>
                         ))}
-                        <Button variant="outline" size="sm" onClick={() => setEditCarouselSlides([...editCarouselSlides, ''])}>
-                          <Plus className="w-3 h-3 mr-1" /> Add Slide
-                        </Button>
+                        <div className="flex gap-2 flex-wrap">
+                          <Button variant="outline" size="sm" onClick={() => setEditCarouselSlides([...editCarouselSlides, ''])}>
+                            <Plus className="w-3 h-3 mr-1" /> Add Slide
+                          </Button>
+                          <Button
+                            variant="outline" size="sm"
+                            disabled={generatingSlideImages || editCarouselSlides.length === 0}
+                            onClick={async () => {
+                              setGeneratingSlideImages(true);
+                              const images: (string | null)[] = [];
+                              try {
+                                for (let i = 0; i < editCarouselSlides.length; i++) {
+                                  toast.info(`Generating slide ${i + 1} of ${editCarouselSlides.length}...`);
+                                  const concept = editCarouselSlides[i]?.slice(0, 300) || `Slide ${i + 1}`;
+                                  const { data, error } = await supabase.functions.invoke('generate-social-image', {
+                                    body: {
+                                      visual_concept: concept,
+                                      visual_type: 'carousel_slide',
+                                      channel: 'instagram',
+                                      title: editCaption?.slice(0, 80),
+                                      content_format: 'carousel',
+                                      content: concept,
+                                    },
+                                  });
+                                  if (error) throw error;
+                                  images.push(data?.image_url || null);
+                                }
+                                setCarouselSlideImages(images);
+                                if (selectedId) {
+                                  await updatePost.mutateAsync({ id: selectedId, media_urls: images });
+                                }
+                                toast.success(`${images.filter(Boolean).length} slide images generated!`);
+                              } catch (e: any) {
+                                toast.error('Slide generation failed: ' + e.message);
+                              }
+                              setGeneratingSlideImages(false);
+                            }}
+                          >
+                            {generatingSlideImages ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
+                            AI Generate Slide Images
+                          </Button>
+                          <Button
+                            variant="outline" size="sm"
+                            onClick={() => {
+                              const text = editCarouselSlides.map((s, i) => `Slide ${i + 1}: ${s}`).join('\n');
+                              navigator.clipboard.writeText(text);
+                              window.open('https://www.canva.com/create/instagram-posts/', '_blank');
+                              toast.success('Slide text copied — opening Canva');
+                            }}
+                            disabled={editCarouselSlides.length === 0}
+                          >
+                            <ExternalLink className="w-3 h-3 mr-1" /> Design in Canva
+                          </Button>
+                        </div>
+
+                        {/* Slide image previews */}
+                        {carouselSlideImages.some(Boolean) && (
+                          <div className="grid grid-cols-4 gap-2 mt-2">
+                            {carouselSlideImages.map((img, i) => (
+                              <div key={i} className="relative rounded-md overflow-hidden border border-border aspect-[4/5]">
+                                {img ? (
+                                  <img src={img} alt={`Slide ${i + 1}`} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full bg-muted/50 flex items-center justify-center text-[10px] text-muted-foreground">{i + 1}</div>
+                                )}
+                                <span className="absolute bottom-0 left-0 right-0 text-center text-[9px] bg-black/50 text-white py-0.5">{i + 1}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -608,8 +684,61 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
                     <p className="text-[10px] text-muted-foreground">Spiral Up</p>
                   </div>
                 </div>
-                {/* Image */}
-                {selectedPost.cover_image_url ? (
+                {/* Image / Carousel */}
+                {selectedPost.media_type === 'carousel' && Array.isArray(selectedPost.media_urls) && (selectedPost.media_urls as string[]).some(Boolean) ? (
+                  <div className="relative">
+                    {(() => {
+                      const slideImages = (selectedPost.media_urls as (string | null)[]);
+                      const currentImg = slideImages[previewSlideIndex];
+                      return (
+                        <>
+                          {currentImg ? (
+                            <img src={currentImg} alt={`Slide ${previewSlideIndex + 1}`} className="w-full aspect-[4/5] object-cover" />
+                          ) : (
+                            <div className="w-full aspect-[4/5] bg-muted/50 flex items-center justify-center">
+                              <span className="text-sm text-muted-foreground">Slide {previewSlideIndex + 1}</span>
+                            </div>
+                          )}
+                          {slideImages.length > 1 && (
+                            <>
+                              <Button
+                                variant="ghost" size="icon"
+                                className="absolute left-1 top-1/2 -translate-y-1/2 bg-black/40 text-white hover:bg-black/60 rounded-full w-7 h-7"
+                                onClick={() => setPreviewSlideIndex(Math.max(0, previewSlideIndex - 1))}
+                                disabled={previewSlideIndex === 0}
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost" size="icon"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 bg-black/40 text-white hover:bg-black/60 rounded-full w-7 h-7"
+                                onClick={() => setPreviewSlideIndex(Math.min(slideImages.length - 1, previewSlideIndex + 1))}
+                                disabled={previewSlideIndex === slideImages.length - 1}
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </Button>
+                              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                                {slideImages.map((_, i) => (
+                                  <button
+                                    key={i}
+                                    onClick={() => setPreviewSlideIndex(i)}
+                                    className={cn(
+                                      'w-1.5 h-1.5 rounded-full transition-all',
+                                      i === previewSlideIndex ? 'bg-white scale-125' : 'bg-white/50'
+                                    )}
+                                  />
+                                ))}
+                              </div>
+                              <span className="absolute top-2 right-2 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded-full">
+                                {previewSlideIndex + 1}/{slideImages.length}
+                              </span>
+                            </>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                ) : selectedPost.cover_image_url ? (
                   <img src={selectedPost.cover_image_url} alt="" className="w-full aspect-square object-cover" />
                 ) : (
                   <div className="w-full aspect-square bg-muted/50 flex items-center justify-center">
@@ -624,9 +753,11 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
                   )}
                   {selectedPost.media_type === 'carousel' && Array.isArray(selectedPost.carousel_slides) && (selectedPost.carousel_slides as string[]).length > 0 && (
                     <div className="mt-3 pt-3 border-t border-border">
-                      <p className="text-xs font-medium mb-2">Carousel Slides ({(selectedPost.carousel_slides as string[]).length})</p>
+                      <p className="text-xs font-medium mb-2">Slide Text ({(selectedPost.carousel_slides as string[]).length})</p>
                       {(selectedPost.carousel_slides as string[]).map((slide, i) => (
-                        <div key={i} className="text-xs p-2 mb-1 bg-muted/30 rounded">{i + 1}. {slide}</div>
+                        <div key={i} className={cn("text-xs p-2 mb-1 rounded cursor-pointer transition-colors", i === previewSlideIndex ? "bg-primary/10 border border-primary/30" : "bg-muted/30")} onClick={() => setPreviewSlideIndex(i)}>
+                          <span className="font-medium">{i + 1}.</span> {slide}
+                        </div>
                       ))}
                     </div>
                   )}
