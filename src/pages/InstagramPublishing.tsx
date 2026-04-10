@@ -522,6 +522,38 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
                       <Button variant="outline" size="sm" className="w-full" onClick={() => fileRef.current?.click()} disabled={uploadingImage}>
                         {uploadingImage ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Upload className="w-3 h-3 mr-1" />} Upload Image
                       </Button>
+                      <Button
+                        variant="outline" size="sm" className="w-full"
+                        disabled={generatingImage || !editCaption}
+                        onClick={async () => {
+                          setGeneratingImage(true);
+                          try {
+                            const concept = editCaption?.slice(0, 200) || 'Leadership and transformation';
+                            const { data, error } = await supabase.functions.invoke('generate-social-image', {
+                              body: {
+                                visual_concept: concept,
+                                visual_type: 'editorial_photo',
+                                channel: 'instagram',
+                                title: editCaption?.slice(0, 80),
+                                content: editCaption,
+                              },
+                            });
+                            if (error) throw error;
+                            if (data?.image_url) {
+                              setEditCoverImage(data.image_url);
+                              if (selectedId) await updatePost.mutateAsync({ id: selectedId, cover_image_url: data.image_url });
+                              toast.success('AI image generated!');
+                            } else {
+                              toast.error(data?.error || 'Image generation failed');
+                            }
+                          } catch (e: any) {
+                            toast.error('Image generation failed: ' + e.message);
+                          }
+                          setGeneratingImage(false);
+                        }}
+                      >
+                        {generatingImage ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />} AI Generate Image
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
