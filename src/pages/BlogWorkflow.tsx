@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { brandProfile } from '@/data/brand';
 import { streamContent } from '@/lib/ai';
+import { supabase } from '@/integrations/supabase/client';
 import {
   useBlogPosts, useBlogPost, useCreateBlogPost, useUpdateBlogPost,
   useDeleteBlogPost, usePublishBlogPost, useUnpublishBlogPost, generateSlug,
@@ -22,7 +23,7 @@ import { format, parseISO, setHours, setMinutes, addDays, nextTuesday, nextWedne
 import {
   Sparkles, FileText, Globe, Eye, Copy, Check, Loader2,
   Save, CheckCircle, Send, Trash2, ExternalLink, Pencil, ArrowLeft,
-  CalendarIcon, Clock, Lightbulb,
+  CalendarIcon, Clock, Lightbulb, ImagePlus, RefreshCw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -51,6 +52,7 @@ export default function BlogWorkflow() {
   const [topic, setTopic] = useState('');
   const [pillar, setPillar] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   // Editor state
   const [editTitle, setEditTitle] = useState('');
@@ -192,6 +194,36 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
       toast.error(e.message);
     }
   }, [selectedId, editTitle, editSlug, editContent, editExcerpt, editMetaDesc, editHeroImage, editAuthor, editTags, editLinkedin, editNewsletter, editVisualConcept, updatePost]);
+
+  const handleGenerateHeroImage = useCallback(async () => {
+    if (!editTitle.trim()) { toast.error('Add a title first'); return; }
+    setIsGeneratingImage(true);
+    try {
+      const visualConcept = editVisualConcept?.trim()
+        || `Professional editorial hero image for a blog post titled "${editTitle}". Clean, modern, editorial quality, suitable as a blog header image.`;
+
+      const { data, error } = await supabase.functions.invoke('generate-social-image', {
+        body: {
+          visual_concept: visualConcept,
+          visual_type: 'editorial',
+          channel: 'blog',
+          title: editTitle,
+          content: editExcerpt || editContent?.slice(0, 300),
+        },
+      });
+      if (error || !data?.image_url) throw new Error(error?.message || 'No image returned');
+      setEditHeroImage(data.image_url);
+      // Auto-save the image to the post
+      if (selectedId) {
+        await updatePost.mutateAsync({ id: selectedId, hero_image_url: data.image_url });
+      }
+      toast.success('Hero image generated!');
+    } catch (e: any) {
+      toast.error('Image generation failed: ' + (e.message || 'Unknown error'));
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  }, [editTitle, editVisualConcept, editExcerpt, editContent, selectedId, updatePost]);
 
   // ─── Status transitions ───
   const setStatus = useCallback(async (status: string) => {
@@ -510,6 +542,27 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <Input placeholder="Image URL" value={editHeroImage} onChange={e => setEditHeroImage(e.target.value)} />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant={editHeroImage ? 'outline' : 'default'}
+                          onClick={handleGenerateHeroImage}
+                          disabled={isGeneratingImage}
+                          className="flex-1"
+                        >
+                          {isGeneratingImage
+                            ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Generating...</>
+                            : editHeroImage
+                              ? <><RefreshCw className="w-3 h-3 mr-1" /> Regenerate</>
+                              : <><ImagePlus className="w-3 h-3 mr-1" /> Generate Image</>
+                          }
+                        </Button>
+                        {editHeroImage && (
+                          <Button size="sm" variant="ghost" onClick={() => setEditHeroImage('')} className="text-destructive">
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
                       {editHeroImage && (
                         <img src={editHeroImage} alt="Hero" className="w-full rounded-lg border border-border aspect-video object-cover" />
                       )}
