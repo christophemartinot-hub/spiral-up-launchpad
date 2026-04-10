@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +24,7 @@ import {
   Sparkles, FileText, Globe, Eye, Copy, Check, Loader2,
   Save, CheckCircle, Send, Trash2, ExternalLink, Pencil, ArrowLeft,
   CalendarIcon, Clock, Lightbulb, ImagePlus, RefreshCw,
+  Upload,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -37,6 +38,8 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default function BlogWorkflow() {
+  const heroFileRef = useRef<HTMLInputElement>(null);
+  const [uploadingHeroImage, setUploadingHeroImage] = useState(false);
   const { data: posts = [], isLoading } = useBlogPosts();
   const createPost = useCreateBlogPost();
   const updatePost = useUpdateBlogPost();
@@ -229,6 +232,26 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
       toast.success('Unsplash link converted to a direct image URL');
     }
   }, [normalizeHeroImageUrl]);
+
+  const handleHeroImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Please select an image file'); return; }
+    setUploadingHeroImage(true);
+    try {
+      const path = `blog-heroes/${Date.now()}-${file.name}`;
+      const { error } = await supabase.storage.from('brand-assets').upload(path, file);
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from('brand-assets').getPublicUrl(path);
+      setEditHeroImage(publicUrl);
+      toast.success('Image uploaded!');
+    } catch (err: any) {
+      toast.error(err.message || 'Upload failed');
+    } finally {
+      setUploadingHeroImage(false);
+      if (heroFileRef.current) heroFileRef.current.value = '';
+    }
+  }, []);
 
   const handleGenerateHeroImage = useCallback(async () => {
     if (!editTitle.trim()) { toast.error('Add a title first'); return; }
@@ -575,9 +598,21 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                       <CardTitle className="text-sm font-display">Hero Image</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      <Input placeholder="Paste image URL or Unsplash photo link" value={editHeroImage} onChange={e => void handleHeroImageChange(e.target.value)} />
-                      <p className="text-[10px] text-muted-foreground">You can paste either a direct image URL or a normal Unsplash photo page link</p>
+                      <Input placeholder="Paste direct image URL" value={editHeroImage} onChange={e => void handleHeroImageChange(e.target.value)} />
+                      <input ref={heroFileRef} type="file" accept="image/*" className="hidden" onChange={handleHeroImageUpload} />
                       <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => heroFileRef.current?.click()}
+                          disabled={uploadingHeroImage}
+                          className="flex-1"
+                        >
+                          {uploadingHeroImage
+                            ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Uploading...</>
+                            : <><Upload className="w-3 h-3 mr-1" /> Upload Image</>
+                          }
+                        </Button>
                         <Button
                           size="sm"
                           variant={editHeroImage ? 'outline' : 'default'}
