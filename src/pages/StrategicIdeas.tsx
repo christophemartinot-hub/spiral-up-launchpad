@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format, addDays, parseISO } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,10 +13,14 @@ import {
   useStrategicCycles, useStrategicIdeas, useGenerateStrategicIdeas,
   useUpdateStrategicIdea, useDeleteStrategicIdea, useDeleteStrategicCycle,
 } from '@/hooks/use-strategic';
+import { useCreateBlogPost } from '@/hooks/use-blog';
+import { useCreateLinkedinPost } from '@/hooks/use-linkedin-posts';
+import { useCreateInstagramPost } from '@/hooks/use-instagram-posts';
 import {
   Sparkles, Loader2, CheckCircle, XCircle, Pin, PinOff,
   Zap, AlertTriangle, Lightbulb, BookOpen, Target, TrendingUp,
   ChevronDown, ChevronUp, Trash2, ArrowRight, Brain,
+  FileText, Linkedin, Instagram,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
