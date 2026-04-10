@@ -10,12 +10,15 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { brandProfile, contentTypes } from '@/data/brand';
 import { streamContent } from '@/lib/ai';
-import { Sparkles, Copy, Download, RefreshCw, Check, ArrowRight, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Sparkles, Copy, Download, RefreshCw, Check, ArrowRight, Loader2, FileText, CalendarPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
 export default function ContentStudio() {
+  const navigate = useNavigate();
   const [contentType, setContentType] = useState('blog_post');
   const [pillar, setPillar] = useState('');
   const [topic, setTopic] = useState('');
@@ -23,6 +26,8 @@ export default function ContentStudio() {
   const [generatedContent, setGeneratedContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isPushingBlog, setIsPushingBlog] = useState(false);
+  const [isPushingEditorial, setIsPushingEditorial] = useState(false);
 
   const handleGenerate = useCallback(async () => {
     if (!topic.trim()) {
@@ -79,6 +84,125 @@ Stay unmistakably Spiral Up in voice.`;
     setCopied(true);
     toast.success('Copied to clipboard');
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handlePushToBlog = async () => {
+    if (!generatedContent) return;
+    setIsPushingBlog(true);
+    try {
+      const slug = topic.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+      const selectedPillar = brandProfile.contentPillars.find(p => p.id === pillar);
+      
+      // Try to extract a title from the content (first markdown heading or topic)
+      const titleMatch = generatedContent.match(/^#\s+(.+)$/m);
+      const title = titleMatch ? titleMatch[1].trim() : topic;
+      
+      // Try to extract meta description
+      const metaMatch = generatedContent.match(/meta\s*description[:\s]*(.+)/i);
+      const metaDescription = metaMatch ? metaMatch[1].trim().slice(0, 160) : '';
+      
+      // Extract first paragraph as excerpt
+      const paragraphs = generatedContent.split('\n\n').filter(p => p.trim() && !p.startsWith('#'));
+      const excerpt = paragraphs[0]?.trim().slice(0, 300) || '';
+
+      const { error } = await supabase.from('blog_posts').insert({
+        title,
+        slug,
+        content: generatedContent,
+        excerpt,
+        meta_description: metaDescription,
+        content_pillar: selectedPillar?.name || '',
+        status: 'draft',
+      });
+      if (error) throw error;
+      toast.success('Blog draft created!', {
+        action: { label: 'Open Blog', onClick: () => navigate('/blog') },
+      });
+    } catch (e: any) {
+      toast.error('Failed to create blog draft: ' + (e.message || 'Unknown error'));
+    } finally {
+      setIsPushingBlog(false);
+    }
+  };
+
+  const handlePushToEditorial = async () => {
+    if (!generatedContent) return;
+    setIsPushingEditorial(true);
+    try {
+      const selectedPillar = brandProfile.contentPillars.find(p => p.id === pillar);
+      
+      // Get or create an active editorial plan
+      const { data: plans } = await supabase
+        .from('editorial_plans')
+        .select('id')
+        .in('status', ['draft', 'active'])
+        .order('cycle_start', { ascending: false })
+        .limit(1);
+
+      let planId: string;
+      if (plans && plans.length > 0) {
+        planId = plans[0].id;
+      } else {
+        // Create a new plan for the current week
+        const now = new Date();
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - now.getDay() + 1);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        
+        const { data: newPlan, error: planError } = await supabase
+          .from('editorial_plans')
+          .insert({
+            cycle_start: monday.toISOString().split('T')[0],
+            cycle_end: sunday.toISOString().split('T')[0],
+            status: 'draft',
+          })
+          .select('id')
+          .single();
+        if (planError) throw planError;
+        planId = newPlan.id;
+      }
+
+      const formatMap: Record<string, string> = {
+        blog_post: 'blog_post',
+        linkedin_post: 'linkedin_post',
+        newsletter: 'newsletter',
+        event_promo: 'linkedin_post',
+        landing_page: 'blog_post',
+        lead_magnet: 'blog_post',
+        email_sequence: 'newsletter',
+        campaign_copy: 'linkedin_post',
+      };
+      const channelMap: Record<string, string> = {
+        blog_post: 'blog',
+        linkedin_post: 'linkedin',
+        newsletter: 'email',
+        event_promo: 'linkedin',
+        landing_page: 'blog',
+        lead_magnet: 'blog',
+        email_sequence: 'email',
+        campaign_copy: 'linkedin',
+      };
+
+      const { error } = await supabase.from('editorial_items').insert({
+        plan_id: planId,
+        working_title: topic,
+        draft_content: generatedContent,
+        content_format: formatMap[contentType] || 'linkedin_post',
+        channel: channelMap[contentType] || 'linkedin',
+        content_pillar: selectedPillar?.name || '',
+        publish_date: new Date().toISOString().split('T')[0],
+        status: 'draft',
+      });
+      if (error) throw error;
+      toast.success('Added to editorial plan!', {
+        action: { label: 'Open Planner', onClick: () => navigate('/editorial') },
+      });
+    } catch (e: any) {
+      toast.error('Failed to add to editorial plan: ' + (e.message || 'Unknown error'));
+    } finally {
+      setIsPushingEditorial(false);
+    }
   };
 
   return (
@@ -200,14 +324,22 @@ Stay unmistakably Spiral Up in voice.`;
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="font-display text-base">Output</CardTitle>
-                {generatedContent && (
-                  <div className="flex gap-2">
+                {generatedContent && !isGenerating && (
+                  <div className="flex flex-wrap gap-2">
                     <Button variant="outline" size="sm" onClick={handleCopy}>
                       {copied ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
                       {copied ? 'Copied' : 'Copy'}
                     </Button>
                     <Button variant="outline" size="sm" onClick={handleGenerate} disabled={isGenerating}>
                       <RefreshCw className="w-3 h-3 mr-1" /> Regenerate
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={handlePushToBlog} disabled={isPushingBlog}>
+                      {isPushingBlog ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <FileText className="w-3 h-3 mr-1" />}
+                      Push to Blog
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={handlePushToEditorial} disabled={isPushingEditorial}>
+                      {isPushingEditorial ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <CalendarPlus className="w-3 h-3 mr-1" />}
+                      Push to Editorial
                     </Button>
                   </div>
                 )}
