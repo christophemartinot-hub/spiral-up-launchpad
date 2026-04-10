@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
 export default function ContentStudio() {
+  const navigate = useNavigate();
   const [contentType, setContentType] = useState('blog_post');
   const [pillar, setPillar] = useState('');
   const [topic, setTopic] = useState('');
@@ -25,6 +26,8 @@ export default function ContentStudio() {
   const [generatedContent, setGeneratedContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isPushingBlog, setIsPushingBlog] = useState(false);
+  const [isPushingEditorial, setIsPushingEditorial] = useState(false);
 
   const handleGenerate = useCallback(async () => {
     if (!topic.trim()) {
