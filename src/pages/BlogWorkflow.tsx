@@ -541,7 +541,8 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                       <CardTitle className="text-sm font-display">Hero Image</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      <Input placeholder="Image URL" value={editHeroImage} onChange={e => setEditHeroImage(e.target.value)} />
+                      <Input placeholder="Paste direct image URL (e.g. https://images.unsplash.com/...)" value={editHeroImage} onChange={e => setEditHeroImage(e.target.value)} />
+                      <p className="text-[10px] text-muted-foreground">Tip: On Unsplash, right-click the photo → "Copy image address" to get a direct URL</p>
                       <div className="flex gap-2">
                         <Button
                           size="sm"
