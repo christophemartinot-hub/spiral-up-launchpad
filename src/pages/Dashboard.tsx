@@ -1,11 +1,14 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Brain, Sparkles, PenTool, ArrowRight, Loader2 } from 'lucide-react';
+import { Brain, Sparkles, PenTool, ArrowRight, Loader2, FileText, Linkedin, Instagram } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO, startOfWeek, endOfWeek, subDays } from 'date-fns';
 import { useEditorialPlans, useEditorialItems } from '@/hooks/use-editorial';
+import { useBlogPosts } from '@/hooks/use-blog';
+import { useLinkedinPosts } from '@/hooks/use-linkedin-posts';
+import { useInstagramPosts } from '@/hooks/use-instagram-posts';
 
 const CHANNEL_ICONS: Record<string, string> = {
   linkedin: '💼', blog: '📝', email: '✉️', instagram: '📸', twitter: '𝕏',
@@ -25,13 +28,15 @@ export default function Dashboard() {
   const { data: plans, isLoading: plansLoading } = useEditorialPlans();
   const activePlan = plans?.[0];
   const { data: items, isLoading: itemsLoading } = useEditorialItems(activePlan?.id ?? null);
+  const { data: blogPosts = [], isLoading: blogLoading } = useBlogPosts();
+  const { data: linkedinPosts = [], isLoading: liLoading } = useLinkedinPosts();
+  const { data: instagramPosts = [], isLoading: igLoading } = useInstagramPosts();
 
   const loading = plansLoading || itemsLoading;
 
   const now = new Date();
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
-  const thirtyDaysAgo = subDays(now, 30);
 
   const thisWeekCount = items?.filter(i => {
     const d = parseISO(i.publish_date);
@@ -42,11 +47,59 @@ export default function Dashboard() {
     i.status === 'suggested' || i.status === 'under_review'
   ).length || 0;
 
-  const publishedCount = items?.filter(i =>
-    i.status === 'published' && parseISO(i.publish_date) >= thirtyDaysAgo
-  ).length || 0;
+  // Pipeline summaries
+  const blogDrafts = blogPosts.filter(p => p.status === 'draft').length;
+  const blogReview = blogPosts.filter(p => p.status === 'review').length;
+  const blogApproved = blogPosts.filter(p => p.status === 'approved').length;
+  const blogPublished = blogPosts.filter(p => p.status === 'published').length;
+
+  const liDrafts = linkedinPosts.filter(p => p.status === 'draft').length;
+  const liReview = linkedinPosts.filter(p => p.status === 'review').length;
+  const liApproved = linkedinPosts.filter(p => p.status === 'approved').length;
+  const liPublished = linkedinPosts.filter(p => p.status === 'published').length;
+
+  const igDrafts = instagramPosts.filter(p => p.status === 'draft').length;
+  const igReview = instagramPosts.filter(p => p.status === 'review').length;
+  const igApproved = instagramPosts.filter(p => p.status === 'approved').length;
+  const igPublished = instagramPosts.filter(p => p.status === 'published').length;
 
   const recentItems = items?.slice(0, 5) || [];
+
+  const pipelines = [
+    {
+      label: 'Blog',
+      icon: FileText,
+      href: '/blog',
+      color: 'text-orange-600',
+      drafts: blogDrafts,
+      review: blogReview,
+      approved: blogApproved,
+      published: blogPublished,
+      loading: blogLoading,
+    },
+    {
+      label: 'LinkedIn',
+      icon: Linkedin,
+      href: '/linkedin',
+      color: 'text-[#0077B5]',
+      drafts: liDrafts,
+      review: liReview,
+      approved: liApproved,
+      published: liPublished,
+      loading: liLoading,
+    },
+    {
+      label: 'Instagram',
+      icon: Instagram,
+      href: '/instagram',
+      color: 'text-[#E4405F]',
+      drafts: igDrafts,
+      review: igReview,
+      approved: igApproved,
+      published: igPublished,
+      loading: igLoading,
+    },
+  ];
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4">
@@ -73,12 +126,11 @@ export default function Dashboard() {
       <motion.div
         initial="hidden" animate="show"
         variants={{ show: { transition: { staggerChildren: 0.06 } } }}
-        className="grid grid-cols-3 gap-3"
+        className="grid grid-cols-2 gap-3"
       >
         {[
           { label: 'This Week', value: thisWeekCount },
           { label: 'In Progress', value: inProgressCount },
-          { label: 'Published (30d)', value: publishedCount },
         ].map(s => (
           <motion.div key={s.label} variants={fadeIn}>
             <Card>
@@ -87,6 +139,50 @@ export default function Dashboard() {
                 <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
               </CardContent>
             </Card>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Pipeline Summaries */}
+      <motion.div
+        initial="hidden" animate="show"
+        variants={{ show: { transition: { staggerChildren: 0.06 } } }}
+        className="grid grid-cols-3 gap-3"
+      >
+        {pipelines.map(p => (
+          <motion.div key={p.label} variants={fadeIn}>
+            <Link to={p.href}>
+              <Card className="hover:border-primary/30 transition-colors cursor-pointer">
+                <CardContent className="p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <p.icon className={`w-4 h-4 ${p.color}`} />
+                    <span className="text-sm font-semibold">{p.label}</span>
+                  </div>
+                  {p.loading ? (
+                    <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+                  ) : (
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Drafts</span>
+                        <span className="font-medium">{p.drafts}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Review</span>
+                        <span className="font-medium">{p.review}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-warning font-medium">Ready</span>
+                        <span className="font-bold text-warning">{p.approved}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-success font-medium">Published</span>
+                        <span className="font-bold text-success">{p.published}</span>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </Link>
           </motion.div>
         ))}
       </motion.div>
