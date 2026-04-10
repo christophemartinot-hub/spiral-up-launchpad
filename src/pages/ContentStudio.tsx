@@ -324,14 +324,22 @@ Stay unmistakably Spiral Up in voice.`;
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="font-display text-base">Output</CardTitle>
-                {generatedContent && (
-                  <div className="flex gap-2">
+                {generatedContent && !isGenerating && (
+                  <div className="flex flex-wrap gap-2">
                     <Button variant="outline" size="sm" onClick={handleCopy}>
                       {copied ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
                       {copied ? 'Copied' : 'Copy'}
                     </Button>
                     <Button variant="outline" size="sm" onClick={handleGenerate} disabled={isGenerating}>
                       <RefreshCw className="w-3 h-3 mr-1" /> Regenerate
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={handlePushToBlog} disabled={isPushingBlog}>
+                      {isPushingBlog ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <FileText className="w-3 h-3 mr-1" />}
+                      Push to Blog
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={handlePushToEditorial} disabled={isPushingEditorial}>
+                      {isPushingEditorial ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <CalendarPlus className="w-3 h-3 mr-1" />}
+                      Push to Editorial
                     </Button>
                   </div>
                 )}
