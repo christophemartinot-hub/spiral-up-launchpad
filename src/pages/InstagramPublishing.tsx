@@ -481,9 +481,76 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
                             </Button>
                           </div>
                         ))}
-                        <Button variant="outline" size="sm" onClick={() => setEditCarouselSlides([...editCarouselSlides, ''])}>
-                          <Plus className="w-3 h-3 mr-1" /> Add Slide
-                        </Button>
+                        <div className="flex gap-2 flex-wrap">
+                          <Button variant="outline" size="sm" onClick={() => setEditCarouselSlides([...editCarouselSlides, ''])}>
+                            <Plus className="w-3 h-3 mr-1" /> Add Slide
+                          </Button>
+                          <Button
+                            variant="outline" size="sm"
+                            disabled={generatingSlideImages || editCarouselSlides.length === 0}
+                            onClick={async () => {
+                              setGeneratingSlideImages(true);
+                              const images: (string | null)[] = [];
+                              try {
+                                for (let i = 0; i < editCarouselSlides.length; i++) {
+                                  toast.info(`Generating slide ${i + 1} of ${editCarouselSlides.length}...`);
+                                  const concept = editCarouselSlides[i]?.slice(0, 300) || `Slide ${i + 1}`;
+                                  const { data, error } = await supabase.functions.invoke('generate-social-image', {
+                                    body: {
+                                      visual_concept: concept,
+                                      visual_type: 'carousel_slide',
+                                      channel: 'instagram',
+                                      title: editCaption?.slice(0, 80),
+                                      content_format: 'carousel',
+                                      content: concept,
+                                    },
+                                  });
+                                  if (error) throw error;
+                                  images.push(data?.image_url || null);
+                                }
+                                setCarouselSlideImages(images);
+                                if (selectedId) {
+                                  await updatePost.mutateAsync({ id: selectedId, media_urls: images });
+                                }
+                                toast.success(`${images.filter(Boolean).length} slide images generated!`);
+                              } catch (e: any) {
+                                toast.error('Slide generation failed: ' + e.message);
+                              }
+                              setGeneratingSlideImages(false);
+                            }}
+                          >
+                            {generatingSlideImages ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
+                            AI Generate Slide Images
+                          </Button>
+                          <Button
+                            variant="outline" size="sm"
+                            onClick={() => {
+                              const text = editCarouselSlides.map((s, i) => `Slide ${i + 1}: ${s}`).join('\n');
+                              navigator.clipboard.writeText(text);
+                              window.open('https://www.canva.com/create/instagram-posts/', '_blank');
+                              toast.success('Slide text copied — opening Canva');
+                            }}
+                            disabled={editCarouselSlides.length === 0}
+                          >
+                            <ExternalLink className="w-3 h-3 mr-1" /> Design in Canva
+                          </Button>
+                        </div>
+
+                        {/* Slide image previews */}
+                        {carouselSlideImages.some(Boolean) && (
+                          <div className="grid grid-cols-4 gap-2 mt-2">
+                            {carouselSlideImages.map((img, i) => (
+                              <div key={i} className="relative rounded-md overflow-hidden border border-border aspect-[4/5]">
+                                {img ? (
+                                  <img src={img} alt={`Slide ${i + 1}`} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full bg-muted/50 flex items-center justify-center text-[10px] text-muted-foreground">{i + 1}</div>
+                                )}
+                                <span className="absolute bottom-0 left-0 right-0 text-center text-[9px] bg-black/50 text-white py-0.5">{i + 1}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
 
