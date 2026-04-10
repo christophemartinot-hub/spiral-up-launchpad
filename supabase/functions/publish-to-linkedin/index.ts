@@ -6,6 +6,84 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const LINKEDIN_API_VERSION = "202603";
+
+/**
+ * Upload an image to LinkedIn and return the image URN.
+ * Flow: initializeUpload → PUT binary → return image URN
+ */
+async function uploadImageToLinkedIn(
+  imageUrl: string,
+  linkedinToken: string,
+  linkedinUrn: string
+): Promise<{ imageUrn: string | null; error?: string }> {
+  try {
+    // 1. Download the image
+    console.log("Downloading image:", imageUrl);
+    const imgRes = await fetch(imageUrl);
+    if (!imgRes.ok) {
+      return { imageUrn: null, error: `Failed to download image: ${imgRes.status}` };
+    }
+    const imageBytes = new Uint8Array(await imgRes.arrayBuffer());
+    console.log("Image downloaded, size:", imageBytes.length);
+
+    // 2. Initialize upload on LinkedIn
+    const initRes = await fetch("https://api.linkedin.com/rest/images?action=initializeUpload", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${linkedinToken}`,
+        "LinkedIn-Version": LINKEDIN_API_VERSION,
+        "X-Restli-Protocol-Version": "2.0.0",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        initializeUploadRequest: {
+          owner: linkedinUrn,
+        },
+      }),
+    });
+
+    const initText = await initRes.text();
+    if (!initRes.ok) {
+      return { imageUrn: null, error: `LinkedIn initializeUpload failed ${initRes.status}: ${initText}` };
+    }
+
+    let initData: any;
+    try { initData = JSON.parse(initText); } catch { return { imageUrn: null, error: `Invalid JSON from initializeUpload: ${initText}` }; }
+
+    const uploadUrl = initData.value?.uploadUrl;
+    const imageUrn = initData.value?.image;
+
+    if (!uploadUrl || !imageUrn) {
+      return { imageUrn: null, error: `Missing uploadUrl or image URN: ${initText}` };
+    }
+
+    console.log("Upload URL obtained, image URN:", imageUrn);
+
+    // 3. Upload the image binary
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${linkedinToken}`,
+        "Content-Type": "application/octet-stream",
+      },
+      body: imageBytes,
+    });
+
+    if (!uploadRes.ok) {
+      const uploadErr = await uploadRes.text();
+      return { imageUrn: null, error: `LinkedIn image upload failed ${uploadRes.status}: ${uploadErr}` };
+    }
+    // Consume response body
+    await uploadRes.text();
+
+    console.log("Image uploaded successfully to LinkedIn");
+    return { imageUrn };
+  } catch (err) {
+    return { imageUrn: null, error: `Image upload error: ${err instanceof Error ? err.message : String(err)}` };
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -34,11 +112,9 @@ Deno.serve(async (req) => {
     let keyMessage: string | null = null;
 
     if (source === "linkedin_posts") {
-      // Called from LinkedIn Publishing page — use body content directly
       postContent = content || "";
       postImageUrl = image_url || null;
 
-      // Optionally enrich from the DB row
       const { data: post } = await supabase
         .from("linkedin_posts")
         .select("content, image_url, hook, content_pillar")
@@ -51,7 +127,6 @@ Deno.serve(async (req) => {
         postTitle = post.hook || null;
       }
     } else {
-      // Default: editorial_items source
       const { data: item, error: fetchError } = await supabase
         .from("editorial_items")
         .select("*")
@@ -103,23 +178,32 @@ Deno.serve(async (req) => {
       isReshareDisabledByAuthor: false,
     };
 
+    // Upload image natively to LinkedIn if we have one
+    let uploadedImageUrn: string | null = null;
     if (postImageUrl) {
-      linkedinPayload.content = {
-        article: {
-          source: postImageUrl,
-          title: postTitle || "",
-          description: keyMessage || "",
-        },
-      };
+      console.log("Uploading image to LinkedIn natively...");
+      const uploadResult = await uploadImageToLinkedIn(postImageUrl, linkedinToken, linkedinUrn);
+      if (uploadResult.imageUrn) {
+        uploadedImageUrn = uploadResult.imageUrn;
+        linkedinPayload.content = {
+          media: {
+            id: uploadedImageUrn,
+            title: postTitle || "",
+          },
+        };
+        console.log("Image attached as native media:", uploadedImageUrn);
+      } else {
+        console.warn("Image upload failed, publishing without image:", uploadResult.error);
+      }
     }
 
-    console.log("Publishing to LinkedIn:", { item_id, source, hasImage: !!postImageUrl });
+    console.log("Publishing to LinkedIn:", { item_id, source, hasImage: !!uploadedImageUrn });
 
     const linkedinResponse = await fetch("https://api.linkedin.com/rest/posts", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${linkedinToken}`,
-        "LinkedIn-Version": "202603",
+        "LinkedIn-Version": LINKEDIN_API_VERSION,
         "X-Restli-Protocol-Version": "2.0.0",
         "Content-Type": "application/json",
       },
@@ -138,6 +222,7 @@ Deno.serve(async (req) => {
         source,
         status: linkedinResponse.status,
         image_url: postImageUrl,
+        image_urn: uploadedImageUrn,
         response: linkedinResponseText.substring(0, 500),
       },
     });
@@ -163,7 +248,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, message: "Published to LinkedIn ✅" }),
+      JSON.stringify({ success: true, message: "Published to LinkedIn ✅", imageUrn: uploadedImageUrn }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
