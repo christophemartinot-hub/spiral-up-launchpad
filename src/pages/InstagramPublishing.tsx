@@ -18,6 +18,7 @@ import {
 import {
   Sparkles, Eye, Loader2, Save, Send, Trash2, Pencil,
   Lightbulb, ImagePlus, Upload, ArrowRight, Instagram, CheckCircle, Plus, X, Film, Image, Layers,
+  ChevronLeft, ChevronRight, ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
