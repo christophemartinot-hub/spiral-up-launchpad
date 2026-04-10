@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,8 +23,8 @@ import { format, parseISO, setHours, setMinutes, addDays, nextTuesday, nextWedne
 import {
   Sparkles, FileText, Globe, Eye, Copy, Check, Loader2,
   Save, CheckCircle, Send, Trash2, ExternalLink, Pencil, ArrowLeft,
-  CalendarIcon, Clock, Lightbulb, ImagePlus, RefreshCw,
-  Upload,
+  CalendarIcon, Clock, ImagePlus, RefreshCw,
+  Upload, ArrowRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -56,6 +56,43 @@ export default function BlogWorkflow() {
   const [pillar, setPillar] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [suggestedTopics, setSuggestedTopics] = useState<string[]>([]);
+  const [isLoadingTopics, setIsLoadingTopics] = useState(false);
+
+  // Fetch AI-suggested topics when pillar changes
+  useEffect(() => {
+    if (!pillar) { setSuggestedTopics([]); return; }
+    const selectedPillar = brandProfile.contentPillars.find(p => p.id === pillar);
+    if (!selectedPillar) return;
+
+    let cancelled = false;
+    setIsLoadingTopics(true);
+    setSuggestedTopics([]);
+
+    supabase.functions.invoke('generate-content', {
+      body: {
+        messages: [{
+          role: 'user',
+          content: `Suggest exactly 5 compelling blog post topics for the "${selectedPillar.name}" content pillar (${selectedPillar.description}). Typical themes: ${selectedPillar.topics.join(', ')}. Return ONLY a JSON array of 5 short topic strings, no markdown, no explanation. Example: ["Topic one","Topic two","Topic three","Topic four","Topic five"]`
+        }],
+        stream: false,
+      },
+    }).then(({ data, error }) => {
+      if (cancelled) return;
+      setIsLoadingTopics(false);
+      if (error || !data) return;
+      const text = typeof data === 'string' ? data : data.content || data.choices?.[0]?.message?.content || '';
+      try {
+        const jsonMatch = text.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          const topics = JSON.parse(jsonMatch[0]);
+          if (Array.isArray(topics)) setSuggestedTopics(topics.slice(0, 5));
+        }
+      } catch { /* ignore */ }
+    });
+
+    return () => { cancelled = true; };
+  }, [pillar]);
 
   // Editor state
   const [editTitle, setEditTitle] = useState('');
