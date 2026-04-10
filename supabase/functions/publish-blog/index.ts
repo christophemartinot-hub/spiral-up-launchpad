@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (post.status !== "approved" && action !== "unpublish") {
+    if (post.status !== "approved" && post.status !== "published" && action !== "unpublish") {
       return new Response(
         JSON.stringify({ error: "Blog post must be approved before publishing" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
