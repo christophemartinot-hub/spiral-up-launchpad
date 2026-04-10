@@ -114,7 +114,7 @@ Requirements:
 - Short paragraphs (1-2 sentences each)
 - Personal, direct tone — writing as Christophe Martinot
 - Include a clear CTA at the end
-- Suggest 3-5 relevant hashtags at the very end
+- Suggest 3-5 relevant hashtags at the very end — ALWAYS include #SpiralUpWorks
 
 Format the output as:
 ## HOOK
@@ -146,6 +146,7 @@ Stay unmistakably Spiral Up in voice.`;
         const body = bodyMatch?.[1]?.trim() || content;
         const cta = ctaMatch?.[1]?.trim() || '';
         const hashtags = hashMatch?.[1]?.trim().split(',').map(h => h.trim().replace(/^#/, '')) || [];
+        if (!hashtags.some(h => h.toLowerCase() === 'spiralupworks')) hashtags.push('SpiralUpWorks');
 
         try {
           const newPost = await createPost.mutateAsync({
@@ -172,6 +173,7 @@ Stay unmistakably Spiral Up in voice.`;
   const handleSave = async () => {
     if (!selectedId) return;
     const hashtags = editHashtags.split(',').map(h => h.trim()).filter(Boolean);
+    if (!hashtags.some(h => h.toLowerCase() === 'spiralupworks')) hashtags.push('SpiralUpWorks');
     await updatePost.mutateAsync({
       id: selectedId,
       hook: editHook,
