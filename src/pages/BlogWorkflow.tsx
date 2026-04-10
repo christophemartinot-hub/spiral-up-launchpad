@@ -143,11 +143,19 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
         const parsedTitle = titleMatch?.[1]?.trim() || topic;
         const parsedSlug = generateSlug(parsedTitle);
 
+        // Parse LinkedIn and Newsletter versions
+        const linkedinMatch = content.match(/## LINKEDIN POST VERSION\s*\n([\s\S]*?)(?=\n## |$)/i);
+        const newsletterMatch = content.match(/## NEWSLETTER VERSION\s*\n([\s\S]*?)(?=\n## |$)/i);
+        const parsedLinkedin = linkedinMatch?.[1]?.trim() || '';
+        const parsedNewsletter = newsletterMatch?.[1]?.trim() || '';
+
         setEditTitle(parsedTitle);
         setEditSlug(parsedSlug);
         setEditMetaDesc(metaMatch?.[1]?.trim() || '');
         setEditExcerpt(excerptMatch?.[1]?.trim() || '');
         setEditTags(keywordsMatch?.[1]?.trim() || '');
+        setEditLinkedin(parsedLinkedin);
+        setEditNewsletter(parsedNewsletter);
 
         // Save as draft
         try {
@@ -160,6 +168,8 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
             seo_keywords: keywordsMatch?.[1]?.split(',').map((k: string) => k.trim()) || [],
             content_pillar: pillar || '',
             author: 'Christophe Martinot',
+            linkedin_version: parsedLinkedin,
+            newsletter_version: parsedNewsletter,
             status: 'draft',
           } as any);
           if (result) setSelectedId(result.id);
