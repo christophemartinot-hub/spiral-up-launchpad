@@ -382,30 +382,6 @@ Stay unmistakably Spiral Up in voice.`;
             </CardContent>
           </Card>
 
-          {/* Quick Prompts */}
-          <Card className="shadow-card">
-            <CardHeader><CardTitle className="font-display text-base">Quick Prompts</CardTitle></CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {[
-                  'Why "agile transformation" is an oxymoron',
-                  'The hidden cost of organizational debt',
-                  '5 signs your transformation is performative',
-                  'From hierarchy to network: a practical playbook',
-                  'What leaders get wrong about resilience',
-                ].map(prompt => (
-                  <button
-                    key={prompt}
-                    onClick={() => setTopic(prompt)}
-                    className="w-full text-left text-xs p-2.5 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/50 transition-all"
-                  >
-                    <ArrowRight className="w-3 h-3 inline mr-1.5 text-primary" />
-                    {prompt}
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Output Panel */}
