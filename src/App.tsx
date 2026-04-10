@@ -9,6 +9,8 @@ import Dashboard from "@/pages/Dashboard";
 import BrandIntelligence from "@/pages/BrandIntelligence";
 import ContentStudio from "@/pages/ContentStudio";
 import BlogWorkflow from "@/pages/BlogWorkflow";
+import LinkedInPublishing from "@/pages/LinkedInPublishing";
+import InstagramPublishing from "@/pages/InstagramPublishing";
 import Analytics from "@/pages/Analytics";
 import CalendarView from "@/pages/CalendarView";
 import ContentLibrary from "@/pages/ContentLibrary";
@@ -58,6 +60,8 @@ function AuthenticatedApp() {
         {/* Pages still accessible via direct URL */}
         <Route path="/brand" element={<BrandIntelligence />} />
         <Route path="/blog" element={<BlogWorkflow />} />
+        <Route path="/linkedin" element={<LinkedInPublishing />} />
+        <Route path="/instagram" element={<InstagramPublishing />} />
         <Route path="/content" element={<ContentLibrary />} />
         <Route path="/campaigns" element={<Campaigns />} />
         <Route path="/campaigns/new" element={<CampaignWizard />} />
