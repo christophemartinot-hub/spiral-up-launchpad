@@ -140,7 +140,7 @@ ${typeInstructions[mediaType]}
 ## CTA
 [The call to action]
 
-Format all hashtags at the end.
+Format all hashtags at the end. ALWAYS include #SpiralUpWorks.
 Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
 
     let content = '';
@@ -157,6 +157,7 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
         const caption = captionMatch?.[1]?.trim() || content;
         const cta = ctaMatch?.[1]?.trim() || '';
         const hashtags = hashMatch?.[1]?.trim().split(',').map(h => h.trim().replace(/^#/, '')) || [];
+        if (!hashtags.some(h => h.toLowerCase() === 'spiralupworks')) hashtags.push('SpiralUpWorks');
         const carouselSlides = slidesMatch ? slidesMatch[1].split('---').map(s => s.trim()).filter(Boolean) : [];
         const reelScript = reelMatch?.[1]?.trim() || '';
 
@@ -186,6 +187,7 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
   const handleSave = async () => {
     if (!selectedId) return;
     const hashtags = editHashtags.split(',').map(h => h.trim()).filter(Boolean);
+    if (!hashtags.some(h => h.toLowerCase() === 'spiralupworks')) hashtags.push('SpiralUpWorks');
     await updatePost.mutateAsync({
       id: selectedId,
       caption: editCaption,

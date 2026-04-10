@@ -272,14 +272,14 @@ function StrategicIdeaCard({ idea }: { idea: any }) {
           hook: idea.tension_statement || idea.title,
           content: idea.description || '',
           content_pillar: pillar,
-          hashtags: [],
+          hashtags: ['SpiralUpWorks'],
           status: 'draft',
         }),
         createInstagram.mutateAsync({
           caption: idea.description || idea.title,
           media_type: 'post',
           content_pillar: pillar,
-          hashtags: [],
+          hashtags: ['SpiralUpWorks'],
           status: 'draft',
         }),
       ]);

@@ -34,9 +34,13 @@ async function publishToLinkedIn(
     return { success: false, response: null, error: "LinkedIn credentials not configured" };
   }
 
+  // Ensure #SpiralUpWorks is present
+  const tag = '#SpiralUpWorks';
+  const finalCaption = caption.includes(tag) ? caption : `${caption}\n\n${tag}`;
+
   const linkedinPayload: Record<string, unknown> = {
     author: linkedinUrn,
-    commentary: caption,
+    commentary: finalCaption,
     visibility: "PUBLIC",
     distribution: {
       feedDistribution: "MAIN_FEED",
