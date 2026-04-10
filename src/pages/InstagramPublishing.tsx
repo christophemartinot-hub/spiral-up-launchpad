@@ -64,6 +64,8 @@ export default function InstagramPublishing() {
   const [carouselSlideImages, setCarouselSlideImages] = useState<(string | null)[]>([]);
   const [generatingSlideImages, setGeneratingSlideImages] = useState(false);
   const [previewSlideIndex, setPreviewSlideIndex] = useState(0);
+  const [editReelVideoUrl, setEditReelVideoUrl] = useState('');
+  const [generatingReelVideo, setGeneratingReelVideo] = useState(false);
 
   // Drag state
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
@@ -105,9 +107,10 @@ export default function InstagramPublishing() {
     setEditPillar(post.content_pillar || '');
     setEditReelScript(post.reel_script || '');
     setEditCarouselSlides(Array.isArray(post.carousel_slides) ? post.carousel_slides as string[] : []);
-    // Load slide images from media_urls if available
     const mediaUrls = Array.isArray(post.media_urls) ? post.media_urls as (string | null)[] : [];
     setCarouselSlideImages(mediaUrls);
+    // Load reel video URL from media_urls (first entry for reels)
+    setEditReelVideoUrl(post.media_type === 'reel' && mediaUrls.length > 0 && mediaUrls[0] ? mediaUrls[0] : '');
     setPreviewSlideIndex(0);
     setSelectedId(post.id);
     setActiveTab('editor');
@@ -206,7 +209,7 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
       content_pillar: editPillar,
       reel_script: editReelScript,
       carousel_slides: editCarouselSlides,
-      media_urls: carouselSlideImages,
+      media_urls: editMediaType === 'reel' ? (editReelVideoUrl ? [editReelVideoUrl] : []) : carouselSlideImages,
     });
     toast.success('Saved!');
   };
@@ -461,9 +464,56 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
                     </div>
 
                     {editMediaType === 'reel' && (
-                      <div className="space-y-2">
-                        <Label>Reel Script</Label>
-                        <Textarea value={editReelScript} onChange={e => setEditReelScript(e.target.value)} rows={8} placeholder="Scene 1: [0-5s] Hook text overlay..." />
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label>Reel Script</Label>
+                          <Textarea value={editReelScript} onChange={e => setEditReelScript(e.target.value)} rows={8} placeholder="Scene 1: [0-5s] Hook text overlay..." />
+                        </div>
+
+                        {/* Reel Video */}
+                        <div className="space-y-2">
+                          <Label>Reel Video</Label>
+                          {editReelVideoUrl ? (
+                            <video src={editReelVideoUrl} controls className="w-full rounded-lg aspect-[9/16] object-cover bg-black" />
+                          ) : (
+                            <div className="w-full aspect-[9/16] max-h-[300px] rounded-lg bg-muted/50 flex flex-col items-center justify-center text-muted-foreground gap-2">
+                              <Film className="w-8 h-8" />
+                              <span className="text-xs">No video yet</span>
+                            </div>
+                          )}
+                          <Button
+                            variant="outline" size="sm" className="w-full"
+                            disabled={generatingReelVideo || !editReelScript}
+                            onClick={async () => {
+                              setGeneratingReelVideo(true);
+                              try {
+                                toast.info('Generating reel video — this may take a moment...');
+                                const { data, error } = await supabase.functions.invoke('generate-reel-video', {
+                                  body: {
+                                    reel_script: editReelScript,
+                                    caption: editCaption,
+                                    content_pillar: editPillar,
+                                    post_id: selectedId,
+                                  },
+                                });
+                                if (error) throw error;
+                                if (data?.video_url) {
+                                  setEditReelVideoUrl(data.video_url);
+                                  toast.success('Reel video generated!');
+                                } else {
+                                  toast.error(data?.error || 'Video generation failed');
+                                }
+                              } catch (e: any) {
+                                toast.error('Video generation failed: ' + e.message);
+                              }
+                              setGeneratingReelVideo(false);
+                            }}
+                          >
+                            {generatingReelVideo ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
+                            AI Generate Reel Video
+                          </Button>
+                          <Input value={editReelVideoUrl} onChange={e => setEditReelVideoUrl(e.target.value)} placeholder="Or paste video URL..." />
+                        </div>
                       </div>
                     )}
 
@@ -738,6 +788,12 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
                       );
                     })()}
                   </div>
+                ) : selectedPost.media_type === 'reel' && Array.isArray(selectedPost.media_urls) && (selectedPost.media_urls as string[])[0] ? (
+                  <video
+                    src={(selectedPost.media_urls as string[])[0]}
+                    controls
+                    className="w-full aspect-[9/16] max-h-[500px] object-cover bg-black"
+                  />
                 ) : selectedPost.cover_image_url ? (
                   <img src={selectedPost.cover_image_url} alt="" className="w-full aspect-square object-cover" />
                 ) : (
