@@ -240,6 +240,7 @@ export default function StrategicIdeas() {
 
 // ─── Individual Idea Card ───
 function StrategicIdeaCard({ idea }: { idea: any }) {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(idea.title);
@@ -249,6 +250,9 @@ function StrategicIdeaCard({ idea }: { idea: any }) {
 
   const updateIdea = useUpdateStrategicIdea();
   const deleteIdea = useDeleteStrategicIdea();
+  const createBlog = useCreateBlogPost();
+  const createLinkedin = useCreateLinkedinPost();
+  const createInstagram = useCreateInstagramPost();
   const typeConfig = IDEA_TYPE_CONFIG[idea.idea_type] || IDEA_TYPE_CONFIG.opportunity;
 
   const handleApprove = () => updateIdea.mutate({ id: idea.id, status: 'approved' });
