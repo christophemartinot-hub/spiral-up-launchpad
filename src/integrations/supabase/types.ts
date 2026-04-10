@@ -1289,6 +1289,92 @@ export type Database = {
         }
         Relationships: []
       }
+      instagram_posts: {
+        Row: {
+          author: string
+          blog_version: string | null
+          caption: string
+          carousel_slides: Json | null
+          content_pillar: string | null
+          cover_image_url: string | null
+          created_at: string
+          cta: string | null
+          editorial_item_id: string | null
+          engagement_data: Json | null
+          external_post_id: string | null
+          hashtags: Json | null
+          id: string
+          linkedin_version: string | null
+          media_type: string
+          media_urls: Json | null
+          published_at: string | null
+          reel_script: string | null
+          scheduled_publish_at: string | null
+          status: string
+          updated_at: string
+          visual_concept: string | null
+          visual_type: string | null
+        }
+        Insert: {
+          author?: string
+          blog_version?: string | null
+          caption?: string
+          carousel_slides?: Json | null
+          content_pillar?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          cta?: string | null
+          editorial_item_id?: string | null
+          engagement_data?: Json | null
+          external_post_id?: string | null
+          hashtags?: Json | null
+          id?: string
+          linkedin_version?: string | null
+          media_type?: string
+          media_urls?: Json | null
+          published_at?: string | null
+          reel_script?: string | null
+          scheduled_publish_at?: string | null
+          status?: string
+          updated_at?: string
+          visual_concept?: string | null
+          visual_type?: string | null
+        }
+        Update: {
+          author?: string
+          blog_version?: string | null
+          caption?: string
+          carousel_slides?: Json | null
+          content_pillar?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          cta?: string | null
+          editorial_item_id?: string | null
+          engagement_data?: Json | null
+          external_post_id?: string | null
+          hashtags?: Json | null
+          id?: string
+          linkedin_version?: string | null
+          media_type?: string
+          media_urls?: Json | null
+          published_at?: string | null
+          reel_script?: string | null
+          scheduled_publish_at?: string | null
+          status?: string
+          updated_at?: string
+          visual_concept?: string | null
+          visual_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_posts_editorial_item_id_fkey"
+            columns: ["editorial_item_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       learning_memory: {
         Row: {
           action_outcome: string | null
@@ -1344,6 +1430,89 @@ export type Database = {
             columns: ["cycle_id"]
             isOneToOne: false
             referencedRelation: "editorial_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      linkedin_posts: {
+        Row: {
+          author: string
+          blog_version: string | null
+          character_count: number | null
+          content: string
+          content_pillar: string | null
+          created_at: string
+          cta: string | null
+          editorial_item_id: string | null
+          engagement_data: Json | null
+          external_post_id: string | null
+          hashtags: Json | null
+          hook: string
+          id: string
+          image_url: string | null
+          linkedin_version: string | null
+          newsletter_version: string | null
+          published_at: string | null
+          scheduled_publish_at: string | null
+          status: string
+          updated_at: string
+          visual_concept: string | null
+          visual_type: string | null
+        }
+        Insert: {
+          author?: string
+          blog_version?: string | null
+          character_count?: number | null
+          content?: string
+          content_pillar?: string | null
+          created_at?: string
+          cta?: string | null
+          editorial_item_id?: string | null
+          engagement_data?: Json | null
+          external_post_id?: string | null
+          hashtags?: Json | null
+          hook?: string
+          id?: string
+          image_url?: string | null
+          linkedin_version?: string | null
+          newsletter_version?: string | null
+          published_at?: string | null
+          scheduled_publish_at?: string | null
+          status?: string
+          updated_at?: string
+          visual_concept?: string | null
+          visual_type?: string | null
+        }
+        Update: {
+          author?: string
+          blog_version?: string | null
+          character_count?: number | null
+          content?: string
+          content_pillar?: string | null
+          created_at?: string
+          cta?: string | null
+          editorial_item_id?: string | null
+          engagement_data?: Json | null
+          external_post_id?: string | null
+          hashtags?: Json | null
+          hook?: string
+          id?: string
+          image_url?: string | null
+          linkedin_version?: string | null
+          newsletter_version?: string | null
+          published_at?: string | null
+          scheduled_publish_at?: string | null
+          status?: string
+          updated_at?: string
+          visual_concept?: string | null
+          visual_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "linkedin_posts_editorial_item_id_fkey"
+            columns: ["editorial_item_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_items"
             referencedColumns: ["id"]
           },
         ]
