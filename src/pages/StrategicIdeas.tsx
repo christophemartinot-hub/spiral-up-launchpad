@@ -255,7 +255,39 @@ function StrategicIdeaCard({ idea }: { idea: any }) {
   const createInstagram = useCreateInstagramPost();
   const typeConfig = IDEA_TYPE_CONFIG[idea.idea_type] || IDEA_TYPE_CONFIG.opportunity;
 
-  const handleApprove = () => updateIdea.mutate({ id: idea.id, status: 'approved' });
+  const handleApprove = async () => {
+    updateIdea.mutate({ id: idea.id, status: 'approved', converted_to: 'blog,linkedin,instagram' });
+    const pillar = idea.related_pillar || '';
+    try {
+      await Promise.all([
+        createBlog.mutateAsync({
+          title: idea.title,
+          excerpt: idea.tension_statement || idea.description?.slice(0, 200) || '',
+          content: '',
+          content_pillar: pillar,
+          meta_description: idea.description?.slice(0, 160) || '',
+          status: 'draft',
+        } as any),
+        createLinkedin.mutateAsync({
+          hook: idea.tension_statement || idea.title,
+          content: idea.description || '',
+          content_pillar: pillar,
+          hashtags: [],
+          status: 'draft',
+        }),
+        createInstagram.mutateAsync({
+          caption: idea.description || idea.title,
+          media_type: 'post',
+          content_pillar: pillar,
+          hashtags: [],
+          status: 'draft',
+        }),
+      ]);
+      toast.success('Idea approved — drafts created in Blog, LinkedIn & Instagram');
+    } catch (e: any) {
+      toast.error('Approved but some drafts failed: ' + e.message);
+    }
+  };
   const handleReject = () => {
     updateIdea.mutate({ id: idea.id, status: 'rejected', rejection_reason: rejectReason });
     setShowReject(false);
