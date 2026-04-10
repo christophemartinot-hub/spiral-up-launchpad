@@ -160,7 +160,7 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
         const reelScript = reelMatch?.[1]?.trim() || '';
 
         try {
-          const { data } = await createPost.mutateAsync({
+          const newPost = await createPost.mutateAsync({
             caption,
             media_type: mediaType,
             cta,
@@ -170,7 +170,7 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
             reel_script: reelScript,
             status: 'draft',
           });
-          if (data) loadPostToEditor(data);
+          if (newPost) loadPostToEditor(newPost);
           toast.success(`Instagram ${mediaType} generated!`);
         } catch (e: any) {
           toast.error('Failed to save: ' + e.message);

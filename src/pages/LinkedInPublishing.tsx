@@ -147,7 +147,7 @@ Stay unmistakably Spiral Up in voice.`;
         const hashtags = hashMatch?.[1]?.trim().split(',').map(h => h.trim().replace(/^#/, '')) || [];
 
         try {
-          const { data } = await createPost.mutateAsync({
+          const newPost = await createPost.mutateAsync({
             hook,
             content: body,
             cta,
@@ -156,7 +156,7 @@ Stay unmistakably Spiral Up in voice.`;
             character_count: body.length,
             status: 'draft',
           });
-          if (data) loadPostToEditor(data);
+          if (newPost) loadPostToEditor(newPost);
           toast.success('LinkedIn post generated!');
         } catch (e: any) {
           toast.error('Failed to save: ' + e.message);
