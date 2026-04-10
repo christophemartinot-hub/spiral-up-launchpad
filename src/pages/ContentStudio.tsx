@@ -28,6 +28,47 @@ export default function ContentStudio() {
   const [copied, setCopied] = useState(false);
   const [isPushingBlog, setIsPushingBlog] = useState(false);
   const [isPushingEditorial, setIsPushingEditorial] = useState(false);
+  const [suggestedTopics, setSuggestedTopics] = useState<string[]>([]);
+  const [isLoadingTopics, setIsLoadingTopics] = useState(false);
+
+  // Fetch AI-suggested topics when pillar changes
+  useEffect(() => {
+    if (!pillar) {
+      setSuggestedTopics([]);
+      return;
+    }
+    const selectedPillar = brandProfile.contentPillars.find(p => p.id === pillar);
+    if (!selectedPillar) return;
+
+    const selectedType = contentTypes.find(t => t.id === contentType);
+    let cancelled = false;
+    setIsLoadingTopics(true);
+    setSuggestedTopics([]);
+
+    supabase.functions.invoke('generate-content', {
+      body: {
+        messages: [{
+          role: 'user',
+          content: `Suggest exactly 5 compelling ${selectedType?.label || 'blog post'} topics for the "${selectedPillar.name}" content pillar (${selectedPillar.description}). Typical themes: ${selectedPillar.topics.join(', ')}. Return ONLY a JSON array of 5 short topic strings, no markdown, no explanation. Example: ["Topic one","Topic two","Topic three","Topic four","Topic five"]`
+        }],
+        stream: false,
+      },
+    }).then(({ data, error }) => {
+      if (cancelled) return;
+      setIsLoadingTopics(false);
+      if (error || !data) return;
+      const text = typeof data === 'string' ? data : data.content || data.choices?.[0]?.message?.content || '';
+      try {
+        const jsonMatch = text.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          const topics = JSON.parse(jsonMatch[0]);
+          if (Array.isArray(topics)) setSuggestedTopics(topics.slice(0, 5));
+        }
+      } catch { /* ignore parse errors */ }
+    });
+
+    return () => { cancelled = true; };
+  }, [pillar, contentType]);
 
   const handleGenerate = useCallback(async () => {
     if (!topic.trim()) {
