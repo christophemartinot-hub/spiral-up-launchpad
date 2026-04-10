@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { brandProfile, contentTypes } from '@/data/brand';
 import { streamContent } from '@/lib/ai';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles, Copy, Download, RefreshCw, Check, ArrowRight, Loader2, FileText, CalendarPlus } from 'lucide-react';
+import { Sparkles, Copy, Download, RefreshCw, Check, ArrowRight, Loader2, FileText, CalendarPlus, Lightbulb } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
