@@ -31,6 +31,20 @@ Deno.serve(async (req) => {
 
     const { blogPostId, action } = await req.json();
 
+    // Debug: verify what's in the external DB
+    if (action === "verify") {
+      const { data: extPosts, error: extErr } = await websiteDb
+        .from("blog_posts")
+        .select("id, slug, title, status, published_at, image_url")
+        .order("published_at", { ascending: false })
+        .limit(10);
+      
+      return new Response(
+        JSON.stringify({ external_posts: extPosts, error: extErr?.message }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (!blogPostId) {
       return new Response(
         JSON.stringify({ error: "blogPostId required" }),
