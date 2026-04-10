@@ -16,6 +16,7 @@ const navSections = [
       { path: '/', label: 'Dashboard', icon: LayoutDashboard },
       { path: '/ideas', label: 'Ideas', icon: Brain },
       { path: '/studio', label: 'Create', icon: Sparkles },
+      { path: '/blog', label: 'Blog Publishing', icon: FileText },
       { path: '/editorial', label: 'Plan & Publish', icon: Calendar },
     ],
   },
