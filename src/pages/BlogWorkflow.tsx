@@ -503,6 +503,30 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                 <div className="space-y-2">
                   <Label>Blog Topic *</Label>
                   <Input placeholder="e.g. Why leaders must go first in any transformation" value={topic} onChange={e => setTopic(e.target.value)} />
+                  {/* AI-suggested topics */}
+                  {isLoadingTopics && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Generating topic ideas…</span>
+                    </div>
+                  )}
+                  {suggestedTopics.length > 0 && !isLoadingTopics && (
+                    <div className="space-y-1.5 pt-1">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Lightbulb className="w-3 h-3 text-primary" /> AI-suggested topics
+                      </p>
+                      {suggestedTopics.map(t => (
+                        <button
+                          key={t}
+                          onClick={() => setTopic(t)}
+                          className="w-full text-left text-xs p-2 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/50 transition-all"
+                        >
+                          <ArrowRight className="w-3 h-3 inline mr-1.5 text-primary" />
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Content Pillar</Label>
