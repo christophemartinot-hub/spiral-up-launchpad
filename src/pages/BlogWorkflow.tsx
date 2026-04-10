@@ -598,9 +598,21 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                       <CardTitle className="text-sm font-display">Hero Image</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      <Input placeholder="Paste image URL or Unsplash photo link" value={editHeroImage} onChange={e => void handleHeroImageChange(e.target.value)} />
-                      <p className="text-[10px] text-muted-foreground">You can paste either a direct image URL or a normal Unsplash photo page link</p>
+                      <Input placeholder="Paste direct image URL" value={editHeroImage} onChange={e => void handleHeroImageChange(e.target.value)} />
+                      <input ref={heroFileRef} type="file" accept="image/*" className="hidden" onChange={handleHeroImageUpload} />
                       <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => heroFileRef.current?.click()}
+                          disabled={uploadingHeroImage}
+                          className="flex-1"
+                        >
+                          {uploadingHeroImage
+                            ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Uploading...</>
+                            : <><Upload className="w-3 h-3 mr-1" /> Upload Image</>
+                          }
+                        </Button>
                         <Button
                           size="sm"
                           variant={editHeroImage ? 'outline' : 'default'}
