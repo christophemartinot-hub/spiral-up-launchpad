@@ -170,10 +170,32 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
     setActiveTab('editor');
   }, [topic, pillar, createPost]);
 
+  const normalizeHeroImageUrl = useCallback(async (url: string) => {
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) return '';
+
+    if (trimmedUrl.includes('images.unsplash.com/')) {
+      return trimmedUrl;
+    }
+
+    if (trimmedUrl.includes('unsplash.com/photos/')) {
+      const photoId = trimmedUrl.split('/photos/')[1]?.split(/[/?#]/)[0];
+      if (!photoId) return trimmedUrl;
+      return `https://images.unsplash.com/photo-${photoId}?auto=format&fit=crop&w=1600&q=80`;
+    }
+
+    return trimmedUrl;
+  }, []);
+
   // ─── Save ───
   const handleSave = useCallback(async () => {
     if (!selectedId) return;
     try {
+      const normalizedHeroImage = await normalizeHeroImageUrl(editHeroImage);
+      if (normalizedHeroImage !== editHeroImage) {
+        setEditHeroImage(normalizedHeroImage);
+      }
+
       await updatePost.mutateAsync({
         id: selectedId,
         title: editTitle,
@@ -181,7 +203,7 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
         content: editContent,
         excerpt: editExcerpt,
         meta_description: editMetaDesc,
-        hero_image_url: editHeroImage,
+        hero_image_url: normalizedHeroImage,
         author: editAuthor,
         tags: editTags.split(',').map(t => t.trim()).filter(Boolean),
         linkedin_version: editLinkedin,
@@ -193,7 +215,20 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
     } catch (e: any) {
       toast.error(e.message);
     }
-  }, [selectedId, editTitle, editSlug, editContent, editExcerpt, editMetaDesc, editHeroImage, editAuthor, editTags, editLinkedin, editNewsletter, editVisualConcept, updatePost]);
+  }, [selectedId, editTitle, editSlug, editContent, editExcerpt, editMetaDesc, editHeroImage, editAuthor, editTags, editLinkedin, editNewsletter, editVisualConcept, editScheduledAt, updatePost, normalizeHeroImageUrl]);
+
+  const handleHeroImageChange = useCallback(async (value: string) => {
+    setEditHeroImage(value);
+
+    const trimmedValue = value.trim();
+    if (!trimmedValue || !trimmedValue.includes('unsplash.com/photos/')) return;
+
+    const normalizedUrl = await normalizeHeroImageUrl(trimmedValue);
+    if (normalizedUrl !== trimmedValue) {
+      setEditHeroImage(normalizedUrl);
+      toast.success('Unsplash link converted to a direct image URL');
+    }
+  }, [normalizeHeroImageUrl]);
 
   const handleGenerateHeroImage = useCallback(async () => {
     if (!editTitle.trim()) { toast.error('Add a title first'); return; }
@@ -213,7 +248,6 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
       });
       if (error || !data?.image_url) throw new Error(error?.message || 'No image returned');
       setEditHeroImage(data.image_url);
-      // Auto-save the image to the post
       if (selectedId) {
         await updatePost.mutateAsync({ id: selectedId, hero_image_url: data.image_url });
       }
@@ -541,8 +575,8 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                       <CardTitle className="text-sm font-display">Hero Image</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      <Input placeholder="Paste direct image URL (e.g. https://images.unsplash.com/...)" value={editHeroImage} onChange={e => setEditHeroImage(e.target.value)} />
-                      <p className="text-[10px] text-muted-foreground">Tip: On Unsplash, right-click the photo → "Copy image address" to get a direct URL</p>
+                      <Input placeholder="Paste image URL or Unsplash photo link" value={editHeroImage} onChange={e => void handleHeroImageChange(e.target.value)} />
+                      <p className="text-[10px] text-muted-foreground">You can paste either a direct image URL or a normal Unsplash photo page link</p>
                       <div className="flex gap-2">
                         <Button
                           size="sm"
