@@ -233,6 +233,26 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
     }
   }, [normalizeHeroImageUrl]);
 
+  const handleHeroImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Please select an image file'); return; }
+    setUploadingHeroImage(true);
+    try {
+      const path = `blog-heroes/${Date.now()}-${file.name}`;
+      const { error } = await supabase.storage.from('brand-assets').upload(path, file);
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from('brand-assets').getPublicUrl(path);
+      setEditHeroImage(publicUrl);
+      toast.success('Image uploaded!');
+    } catch (err: any) {
+      toast.error(err.message || 'Upload failed');
+    } finally {
+      setUploadingHeroImage(false);
+      if (heroFileRef.current) heroFileRef.current.value = '';
+    }
+  }, []);
+
   const handleGenerateHeroImage = useCallback(async () => {
     if (!editTitle.trim()) { toast.error('Add a title first'); return; }
     setIsGeneratingImage(true);
