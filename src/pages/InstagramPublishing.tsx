@@ -464,9 +464,56 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
                     </div>
 
                     {editMediaType === 'reel' && (
-                      <div className="space-y-2">
-                        <Label>Reel Script</Label>
-                        <Textarea value={editReelScript} onChange={e => setEditReelScript(e.target.value)} rows={8} placeholder="Scene 1: [0-5s] Hook text overlay..." />
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label>Reel Script</Label>
+                          <Textarea value={editReelScript} onChange={e => setEditReelScript(e.target.value)} rows={8} placeholder="Scene 1: [0-5s] Hook text overlay..." />
+                        </div>
+
+                        {/* Reel Video */}
+                        <div className="space-y-2">
+                          <Label>Reel Video</Label>
+                          {editReelVideoUrl ? (
+                            <video src={editReelVideoUrl} controls className="w-full rounded-lg aspect-[9/16] object-cover bg-black" />
+                          ) : (
+                            <div className="w-full aspect-[9/16] max-h-[300px] rounded-lg bg-muted/50 flex flex-col items-center justify-center text-muted-foreground gap-2">
+                              <Film className="w-8 h-8" />
+                              <span className="text-xs">No video yet</span>
+                            </div>
+                          )}
+                          <Button
+                            variant="outline" size="sm" className="w-full"
+                            disabled={generatingReelVideo || !editReelScript}
+                            onClick={async () => {
+                              setGeneratingReelVideo(true);
+                              try {
+                                toast.info('Generating reel video — this may take a moment...');
+                                const { data, error } = await supabase.functions.invoke('generate-reel-video', {
+                                  body: {
+                                    reel_script: editReelScript,
+                                    caption: editCaption,
+                                    content_pillar: editPillar,
+                                    post_id: selectedId,
+                                  },
+                                });
+                                if (error) throw error;
+                                if (data?.video_url) {
+                                  setEditReelVideoUrl(data.video_url);
+                                  toast.success('Reel video generated!');
+                                } else {
+                                  toast.error(data?.error || 'Video generation failed');
+                                }
+                              } catch (e: any) {
+                                toast.error('Video generation failed: ' + e.message);
+                              }
+                              setGeneratingReelVideo(false);
+                            }}
+                          >
+                            {generatingReelVideo ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
+                            AI Generate Reel Video
+                          </Button>
+                          <Input value={editReelVideoUrl} onChange={e => setEditReelVideoUrl(e.target.value)} placeholder="Or paste video URL..." />
+                        </div>
                       </div>
                     )}
 
