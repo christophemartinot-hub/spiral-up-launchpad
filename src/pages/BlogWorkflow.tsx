@@ -563,6 +563,14 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
                           </Button>
                         )}
                       </div>
+                      <a
+                        href={`https://unsplash.com/s/photos/${encodeURIComponent(editTitle || 'business leadership')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        <ExternalLink className="w-3 h-3" /> Browse Unsplash for photos
+                      </a>
                       {editHeroImage && (
                         <img src={editHeroImage} alt="Hero" className="w-full rounded-lg border border-border aspect-video object-cover" />
                       )}
