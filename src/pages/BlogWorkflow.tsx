@@ -194,6 +194,36 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
     }
   }, [selectedId, editTitle, editSlug, editContent, editExcerpt, editMetaDesc, editHeroImage, editAuthor, editTags, editLinkedin, editNewsletter, editVisualConcept, updatePost]);
 
+  const handleGenerateHeroImage = useCallback(async () => {
+    if (!editTitle.trim()) { toast.error('Add a title first'); return; }
+    setIsGeneratingImage(true);
+    try {
+      const visualConcept = editVisualConcept?.trim()
+        || `Professional editorial hero image for a blog post titled "${editTitle}". Clean, modern, editorial quality, suitable as a blog header image.`;
+
+      const { data, error } = await supabase.functions.invoke('generate-social-image', {
+        body: {
+          visual_concept: visualConcept,
+          visual_type: 'editorial',
+          channel: 'blog',
+          title: editTitle,
+          content: editExcerpt || editContent?.slice(0, 300),
+        },
+      });
+      if (error || !data?.image_url) throw new Error(error?.message || 'No image returned');
+      setEditHeroImage(data.image_url);
+      // Auto-save the image to the post
+      if (selectedId) {
+        await updatePost.mutateAsync({ id: selectedId, hero_image_url: data.image_url });
+      }
+      toast.success('Hero image generated!');
+    } catch (e: any) {
+      toast.error('Image generation failed: ' + (e.message || 'Unknown error'));
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  }, [editTitle, editVisualConcept, editExcerpt, editContent, selectedId, updatePost]);
+
   // ─── Status transitions ───
   const setStatus = useCallback(async (status: string) => {
     if (!selectedId) return;
