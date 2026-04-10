@@ -149,6 +149,10 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
         const parsedLinkedin = linkedinMatch?.[1]?.trim() || '';
         const parsedNewsletter = newsletterMatch?.[1]?.trim() || '';
 
+        // Extract only the blog post body (between ## BLOG POST and the next ## section)
+        const blogBodyMatch = content.match(/## BLOG POST\s*\n([\s\S]*?)(?=\n## HERO VISUAL|## LINKEDIN|## NEWSLETTER|$)/i);
+        const parsedContent = blogBodyMatch?.[1]?.trim() || content;
+
         setEditTitle(parsedTitle);
         setEditSlug(parsedSlug);
         setEditMetaDesc(metaMatch?.[1]?.trim() || '');
@@ -156,13 +160,14 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
         setEditTags(keywordsMatch?.[1]?.trim() || '');
         setEditLinkedin(parsedLinkedin);
         setEditNewsletter(parsedNewsletter);
+        setEditContent(parsedContent);
 
         // Save as draft
         try {
           const result = await createPost.mutateAsync({
             title: parsedTitle,
             slug: parsedSlug,
-            content,
+            content: parsedContent,
             excerpt: excerptMatch?.[1]?.trim() || '',
             meta_description: metaMatch?.[1]?.trim() || '',
             seo_keywords: keywordsMatch?.[1]?.split(',').map((k: string) => k.trim()) || [],
