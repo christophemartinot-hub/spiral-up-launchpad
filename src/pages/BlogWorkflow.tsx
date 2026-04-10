@@ -363,25 +363,48 @@ Voice: Human, direct, pragmatic. No corporate jargon.`;
           <TabsTrigger value="preview">Preview</TabsTrigger>
         </TabsList>
 
-        {/* ─── PIPELINE ─── */}
+        {/* ─── PIPELINE (Kanban drag-and-drop) ─── */}
         <TabsContent value="pipeline" className="space-y-4">
           {isLoading ? (
             <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {(['draft', 'review', 'approved', 'published'] as const).map(status => (
-                <Card key={status} className="shadow-card">
+                <Card
+                  key={status}
+                  className={cn("shadow-card transition-colors", dragOverColumn === status && "ring-2 ring-primary/40 bg-primary/5")}
+                  onDragOver={e => { e.preventDefault(); setDragOverColumn(status); }}
+                  onDragLeave={() => setDragOverColumn(null)}
+                  onDrop={async e => {
+                    e.preventDefault();
+                    setDragOverColumn(null);
+                    const postId = e.dataTransfer.getData('text/plain');
+                    if (!postId) return;
+                    const post = posts.find(p => p.id === postId);
+                    if (!post || post.status === status) return;
+                    try {
+                      await updatePost.mutateAsync({ id: postId, status });
+                      toast.success(`Moved to ${status}`);
+                    } catch (err: any) { toast.error(err.message); }
+                  }}
+                >
                   <CardHeader className="pb-3">
                     <CardTitle className="font-display text-sm flex items-center justify-between">
                       <span className="capitalize">{status}</span>
                       <Badge variant="secondary" className="text-[10px]">{grouped[status]?.length || 0}</Badge>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2 max-h-[400px] overflow-y-auto">
+                  <CardContent className="space-y-2 max-h-[400px] overflow-y-auto min-h-[80px]">
                     {(grouped[status] || []).map(post => (
                       <div
                         key={post.id}
-                        className="w-full text-left p-3 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/30 transition-all"
+                        draggable
+                        onDragStart={e => { e.dataTransfer.setData('text/plain', post.id); setDraggedPostId(post.id); }}
+                        onDragEnd={() => setDraggedPostId(null)}
+                        className={cn(
+                          "w-full text-left p-3 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/30 transition-all cursor-grab active:cursor-grabbing",
+                          draggedPostId === post.id && "opacity-50"
+                        )}
                       >
                         <button onClick={() => loadPostToEditor(post)} className="w-full text-left">
                           <p className="text-sm font-medium line-clamp-2">{post.title || 'Untitled'}</p>
