@@ -120,22 +120,31 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
+    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY is not configured');
 
     // Build dynamic brand context from database
     const brandContext = await buildBrandContext();
 
-    const gatewayUrl = 'https://ai.gateway.lovable.dev/v1/chat/completions';
-    const authHeader = 'Bearer ' + LOVABLE_API_KEY;
+    const anthropicUrl = 'https://api.anthropic.com/v1/messages';
 
     // Handle streaming chat messages
     if (body.messages) {
-      const response = await fetch(gatewayUrl, {
+      const response = await fetch(anthropicUrl, {
         method: 'POST',
-        headers: { Authorization: authHeader, 'Content-Type': 'application/json' },
+        headers: {
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          messages: [{ role: 'system', content: brandContext }, ...body.messages],
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 4096,
+          system: brandContext,
+          messages: body.messages.map((m: { role: string; content: string }) => ({
+            role: m.role,
+            content: m.content,
+          })),
           stream: true,
         }),
       });
@@ -143,13 +152,56 @@ Deno.serve(async (req) => {
       if (!response.ok) {
         const status = response.status;
         if (status === 429) return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-        if (status === 402) return new Response(JSON.stringify({ error: 'Payment required' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         const t = await response.text();
-        console.error('AI gateway error:', status, t);
-        return new Response(JSON.stringify({ error: 'AI gateway error' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        console.error('Anthropic API error:', status, t);
+        return new Response(JSON.stringify({ error: 'AI generation failed' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      return new Response(response.body, { headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' } });
+      // Convert Anthropic SSE stream to OpenAI-compatible SSE format for the client
+      const encoder = new TextEncoder();
+      const readable = new ReadableStream({
+        async start(controller) {
+          const reader = response.body!.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buffer += decoder.decode(value, { stream: true });
+
+              let newlineIdx: number;
+              while ((newlineIdx = buffer.indexOf('\n')) !== -1) {
+                const line = buffer.slice(0, newlineIdx).trim();
+                buffer = buffer.slice(newlineIdx + 1);
+
+                if (!line.startsWith('data: ')) continue;
+                const jsonStr = line.slice(6);
+                if (jsonStr === '[DONE]') continue;
+
+                try {
+                  const event = JSON.parse(jsonStr);
+                  if (event.type === 'content_block_delta' && event.delta?.text) {
+                    // Emit OpenAI-compatible SSE
+                    const openaiChunk = { choices: [{ delta: { content: event.delta.text } }] };
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(openaiChunk)}\n\n`));
+                  } else if (event.type === 'message_stop') {
+                    controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                  }
+                } catch { /* skip unparseable */ }
+              }
+            }
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.close();
+          } catch (e) {
+            console.error('Stream transform error:', e);
+            controller.close();
+          }
+        },
+      });
+
+      return new Response(readable, { headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' } });
     }
 
     // Handle structured content generation (non-streaming)
@@ -160,24 +212,30 @@ Deno.serve(async (req) => {
 
     const userPrompt = `Generate a ${contentType} about "${topic}" aligned with the "${pillar}" content pillar.${additionalContext ? ' Additional context: ' + additionalContext : ''}\n\nStay unmistakably Spiral Up in voice and positioning.`;
 
-    const response = await fetch(gatewayUrl, {
+    const response = await fetch(anthropicUrl, {
       method: 'POST',
-      headers: { Authorization: authHeader, 'Content-Type': 'application/json' },
+      headers: {
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
-        messages: [{ role: 'system', content: brandContext }, { role: 'user', content: userPrompt }],
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4096,
+        system: brandContext,
+        messages: [{ role: 'user', content: userPrompt }],
       }),
     });
 
     if (!response.ok) {
       const status = response.status;
       if (status === 429) return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      if (status === 402) return new Response(JSON.stringify({ error: 'Payment required' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      console.error('AI gateway error:', status);
+      console.error('Anthropic API error:', status);
       return new Response(JSON.stringify({ error: 'AI generation failed' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
+    const content = data.content?.[0]?.text || '';
     return new Response(JSON.stringify({ content }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (e) {
     console.error('generate-content error:', e);
