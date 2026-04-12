@@ -44,15 +44,29 @@ Brand message territory: Sustainable impact through systemic change. Healthy sys
 
 Visual principles: Clean. Modern. High-trust. Human-centered. Editorial quality. Professional. Simple. Spacious. Credible.
 
+ILLUSTRATION STYLE REFERENCE (PRIMARY for Instagram and LinkedIn):
+The Spiral Up brand uses a distinctive editorial illustration style by Martin Tognola. All generated images for Instagram and LinkedIn MUST emulate this style. Key characteristics:
+- Clean line-art illustration with minimal color palette: predominantly black outlines on white backgrounds, with selective use of teal/seafoam green, coral/warm red, and occasional gold/ochre accents
+- Halftone dot textures and crosshatching patterns used for shading and depth instead of gradients
+- Human figures are stylized but proportionate: simple faces with minimal features, expressive body language, contemporary casual-professional clothing
+- Conceptual and metaphorical compositions: people interacting with oversized symbolic objects (mirrors, spiral staircases, arrows, abstract shapes)
+- Strong use of negative space and white backgrounds
+- Whimsical but professional tone: playful compositions that convey serious business concepts
+- Small decorative elements like four-pointed stars or sparkles used sparingly
+- Marble-like textures occasionally applied to geometric shapes (arrows, spirals)
+- Figures often shown in motion or dynamic poses suggesting growth, exploration, decision-making
+- The spiral motif is central: spiral staircases, spiral ribbons, upward spiraling paths
+- NO photorealistic rendering. NO 3D effects. NO stock-photo aesthetics. This is editorial illustration art.
+
 Layout and composition rules: Prioritize clarity over decoration. Use generous white space. Keep composition focused. Avoid clutter. Avoid crowded scenes. Avoid visual noise. Use strong hierarchy in the image composition. Use one clear idea per image. Use visuals only if they support the message.
 
-Style rules: No text overlay. No typography inside the image. No logos inside the image unless explicitly provided as an overlay step outside generation. No meme style. No fantasy style. No cartoon style unless explicitly requested. No exaggerated AI-art look. No surrealism. No glossy sci-fi aesthetics. No stock-photo cliché energy. No handshake clichés. No fake conference-stage clichés. No exaggerated smiles. No over-designed business visuals. No decorative icon overload. No random arrows, charts, or floating UI elements unless the concept explicitly requires them. No invented brand symbols.
+Style rules: No text overlay. No typography inside the image. No logos inside the image unless explicitly provided as an overlay step outside generation. No meme style. No fantasy style. No photorealistic style. No exaggerated AI-art look. No surrealism. No glossy sci-fi aesthetics. No stock-photo cliché energy. No handshake clichés. No fake conference-stage clichés. No exaggerated smiles. No over-designed business visuals. No decorative icon overload. No random charts or floating UI elements unless the concept explicitly requires them. No invented brand symbols.
 
-Color rules: Use only a restrained and professional palette. Keep tones warm, balanced, and credible. Use subtle accents only. Do not invent official Spiral Up brand colors. If exact brand colors are not provided, stay visually neutral and premium. Avoid neon. Avoid harsh saturation. Avoid loud gradients.
+Color rules: Use ONLY the Martin Tognola palette: black line-art, white/off-white backgrounds, teal/seafoam green (#5FBFB3 range), coral/warm red (#E05A47 range), and occasional gold/ochre accents. No other colors. No neon. No harsh saturation. No loud gradients. No full-color photography look.
 
-Image intent: The image should communicate business relevance, human systems, leadership, adaptability, resilience, collaboration, customer focus, or systemic change. It must look credible to leaders, consultants, and transformation professionals.
+Image intent: The image should communicate business relevance, human systems, leadership, adaptability, resilience, collaboration, customer focus, or systemic change through conceptual editorial illustration. It must look like professional editorial art suitable for a business publication.
 
-Channel adaptation: If channel is instagram, optimize for visual impact, emotional clarity, and 4:5 composition. If channel is linkedin, optimize for professional credibility, business clarity, and 16:9 or square composition depending on the requested format. If channel is facebook, optimize for broad readability, clean composition, and 16:9 composition. If format is carousel cover, make the image bold, simple, and concept-led. If format is single image post, make the image self-sufficient and immediately understandable.
+Channel adaptation: If channel is instagram, generate in the Martin Tognola editorial illustration style, optimize for visual impact, emotional clarity, and 4:5 composition. If channel is linkedin, generate in the Martin Tognola editorial illustration style, optimize for professional credibility, business clarity, and 16:9 or square composition depending on the requested format. If channel is facebook, optimize for broad readability, clean composition, and 16:9 composition — can use either illustration style or clean editorial photography style. If format is carousel cover, make the image bold, simple, and concept-led. If format is single image post, make the image self-sufficient and immediately understandable.
 
 INPUTS
 
