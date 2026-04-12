@@ -133,134 +133,155 @@ async function publishToLinkedIn(
   return { success: true, response: responseBody };
 }
 
-/** Publish to Facebook or Instagram via Buffer GraphQL API */
-async function publishToBuffer(
-  platform: "facebook" | "instagram",
-  caption: string,
-  imageUrl: string | null,
-  publishDate: string | null,
-  publishTime: string | null,
-): Promise<{ success: boolean; response: unknown; error?: string; skipped?: boolean; postId?: string }> {
-  const bufferToken = Deno.env.get("BUFFER_ACCESS_TOKEN");
-  if (!bufferToken) {
-    return { success: false, response: null, error: "BUFFER_ACCESS_TOKEN not configured" };
-  }
+// ============================================
+// COMPOSIO PUBLISHING — replaces Buffer
+// ============================================
 
-  const channelIds: Record<string, string> = {
-    facebook: "5e837d5420c4a32a2146aa63",
-    instagram: "69b5bbc77be9f8b17157f30c",
-  };
+const COMPOSIO_API_KEY = Deno.env.get("COMPOSIO_API_KEY");
+const COMPOSIO_BASE_URL = "https://backend.composio.dev/api/v1";
 
-  // Instagram requires an image
-  if (platform === "instagram" && !imageUrl) {
-    return { success: false, response: null, skipped: true, error: "Instagram requires an image" };
-  }
-
-  const time = publishTime || "09:00";
-  const date = publishDate || new Date().toISOString().split("T")[0];
-  const dueAt = `${date}T${time}:00Z`;
-
-  const input: Record<string, unknown> = {
-    channelId: channelIds[platform],
-    text: caption,
-    publishingScheduleType: "SCHEDULED",
-    dueAt,
-  };
-  if (imageUrl) {
-    input.mediaUrls = [imageUrl];
-  }
-
-  const graphqlBody = {
-    query: `mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { post { id status } } }`,
-    variables: { input },
-  };
-
-  try {
-    const res = await fetch("https://api.buffer.com/graphql", {
-      method: "POST",
+async function getComposioEntityId(platform: string): Promise<string> {
+  const response = await fetch(
+    `${COMPOSIO_BASE_URL}/connectedAccounts?appName=${platform}`,
+    {
       headers: {
-        "Authorization": `Bearer ${bufferToken}`,
+        "x-api-key": COMPOSIO_API_KEY!,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(graphqlBody),
+    }
+  );
+  const data = await response.json();
+  const account = data.items?.[0];
+  if (!account)
+    throw new Error(`No connected ${platform} account found in Composio`);
+  return account.id;
+}
+
+async function publishToFacebook(
+  content: string,
+  imageUrl?: string | null,
+  scheduledAt?: string | null
+): Promise<{
+  success: boolean;
+  response: unknown;
+  postId?: string;
+  error?: string;
+}> {
+  try {
+    if (!COMPOSIO_API_KEY) {
+      return { success: false, response: null, error: "COMPOSIO_API_KEY not configured" };
+    }
+    const entityId = await getComposioEntityId("facebook");
+    const body: Record<string, unknown> = {
+      connectedAccountId: entityId,
+      appName: "facebook",
+      actionName: "FACEBOOK_CREATE_POST",
+      input: { message: content } as Record<string, unknown>,
+    };
+    const input = body.input as Record<string, unknown>;
+    if (imageUrl) {
+      input.link = imageUrl;
+    }
+    if (scheduledAt) {
+      input.scheduled_publish_time = Math.floor(
+        new Date(scheduledAt).getTime() / 1000
+      );
+      input.published = false;
+    }
+
+    const response = await fetch(`${COMPOSIO_BASE_URL}/actions/execute`, {
+      method: "POST",
+      headers: {
+        "x-api-key": COMPOSIO_API_KEY!,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
     });
-
-    const responseText = await res.text();
-    let responseBody: unknown;
-    try { responseBody = JSON.parse(responseText); } catch { responseBody = responseText; }
-
-    if (!res.ok) {
-      return { success: false, response: responseBody, error: `Buffer GraphQL ${res.status}: ${responseText}` };
+    const data = await response.json();
+    if (!response.ok || data.error) {
+      throw new Error(
+        data.error || `Facebook publish failed [${response.status}]`
+      );
     }
-
-    // Check for GraphQL-level errors
-    const parsed = responseBody as Record<string, unknown>;
-    if (parsed.errors) {
-      return { success: false, response: responseBody, error: `Buffer GraphQL errors: ${JSON.stringify(parsed.errors)}` };
-    }
-
-    const post = (parsed.data as any)?.createPost?.post;
-    return { success: true, response: responseBody, postId: post?.id };
-  } catch (err) {
-    return { success: false, response: null, error: err instanceof Error ? err.message : "Buffer GraphQL fetch failed" };
+    return {
+      success: true,
+      response: data,
+      postId: data.data?.id || data.executionId,
+    };
+  } catch (error: unknown) {
+    console.error("Facebook publish error:", error);
+    return {
+      success: false,
+      response: null,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
 }
-/** Publish to spiralingup.works blog via webhook */
-async function publishToBlog(
-  item: Record<string, unknown>,
-  supabase: ReturnType<typeof createClient>
-): Promise<{ success: boolean; response: unknown; error?: string }> {
-  const webhookSecret = Deno.env.get("WEBSITE_WEBHOOK_SECRET");
-  if (!webhookSecret) {
-    return { success: false, response: null, error: "WEBSITE_WEBHOOK_SECRET not configured" };
-  }
 
-  const title = (item.working_title as string) || "";
-  const content = (item.draft_content as string) || "";
-  const slug =
-    title.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-") +
-    "-" +
-    Date.now();
-  const excerpt = content.substring(0, 200);
-  const wordCount = content.split(/\s+/).filter(Boolean).length;
-  const readMinutes = Math.max(1, Math.ceil(wordCount / 200));
-  const readTime = `${readMinutes} min read`;
-
-  const payload = {
-    title,
-    slug,
-    content,
-    excerpt,
-    image_url: item.image_url || null,
-    tags: item.content_pillar ? [item.content_pillar] : ["Leadership"],
-    category: (item.content_pillar as string) || "Leadership",
-    read_time: readTime,
-  };
-
+async function publishToInstagram(
+  caption: string,
+  imageUrl?: string | null,
+  scheduledAt?: string | null
+): Promise<{
+  success: boolean;
+  response: unknown;
+  postId?: string;
+  error?: string;
+  skipped?: boolean;
+}> {
   try {
-    const res = await fetch(
-      "https://eevyrvxnazncasfaybwx.supabase.co/functions/v1/receive-blog-post",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-webhook-secret": webhookSecret,
-        },
-        body: JSON.stringify(payload),
-      }
-    );
-
-    const responseText = await res.text();
-    let responseBody: unknown;
-    try { responseBody = JSON.parse(responseText); } catch { responseBody = responseText; }
-
-    if (!res.ok) {
-      return { success: false, response: responseBody, error: `Blog webhook ${res.status}: ${responseText}` };
+    if (!COMPOSIO_API_KEY) {
+      return { success: false, response: null, error: "COMPOSIO_API_KEY not configured" };
+    }
+    if (!imageUrl) {
+      console.warn("Instagram requires an image — skipping");
+      return {
+        success: false,
+        response: null,
+        skipped: true,
+        error: "Instagram requires an image URL",
+      };
+    }
+    const entityId = await getComposioEntityId("instagram");
+    const body: Record<string, unknown> = {
+      connectedAccountId: entityId,
+      appName: "instagram",
+      actionName: "INSTAGRAM_CREATE_PHOTO_POST",
+      input: { caption, image_url: imageUrl } as Record<string, unknown>,
+    };
+    const input = body.input as Record<string, unknown>;
+    if (scheduledAt) {
+      input.scheduled_publish_time = Math.floor(
+        new Date(scheduledAt).getTime() / 1000
+      );
     }
 
-    return { success: true, response: responseBody };
-  } catch (err) {
-    return { success: false, response: null, error: err instanceof Error ? err.message : "Blog publish fetch failed" };
+    const response = await fetch(`${COMPOSIO_BASE_URL}/actions/execute`, {
+      method: "POST",
+      headers: {
+        "x-api-key": COMPOSIO_API_KEY!,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await response.json();
+    if (!response.ok || data.error) {
+      throw new Error(
+        data.error || `Instagram publish failed [${response.status}]`
+      );
+    }
+    return {
+      success: true,
+      response: data,
+      postId: data.data?.id || data.executionId,
+    };
+  } catch (error: unknown) {
+    console.error("Instagram publish error:", error);
+    return {
+      success: false,
+      response: null,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
 }
 
@@ -420,17 +441,28 @@ Deno.serve(async (req) => {
         const result = await publishToBlog(item, supabase);
         results[platform] = result;
         if (!result.success) allSuccess = false;
-      } else if (platform === "facebook" || platform === "instagram") {
-        const result = await publishToBuffer(
-          platform,
+      } else if (platform === "facebook") {
+        const scheduledAt = item.publish_date && item.publish_time
+          ? `${item.publish_date}T${item.publish_time}:00Z`
+          : null;
+        const result = await publishToFacebook(
           item.draft_content || "",
           finalImageUrl,
-          item.publish_date || null,
-          item.publish_time || null,
+          scheduledAt,
+        );
+        results[platform] = result;
+        if (!result.success) allSuccess = false;
+      } else if (platform === "instagram") {
+        const scheduledAt = item.publish_date && item.publish_time
+          ? `${item.publish_date}T${item.publish_time}:00Z`
+          : null;
+        const result = await publishToInstagram(
+          item.draft_content || "",
+          finalImageUrl,
+          scheduledAt,
         );
         results[platform] = result;
         if (result.skipped) {
-          // Instagram skipped due to no image — audit separately
           await supabase.from("audit_log").insert({
             action: `${platform}_skipped_no_image`,
             entity_type: "editorial_item",
@@ -486,7 +518,7 @@ Deno.serve(async (req) => {
           publish_date: item.publish_date,
           image_url: finalImageUrl,
           success: result.success,
-          buffer_post_id: (result as any).postId || undefined,
+          composio_post_id: (result as any).postId || undefined,
           platform_response: result.response,
           error: result.error || undefined,
         },
