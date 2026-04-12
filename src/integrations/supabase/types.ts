@@ -785,6 +785,56 @@ export type Database = {
           },
         ]
       }
+      content_signals: {
+        Row: {
+          article_summary: string | null
+          article_title: string
+          article_url: string | null
+          created_at: string | null
+          generated_idea_id: string | null
+          id: string
+          scraped_at: string | null
+          source_name: string
+          source_url: string
+          spiral_principle: string | null
+          status: string | null
+        }
+        Insert: {
+          article_summary?: string | null
+          article_title: string
+          article_url?: string | null
+          created_at?: string | null
+          generated_idea_id?: string | null
+          id?: string
+          scraped_at?: string | null
+          source_name: string
+          source_url: string
+          spiral_principle?: string | null
+          status?: string | null
+        }
+        Update: {
+          article_summary?: string | null
+          article_title?: string
+          article_url?: string | null
+          created_at?: string | null
+          generated_idea_id?: string | null
+          id?: string
+          scraped_at?: string | null
+          source_name?: string
+          source_url?: string
+          spiral_principle?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_signals_generated_idea_id_fkey"
+            columns: ["generated_idea_id"]
+            isOneToOne: false
+            referencedRelation: "strategic_ideas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       editorial_feedback: {
         Row: {
           action_type: string
