@@ -441,17 +441,28 @@ Deno.serve(async (req) => {
         const result = await publishToBlog(item, supabase);
         results[platform] = result;
         if (!result.success) allSuccess = false;
-      } else if (platform === "facebook" || platform === "instagram") {
-        const result = await publishToBuffer(
-          platform,
+      } else if (platform === "facebook") {
+        const scheduledAt = item.publish_date && item.publish_time
+          ? `${item.publish_date}T${item.publish_time}:00Z`
+          : null;
+        const result = await publishToFacebook(
           item.draft_content || "",
           finalImageUrl,
-          item.publish_date || null,
-          item.publish_time || null,
+          scheduledAt,
+        );
+        results[platform] = result;
+        if (!result.success) allSuccess = false;
+      } else if (platform === "instagram") {
+        const scheduledAt = item.publish_date && item.publish_time
+          ? `${item.publish_date}T${item.publish_time}:00Z`
+          : null;
+        const result = await publishToInstagram(
+          item.draft_content || "",
+          finalImageUrl,
+          scheduledAt,
         );
         results[platform] = result;
         if (result.skipped) {
-          // Instagram skipped due to no image — audit separately
           await supabase.from("audit_log").insert({
             action: `${platform}_skipped_no_image`,
             entity_type: "editorial_item",
