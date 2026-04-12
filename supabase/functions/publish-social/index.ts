@@ -381,8 +381,6 @@ Deno.serve(async (req) => {
         const result = await publishToLinkedIn(
           item.draft_content || "",
           finalImageUrl,
-          item.working_title || null,
-          item.key_message || null
         );
         results[platform] = result;
         if (!result.success) allSuccess = false;
