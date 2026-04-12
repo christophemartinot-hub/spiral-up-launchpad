@@ -240,6 +240,7 @@ Deno.serve(async (req) => {
             title: generated.title,
             description: generated.description,
             content_potential: generated.post,
+            tension_statement: generated.post,
             why_fits_spiral_up: `Connects to ${generated.principle} principle`,
             related_pillar: generated.principle,
             status: 'suggested',
