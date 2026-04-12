@@ -24,6 +24,7 @@ import {
   FileText, Linkedin, Instagram,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { stripMarkdownEdgeArtifacts } from '@/lib/utils';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
@@ -260,34 +261,37 @@ function StrategicIdeaCard({ idea }: { idea: any }) {
   const handleApprove = async () => {
     updateIdea.mutate({ id: idea.id, status: 'approved', converted_to: 'blog,linkedin,instagram,facebook' });
     const pillar = idea.related_pillar || '';
-    const cleanTitle = idea.title.replace(/\*+/g, '').trim();
+    const cleanTitle = stripMarkdownEdgeArtifacts(idea.title || '');
+    const cleanDescription = stripMarkdownEdgeArtifacts(idea.description || '');
+    const cleanTension = stripMarkdownEdgeArtifacts(idea.tension_statement || '');
+    const cleanContentPotential = stripMarkdownEdgeArtifacts(idea.content_potential || '');
     try {
       await Promise.all([
         createBlog.mutateAsync({
           title: cleanTitle,
           slug: cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-          excerpt: idea.tension_statement || idea.description?.slice(0, 200) || '',
-          content: idea.content_potential || idea.description || '',
+          excerpt: cleanTension || cleanDescription.slice(0, 200) || '',
+          content: cleanContentPotential || cleanDescription || '',
           content_pillar: pillar,
-          meta_description: idea.description?.slice(0, 160) || '',
+          meta_description: cleanDescription.slice(0, 160) || '',
           status: 'draft',
         } as any),
         createLinkedin.mutateAsync({
-          hook: idea.tension_statement || idea.title,
-          content: idea.description || '',
+          hook: cleanTension || cleanTitle,
+          content: cleanDescription || cleanContentPotential || cleanTitle,
           content_pillar: pillar,
           hashtags: ['SpiralUpWorks'],
           status: 'draft',
         }),
         createInstagram.mutateAsync({
-          caption: idea.description || idea.title,
+          caption: cleanDescription || cleanTitle,
           media_type: 'post',
           content_pillar: pillar,
           hashtags: ['SpiralUpWorks'],
           status: 'draft',
         }),
         createFacebook.mutateAsync({
-          content: idea.content_potential || idea.description || '',
+          content: cleanContentPotential || cleanDescription || cleanTitle,
           content_pillar: pillar,
           hashtags: ['SpiralUpWorks'],
           status: 'draft',

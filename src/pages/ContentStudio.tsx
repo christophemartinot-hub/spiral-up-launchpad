@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { brandProfile, contentTypes } from '@/data/brand';
 import { streamContent } from '@/lib/ai';
+import { stripMarkdownEdgeArtifacts } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Sparkles, Copy, Download, RefreshCw, Check, ArrowRight, Loader2, FileText, CalendarPlus, Lightbulb } from 'lucide-react';
 import { toast } from 'sonner';
@@ -136,15 +137,15 @@ Stay unmistakably Spiral Up in voice.`;
       
       // Try to extract a title from the content (first markdown heading or topic)
       const titleMatch = generatedContent.match(/^#\s+(.+)$/m);
-      const title = titleMatch ? titleMatch[1].trim() : topic;
+      const title = stripMarkdownEdgeArtifacts(titleMatch ? titleMatch[1].trim() : topic);
       
       // Try to extract meta description
       const metaMatch = generatedContent.match(/meta\s*description[:\s]*(.+)/i);
-      const metaDescription = metaMatch ? metaMatch[1].trim().slice(0, 160) : '';
+      const metaDescription = stripMarkdownEdgeArtifacts(metaMatch ? metaMatch[1].trim().slice(0, 160) : '');
       
       // Extract first paragraph as excerpt
       const paragraphs = generatedContent.split('\n\n').filter(p => p.trim() && !p.startsWith('#'));
-      const excerpt = paragraphs[0]?.trim().slice(0, 300) || '';
+      const excerpt = stripMarkdownEdgeArtifacts(paragraphs[0]?.trim().slice(0, 300) || '');
 
       // Insert blog draft first
       const { data: blogData, error } = await supabase.from('blog_posts').insert({
@@ -252,8 +253,8 @@ Stay unmistakably Spiral Up in voice.`;
 
       const { error } = await supabase.from('editorial_items').insert({
         plan_id: planId,
-        working_title: topic,
-        draft_content: generatedContent,
+        working_title: stripMarkdownEdgeArtifacts(topic),
+        draft_content: stripMarkdownEdgeArtifacts(generatedContent),
         content_format: formatMap[contentType] || 'linkedin_post',
         channel: channelMap[contentType] || 'linkedin',
         content_pillar: selectedPillar?.name || '',

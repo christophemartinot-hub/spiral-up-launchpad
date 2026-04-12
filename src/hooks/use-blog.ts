@@ -1,6 +1,34 @@
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { stripMarkdownEdgeArtifacts } from '@/lib/utils';
+
+const BLOG_TEXT_FIELDS = [
+  'title',
+  'slug',
+  'excerpt',
+  'meta_description',
+  'author',
+  'content_pillar',
+  'linkedin_version',
+  'newsletter_version',
+  'visual_concept',
+  'visual_rationale',
+  'visual_type',
+] as const;
+
+function sanitizeBlogPayload(payload: Record<string, unknown>) {
+  const sanitizedPayload = { ...payload };
+
+  for (const field of BLOG_TEXT_FIELDS) {
+    const value = sanitizedPayload[field];
+    if (typeof value === 'string') {
+      sanitizedPayload[field] = stripMarkdownEdgeArtifacts(value);
+    }
+  }
+
+  return sanitizedPayload;
+}
 
 export function useBlogPosts() {
   return useQuery({
@@ -36,9 +64,10 @@ export function useCreateBlogPost() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (post: Record<string, unknown>) => {
+      const sanitizedPost = sanitizeBlogPayload(post);
       const { data, error } = await supabase
         .from('blog_posts')
-        .insert(post as any)
+        .insert(sanitizedPost as any)
         .select()
         .single();
       if (error) throw error;
@@ -52,9 +81,10 @@ export function useUpdateBlogPost() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Record<string, unknown>) => {
+      const sanitizedUpdates = sanitizeBlogPayload(updates);
       const { error } = await supabase
         .from('blog_posts')
-        .update({ ...updates, updated_at: new Date().toISOString() } as any)
+        .update({ ...sanitizedUpdates, updated_at: new Date().toISOString() } as any)
         .eq('id', id);
       if (error) throw error;
     },
