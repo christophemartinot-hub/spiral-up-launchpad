@@ -122,7 +122,7 @@ Respond ONLY in this exact JSON format with no markdown:
   "blog": {
     "title": "SEO-optimized title with primary keyword",
     "slug": "url-friendly-slug-from-title",
-    "content": "600-800 word blog article in markdown with ## H2 headers, practical examples, actionable takeaways. Written in Christophe's voice.",
+    "content": "800-1200 word blog article in markdown. Structure it as follows:\\n\\n## [SEO H2 header — include primary keyword]\\n\\nOpening story or real scenario (2-3 paragraphs)\\n\\n## Why This Matters Now\\n\\nContext and urgency (2 paragraphs)\\n\\n## [Core insight H2 — specific and keyword-rich]\\n\\nThe main argument with concrete examples (2-3 paragraphs)\\n\\n## What Leaders Get Wrong\\n\\nCommon mistake or misconception (2 paragraphs)\\n\\n## What to Do Instead\\n\\n3-4 practical, actionable steps (use bullet points)\\n\\n## The Bottom Line\\n\\nClosing paragraph connecting to SPIRAL UP® principle\\n\\nEnd with a reflection question for the reader\\n\\nWritten in Christophe's voice: short sentences, active voice, real examples from pharma/healthcare/leadership contexts, no jargon, human and direct. Author is always Christophe Martinot.",
     "excerpt": "2-3 sentence compelling hook for the article",
     "meta_description": "max 155 chars SEO meta description with primary keyword",
     "tags": ["transformation", "leadership", "agility", "spiral-up", "organizational-change"],
@@ -149,7 +149,7 @@ Respond ONLY in this exact JSON format with no markdown:
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 2500,
+      max_tokens: 4000,
       messages: [{ role: 'user', content: prompt }],
     }),
   })
@@ -231,7 +231,7 @@ Deno.serve(async (req) => {
           .select()
           .single()
 
-        // Insert strategic idea with all content pre-populated
+        // Insert strategic idea
         const { data: idea } = await supabase
           .from('strategic_ideas')
           .insert({
@@ -258,7 +258,6 @@ Deno.serve(async (req) => {
 
         // Pre-create all four content drafts
         await Promise.all([
-          // Blog draft
           supabase.from('blog_posts').insert({
             title: generated.blog.title,
             slug: generateSlug(generated.blog.title),
@@ -270,8 +269,6 @@ Deno.serve(async (req) => {
             content_pillar: generated.idea.principle,
             status: 'draft',
           }),
-
-          // LinkedIn draft
           supabase.from('linkedin_posts').insert({
             hook: generated.linkedin.hook,
             content: generated.linkedin.content,
@@ -281,8 +278,6 @@ Deno.serve(async (req) => {
             character_count: generated.linkedin.content.length,
             status: 'draft',
           }),
-
-          // Instagram draft
           supabase.from('instagram_posts').insert({
             caption: generated.instagram.caption,
             hashtags: generated.instagram.hashtags,
@@ -291,8 +286,6 @@ Deno.serve(async (req) => {
             media_type: 'post',
             status: 'draft',
           }),
-
-          // Facebook draft
           supabase.from('facebook_posts').insert({
             content: generated.facebook.content,
             hashtags: generated.facebook.hashtags,
@@ -303,16 +296,18 @@ Deno.serve(async (req) => {
         ])
 
         // Update signal
-        await supabase
-          .from('content_signals')
-          .update({ status: 'generated', generated_idea_id: idea.id })
-          .eq('id', signal.id)
+        if (signal && idea) {
+          await supabase
+            .from('content_signals')
+            .update({ status: 'generated', generated_idea_id: idea.id })
+            .eq('id', signal.id)
+        }
 
         results.push({
           source: source.name,
           title: generated.idea.title,
           principle: generated.idea.principle,
-          idea_id: idea.id,
+          idea_id: idea?.id,
         })
 
       } catch (e) {
