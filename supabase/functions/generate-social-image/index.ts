@@ -53,7 +53,7 @@ The Spiral Up brand uses a distinctive editorial illustration style by Martin To
 - Strong use of negative space and white backgrounds
 - Whimsical but professional tone: playful compositions that convey serious business concepts
 - Small decorative elements like four-pointed stars or sparkles used sparingly
-- Marble-like textures occasionally applied to geometric shapes (arrows, spirals)
+- NO marble textures. NO swirl texture fills on clothing or objects. Use flat color fills or halftone dot patterns only.
 - Figures often shown in motion or dynamic poses suggesting growth, exploration, decision-making
 - The spiral motif is central: spiral staircases, spiral ribbons, upward spiraling paths
 - NO photorealistic rendering. NO 3D effects. NO stock-photo aesthetics. This is editorial illustration art.
