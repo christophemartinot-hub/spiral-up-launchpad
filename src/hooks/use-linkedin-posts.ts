@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { sanitizePlainTextPayload } from '@/lib/utils';
 
 export function useLinkedinPosts() {
   return useQuery({
@@ -20,9 +21,10 @@ export function useCreateLinkedinPost() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (post: Record<string, unknown>) => {
+      const sanitizedPost = sanitizePlainTextPayload(post);
       const { data, error } = await supabase
         .from('linkedin_posts')
-        .insert(post as any)
+        .insert(sanitizedPost as any)
         .select()
         .single();
       if (error) throw error;
@@ -36,9 +38,10 @@ export function useUpdateLinkedinPost() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Record<string, unknown>) => {
+      const sanitizedUpdates = sanitizePlainTextPayload(updates);
       const { error } = await supabase
         .from('linkedin_posts')
-        .update({ ...updates, updated_at: new Date().toISOString() } as any)
+        .update({ ...sanitizedUpdates, updated_at: new Date().toISOString() } as any)
         .eq('id', id);
       if (error) throw error;
     },
