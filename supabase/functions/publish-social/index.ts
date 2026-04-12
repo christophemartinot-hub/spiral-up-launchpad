@@ -90,8 +90,15 @@ const COMPOSIO_API_KEY = Deno.env.get("COMPOSIO_API_KEY");
 const COMPOSIO_BASE_URL = "https://backend.composio.dev/api/v1";
 
 async function getComposioEntityId(platform: string): Promise<string> {
+  const appNameMap: Record<string, string> = {
+    'linkedin': 'linkedin',
+    'facebook': 'facebook',
+    'instagram': 'instagram',
+  };
+  const appName = appNameMap[platform.toLowerCase()];
+
   const response = await fetch(
-    `${COMPOSIO_BASE_URL}/connectedAccounts?appName=${platform}`,
+    `${COMPOSIO_BASE_URL}/connectedAccounts?appName=${appName}&status=ACTIVE`,
     {
       headers: {
         "x-api-key": COMPOSIO_API_KEY!,
@@ -100,7 +107,9 @@ async function getComposioEntityId(platform: string): Promise<string> {
     }
   );
   const data = await response.json();
-  const account = data.items?.[0];
+  console.log(`Composio accounts for ${platform}:`, JSON.stringify(data));
+
+  const account = data.items?.[0] || data.connectedAccounts?.[0];
   if (!account)
     throw new Error(`No connected ${platform} account found in Composio`);
   return account.id;
