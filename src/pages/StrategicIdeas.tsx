@@ -258,11 +258,12 @@ function StrategicIdeaCard({ idea }: { idea: any }) {
   const handleApprove = async () => {
     updateIdea.mutate({ id: idea.id, status: 'approved', converted_to: 'blog,linkedin,instagram' });
     const pillar = idea.related_pillar || '';
+    const cleanTitle = idea.title.replace(/\*+/g, '').trim();
     try {
       await Promise.all([
         createBlog.mutateAsync({
-          title: idea.title,
-          slug: idea.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+          title: cleanTitle,
+          slug: cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
           excerpt: idea.tension_statement || idea.description?.slice(0, 200) || '',
           content: idea.content_potential || idea.description || '',
           content_pillar: pillar,
