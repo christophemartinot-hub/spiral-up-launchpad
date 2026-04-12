@@ -11,7 +11,7 @@ import ContentStudio from "@/pages/ContentStudio";
 import BlogWorkflow from "@/pages/BlogWorkflow";
 import LinkedInPublishing from "@/pages/LinkedInPublishing";
 import InstagramPublishing from "@/pages/InstagramPublishing";
-import Analytics from "@/pages/Analytics";
+import FacebookPublishing from "@/pages/FacebookPublishing";
 import CalendarView from "@/pages/CalendarView";
 import ContentLibrary from "@/pages/ContentLibrary";
 import CampaignWizard from "@/pages/CampaignWizard";
