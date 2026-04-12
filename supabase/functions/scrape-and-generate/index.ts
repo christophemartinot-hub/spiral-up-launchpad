@@ -10,9 +10,12 @@ const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
+const MAX_SOURCES_PER_RUN = 6
+const SCRAPE_TIMEOUT_MS = 10_000
+
 const SOURCES = [
   { name: 'HBR', url: 'https://hbr.org/topic/subject/organizational-transformation' },
-  { name: 'McKinsey', url: 'https://www.mckinsey.com/capabilities/people-and-organizational-performance/our-insights' },
+  { name: 'McKinsey', url: 'https://www.mckinsey.com/featured-insights' },
   { name: 'MIT Sloan', url: 'https://sloanreview.mit.edu/topic/organizational-behavior/' },
   { name: 'BCG', url: 'https://www.bcg.com/capabilities/people-strategy/insights' },
   { name: 'Gartner', url: 'https://www.gartner.com/en/insights/future-of-work' },
@@ -27,6 +30,9 @@ const SPIRAL_PRINCIPLES = [
 ]
 
 async function scrapeSource(url: string): Promise<{ title: string; url: string; summary: string } | null> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), SCRAPE_TIMEOUT_MS)
+
   try {
     const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',
@@ -40,13 +46,20 @@ async function scrapeSource(url: string): Promise<{ title: string; url: string; 
         onlyMainContent: true,
         waitFor: 2000,
       }),
+      signal: controller.signal,
     })
 
     const data = await response.json()
     if (!data.success && !data.data?.markdown) return null
 
     const markdown = (data.data?.markdown || data.markdown || '').slice(0, 2000)
-    if (!markdown) return null
+    if (!markdown || markdown.length < 100) return null
+
+    // Skip access-denied pages
+    const lower = markdown.toLowerCase()
+    if (lower.includes('access denied') || lower.includes('403 forbidden') || lower.includes('please verify you are a human')) {
+      return null
+    }
 
     const titleMatch = markdown.match(/^#{1,3}\s+(.+)/m)
     const title = titleMatch ? titleMatch[1].trim() : 'Recent article'
@@ -54,8 +67,14 @@ async function scrapeSource(url: string): Promise<{ title: string; url: string; 
 
     return { title, url, summary }
   } catch (e) {
-    console.error(`Firecrawl error for ${url}:`, e)
+    if (e instanceof DOMException && e.name === 'AbortError') {
+      console.warn(`Scrape timeout for ${url}`)
+    } else {
+      console.error(`Firecrawl error for ${url}:`, e)
+    }
     return null
+  } finally {
+    clearTimeout(timeout)
   }
 }
 
@@ -169,17 +188,35 @@ Deno.serve(async (req) => {
     }
 
     const brandContext = await getBrandContext(supabase)
-    const results = []
 
-    for (const source of SOURCES) {
-      try {
-        console.log(`Processing source: ${source.name}`)
+    // 1. Scrape all sources in parallel with individual timeouts
+    console.log(`Scraping ${SOURCES.length} sources in parallel...`)
+    const scrapeResults = await Promise.allSettled(
+      SOURCES.map(async (source) => {
         const article = await scrapeSource(source.url)
-        if (!article) {
-          console.log(`No content from ${source.name}, skipping`)
-          continue
-        }
+        return { source, article }
+      })
+    )
 
+    // 2. Collect valid articles, cap at MAX_SOURCES_PER_RUN
+    const validSources: { source: typeof SOURCES[0]; article: NonNullable<Awaited<ReturnType<typeof scrapeSource>>> }[] = []
+    for (const result of scrapeResults) {
+      if (validSources.length >= MAX_SOURCES_PER_RUN) break
+      if (result.status === 'fulfilled' && result.value.article) {
+        validSources.push({ source: result.value.source, article: result.value.article })
+        console.log(`✅ Scraped: ${result.value.source.name}`)
+      } else if (result.status === 'fulfilled') {
+        console.log(`⏭️ Skipped (no content): ${result.value.source.name}`)
+      } else {
+        console.warn(`❌ Failed:`, result.reason)
+      }
+    }
+
+    console.log(`${validSources.length} sources with valid content, generating ideas...`)
+
+    // 3. Generate ideas in parallel for all valid sources
+    const generateResults = await Promise.allSettled(
+      validSources.map(async ({ source, article }) => {
         const { data: signal } = await supabase
           .from('content_signals')
           .insert({
@@ -229,20 +266,30 @@ Deno.serve(async (req) => {
             .eq('id', signal.id)
         }
 
-        results.push({
+        console.log(`✅ ${source.name}: ${generated.title}`)
+        return {
           source: source.name,
           title: generated.title,
           principle: generated.principle,
           idea_id: idea?.id,
-        })
+        }
+      })
+    )
 
-        console.log(`✅ ${source.name}: ${generated.title}`)
-      } catch (sourceError) {
-        console.error(`Error processing ${source.name}:`, sourceError)
-      }
+    // 4. Collect results
+    const results = generateResults
+      .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled')
+      .map((r) => r.value)
+
+    const errors = generateResults
+      .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+      .map((r, i) => ({ source: validSources[i]?.source.name, error: String(r.reason) }))
+
+    if (errors.length > 0) {
+      console.warn('Generation errors:', JSON.stringify(errors))
     }
 
-    return new Response(JSON.stringify({ success: true, generated: results.length, results }), {
+    return new Response(JSON.stringify({ success: true, generated: results.length, skipped: SOURCES.length - validSources.length, results, errors }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
 
