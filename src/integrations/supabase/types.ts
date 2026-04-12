@@ -1300,6 +1300,83 @@ export type Database = {
           },
         ]
       }
+      facebook_posts: {
+        Row: {
+          author: string
+          blog_version: string | null
+          content: string
+          content_pillar: string | null
+          created_at: string
+          cta: string | null
+          editorial_item_id: string | null
+          engagement_data: Json | null
+          external_post_id: string | null
+          hashtags: Json | null
+          id: string
+          image_url: string | null
+          instagram_version: string | null
+          link_url: string | null
+          linkedin_version: string | null
+          published_at: string | null
+          scheduled_publish_at: string | null
+          status: string
+          updated_at: string
+          visual_concept: string | null
+        }
+        Insert: {
+          author?: string
+          blog_version?: string | null
+          content?: string
+          content_pillar?: string | null
+          created_at?: string
+          cta?: string | null
+          editorial_item_id?: string | null
+          engagement_data?: Json | null
+          external_post_id?: string | null
+          hashtags?: Json | null
+          id?: string
+          image_url?: string | null
+          instagram_version?: string | null
+          link_url?: string | null
+          linkedin_version?: string | null
+          published_at?: string | null
+          scheduled_publish_at?: string | null
+          status?: string
+          updated_at?: string
+          visual_concept?: string | null
+        }
+        Update: {
+          author?: string
+          blog_version?: string | null
+          content?: string
+          content_pillar?: string | null
+          created_at?: string
+          cta?: string | null
+          editorial_item_id?: string | null
+          engagement_data?: Json | null
+          external_post_id?: string | null
+          hashtags?: Json | null
+          id?: string
+          image_url?: string | null
+          instagram_version?: string | null
+          link_url?: string | null
+          linkedin_version?: string | null
+          published_at?: string | null
+          scheduled_publish_at?: string | null
+          status?: string
+          updated_at?: string
+          visual_concept?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_posts_editorial_item_id_fkey"
+            columns: ["editorial_item_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       founder_profile: {
         Row: {
           certifications: Json | null
