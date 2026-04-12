@@ -263,7 +263,7 @@ function StrategicIdeaCard({ idea }: { idea: any }) {
         createBlog.mutateAsync({
           title: idea.title,
           excerpt: idea.tension_statement || idea.description?.slice(0, 200) || '',
-          content: '',
+          content: idea.content_potential || idea.description || '',
           content_pillar: pillar,
           meta_description: idea.description?.slice(0, 160) || '',
           status: 'draft',
