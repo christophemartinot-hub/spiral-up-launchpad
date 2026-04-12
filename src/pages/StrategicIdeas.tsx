@@ -262,6 +262,7 @@ function StrategicIdeaCard({ idea }: { idea: any }) {
       await Promise.all([
         createBlog.mutateAsync({
           title: idea.title,
+          slug: idea.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
           excerpt: idea.tension_statement || idea.description?.slice(0, 200) || '',
           content: idea.content_potential || idea.description || '',
           content_pillar: pillar,
