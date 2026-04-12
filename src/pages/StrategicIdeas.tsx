@@ -16,6 +16,7 @@ import {
 import { useCreateBlogPost } from '@/hooks/use-blog';
 import { useCreateLinkedinPost } from '@/hooks/use-linkedin-posts';
 import { useCreateInstagramPost } from '@/hooks/use-instagram-posts';
+import { useCreateFacebookPost } from '@/hooks/use-facebook-posts';
 import {
   Sparkles, Loader2, CheckCircle, XCircle, Pin, PinOff,
   Zap, AlertTriangle, Lightbulb, BookOpen, Target, TrendingUp,
@@ -253,10 +254,11 @@ function StrategicIdeaCard({ idea }: { idea: any }) {
   const createBlog = useCreateBlogPost();
   const createLinkedin = useCreateLinkedinPost();
   const createInstagram = useCreateInstagramPost();
+  const createFacebook = useCreateFacebookPost();
   const typeConfig = IDEA_TYPE_CONFIG[idea.idea_type] || IDEA_TYPE_CONFIG.opportunity;
 
   const handleApprove = async () => {
-    updateIdea.mutate({ id: idea.id, status: 'approved', converted_to: 'blog,linkedin,instagram' });
+    updateIdea.mutate({ id: idea.id, status: 'approved', converted_to: 'blog,linkedin,instagram,facebook' });
     const pillar = idea.related_pillar || '';
     const cleanTitle = idea.title.replace(/\*+/g, '').trim();
     try {
@@ -284,8 +286,14 @@ function StrategicIdeaCard({ idea }: { idea: any }) {
           hashtags: ['SpiralUpWorks'],
           status: 'draft',
         }),
+        createFacebook.mutateAsync({
+          content: idea.content_potential || idea.description || '',
+          content_pillar: pillar,
+          hashtags: ['SpiralUpWorks'],
+          status: 'draft',
+        } as any),
       ]);
-      toast.success('Idea approved — drafts created in Blog, LinkedIn & Instagram');
+      toast.success('Idea approved — drafts created in Blog, LinkedIn, Instagram & Facebook');
     } catch (e: any) {
       toast.error('Approved but some drafts failed: ' + e.message);
     }
