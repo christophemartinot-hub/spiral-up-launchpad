@@ -12,6 +12,7 @@ import BlogWorkflow from "@/pages/BlogWorkflow";
 import LinkedInPublishing from "@/pages/LinkedInPublishing";
 import InstagramPublishing from "@/pages/InstagramPublishing";
 import FacebookPublishing from "@/pages/FacebookPublishing";
+import Analytics from "@/pages/Analytics";
 import CalendarView from "@/pages/CalendarView";
 import ContentLibrary from "@/pages/ContentLibrary";
 import CampaignWizard from "@/pages/CampaignWizard";
@@ -62,6 +63,7 @@ function AuthenticatedApp() {
         <Route path="/blog" element={<BlogWorkflow />} />
         <Route path="/linkedin" element={<LinkedInPublishing />} />
         <Route path="/instagram" element={<InstagramPublishing />} />
+        <Route path="/facebook" element={<FacebookPublishing />} />
         <Route path="/content" element={<ContentLibrary />} />
         <Route path="/campaigns" element={<Campaigns />} />
         <Route path="/campaigns/new" element={<CampaignWizard />} />
