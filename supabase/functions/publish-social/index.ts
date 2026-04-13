@@ -118,8 +118,8 @@ async function publishToFacebook(
     const body: Record<string, unknown> = {
       connectedAccountId: entityId,
       appName: "facebook",
-      actionName: "FACEBOOK_CREATE_POST",
-      input: { message: content } as Record<string, unknown>,
+      actionName: "FACEBOOK_CREATE_PAGE_POST",
+      input: { message: content, page_id: "1005887942614017" } as Record<string, unknown>,
     };
     const input = body.input as Record<string, unknown>;
     if (imageUrl) {
