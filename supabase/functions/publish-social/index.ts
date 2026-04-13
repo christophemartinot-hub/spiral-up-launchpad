@@ -38,7 +38,7 @@ async function publishToLinkedIn(
     const tag = "#SpiralUpWorks";
     const finalContent = content.includes(tag) ? content : `${content}\n\n${tag}`;
 
-    const entityId = await getComposioEntityId("linkedin");
+    const entityId = getComposioEntityId("linkedin");
     const body: Record<string, unknown> = {
       connectedAccountId: entityId,
       appName: "linkedin",
@@ -114,7 +114,7 @@ async function publishToFacebook(
     if (!COMPOSIO_API_KEY) {
       return { success: false, response: null, error: "COMPOSIO_API_KEY not configured" };
     }
-    const entityId = await getComposioEntityId("facebook");
+    const entityId = getComposioEntityId("facebook");
     const body: Record<string, unknown> = {
       connectedAccountId: entityId,
       appName: "facebook",
@@ -185,7 +185,7 @@ async function publishToInstagram(
         error: "Instagram requires an image URL",
       };
     }
-    const entityId = await getComposioEntityId("instagram");
+    const entityId = getComposioEntityId("instagram");
     const body: Record<string, unknown> = {
       connectedAccountId: entityId,
       appName: "instagram",
