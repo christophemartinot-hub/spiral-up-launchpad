@@ -87,7 +87,7 @@ async function publishToLinkedIn(
 // ============================================
 
 const COMPOSIO_API_KEY = Deno.env.get("COMPOSIO_API_KEY");
-const COMPOSIO_BASE_URL = "https://backend.composio.dev/api/v1";
+const COMPOSIO_BASE_URL = "https://backend.composio.dev/api/v3";
 
 function getComposioEntityId(platform: string): string {
   const accountIds: Record<string, string> = {
