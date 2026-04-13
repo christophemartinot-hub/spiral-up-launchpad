@@ -970,6 +970,7 @@ function BlogPreview({
     .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold mt-8 mb-4 text-foreground">$1</h1>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline hover:opacity-80">$1</a>')
     .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc text-muted-foreground">$1</li>')
     .replace(/\n\n/g, '</p><p class="text-muted-foreground leading-relaxed mb-4">')
     .replace(/\n/g, '<br/>');
@@ -1032,11 +1033,25 @@ function BlogPreview({
           </div>
 
           <div className="mt-4 p-6 rounded-xl bg-accent/10 border border-accent/20 text-center space-y-3">
-            <p className="font-display font-bold text-lg">📊 How Agile Is Your Organization?</p>
-            <p className="text-sm text-muted-foreground">Take our free Business Agility Diagnostic.</p>
-            <Button variant="outline" className="border-accent text-accent hover:bg-accent/10">
-              Take the Diagnostic →
-            </Button>
+            <p className="font-display font-bold text-lg">Ready to see where you and your team really stand?</p>
+            <p className="text-sm text-muted-foreground">
+              Take the free{' '}
+              <a
+                href="https://spiralingup.works/assessment"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline font-semibold hover:opacity-80"
+              >
+                Team Starter Assessment
+              </a>{' '}
+              and get instant visibility across all six SPIRAL UP principles.
+            </p>
+            <p className="text-xs text-muted-foreground font-medium">10 minutes. Real insights. No fluff.</p>
+            <a href="https://spiralingup.works/assessment" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" className="border-accent text-accent hover:bg-accent/10">
+                Take the Assessment →
+              </Button>
+            </a>
           </div>
         </CardContent>
       </Card>
