@@ -89,30 +89,15 @@ async function publishToLinkedIn(
 const COMPOSIO_API_KEY = Deno.env.get("COMPOSIO_API_KEY");
 const COMPOSIO_BASE_URL = "https://backend.composio.dev/api/v1";
 
-async function getComposioEntityId(platform: string): Promise<string> {
-  const appNameMap: Record<string, string> = {
-    'linkedin': 'linkedin',
-    'facebook': 'facebook',
-    'instagram': 'instagram',
+function getComposioEntityId(platform: string): string {
+  const accountIds: Record<string, string> = {
+    'linkedin': 'linkedin_boba-irving',
+    'facebook': 'facebook_wafer-furor',
+    'instagram': 'instagram_manal-sarah',
   };
-  const appName = appNameMap[platform.toLowerCase()];
-
-  const response = await fetch(
-    `${COMPOSIO_BASE_URL}/connectedAccounts?appName=${appName}&status=ACTIVE`,
-    {
-      headers: {
-        "x-api-key": COMPOSIO_API_KEY!,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  const data = await response.json();
-  console.log(`Composio accounts for ${platform}:`, JSON.stringify(data));
-
-  const account = data.items?.[0] || data.connectedAccounts?.[0];
-  if (!account)
-    throw new Error(`No connected ${platform} account found in Composio`);
-  return account.id;
+  const id = accountIds[platform.toLowerCase()];
+  if (!id) throw new Error(`No account ID configured for ${platform}`);
+  return id;
 }
 
 async function publishToFacebook(
