@@ -100,6 +100,8 @@ function getComposioEntityId(platform: string): string {
   return id;
 }
 
+const FACEBOOK_PAGE_ID = '1005887942614017'; // Spiral Up page
+
 async function publishToFacebook(
   content: string,
   imageUrl?: string | null,
