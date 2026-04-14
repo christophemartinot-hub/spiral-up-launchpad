@@ -61,6 +61,8 @@ export default function FacebookPublishing() {
   // Drag state
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
   const [draggedPostId, setDraggedPostId] = useState<string | null>(null);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('08:00');
 
   const selectedPost = posts.find((p: any) => p.id === selectedId) ?? null;
 

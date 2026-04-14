@@ -71,6 +71,8 @@ export default function InstagramPublishing() {
   // Drag state
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
   const [draggedPostId, setDraggedPostId] = useState<string | null>(null);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('08:00');
 
   const selectedPost = posts.find(p => p.id === selectedId) ?? null;
 
