@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { Clock, Lightbulb, Calendar } from 'lucide-react';
+import { Clock, Lightbulb, Calendar, CheckCircle2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const STATUS_STYLES: Record<string, string> = {
   draft: 'bg-muted text-muted-foreground',
@@ -13,29 +14,31 @@ const STATUS_STYLES: Record<string, string> = {
   published: 'bg-success/10 text-success',
 };
 
-interface RecommendedTime {
-  label: string;
+interface RecommendedSlot {
+  dayOfWeek: number; // 0=Sun..6=Sat
+  weekOffset: number; // 0 = this coming occurrence, 1 = the one after
+  time: string; // HH:mm
   description: string;
 }
 
-const RECOMMENDED_TIMES: Record<string, RecommendedTime[]> = {
+const RECOMMENDED_SLOTS: Record<string, RecommendedSlot[]> = {
   linkedin: [
-    { label: 'Tue, {nextTue} at 08:00', description: 'Peak LinkedIn engagement for B2B professionals' },
-    { label: 'Wed, {nextWed} at 10:00', description: 'Mid-week sweet spot — high open rates' },
-    { label: 'Thu, {nextThu} at 07:30', description: 'Early readers before the workday starts' },
-    { label: 'Tue, {nextTue2} at 12:00', description: 'Lunch-break reading window' },
+    { dayOfWeek: 2, weekOffset: 0, time: '08:00', description: 'Peak LinkedIn engagement for B2B professionals' },
+    { dayOfWeek: 3, weekOffset: 0, time: '10:00', description: 'Mid-week sweet spot — high open rates' },
+    { dayOfWeek: 4, weekOffset: 0, time: '07:30', description: 'Early readers before the workday starts' },
+    { dayOfWeek: 2, weekOffset: 1, time: '12:00', description: 'Lunch-break reading window' },
   ],
   facebook: [
-    { label: 'Wed, {nextWed} at 13:00', description: 'Peak Facebook engagement for pages' },
-    { label: 'Thu, {nextThu} at 09:00', description: 'Morning scroll — high reach window' },
-    { label: 'Fri, {nextFri} at 11:00', description: 'End-of-week sharing moment' },
-    { label: 'Sun, {nextSun} at 10:00', description: 'Weekend leisure browsing peak' },
+    { dayOfWeek: 3, weekOffset: 0, time: '13:00', description: 'Peak Facebook engagement for pages' },
+    { dayOfWeek: 4, weekOffset: 0, time: '09:00', description: 'Morning scroll — high reach window' },
+    { dayOfWeek: 5, weekOffset: 0, time: '11:00', description: 'End-of-week sharing moment' },
+    { dayOfWeek: 0, weekOffset: 0, time: '10:00', description: 'Weekend leisure browsing peak' },
   ],
   instagram: [
-    { label: 'Mon, {nextMon} at 11:00', description: 'Monday engagement spike on Instagram' },
-    { label: 'Wed, {nextWed} at 14:00', description: 'Mid-week afternoon scroll peak' },
-    { label: 'Fri, {nextFri} at 10:00', description: 'Friday morning discovery window' },
-    { label: 'Sat, {nextSat} at 09:00', description: 'Weekend morning — high save rates' },
+    { dayOfWeek: 1, weekOffset: 0, time: '11:00', description: 'Monday engagement spike on Instagram' },
+    { dayOfWeek: 3, weekOffset: 0, time: '14:00', description: 'Mid-week afternoon scroll peak' },
+    { dayOfWeek: 5, weekOffset: 0, time: '10:00', description: 'Friday morning discovery window' },
+    { dayOfWeek: 6, weekOffset: 0, time: '09:00', description: 'Weekend morning — high save rates' },
   ],
 };
 
@@ -47,29 +50,18 @@ function getNextDayOfWeek(dayOfWeek: number, offset = 0): Date {
   return date;
 }
 
-function formatShortDate(date: Date): string {
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+function toISODate(d: Date): string {
+  return d.toISOString().slice(0, 10);
 }
 
-function resolveTimeLabel(label: string): string {
-  const nextMon = getNextDayOfWeek(1);
-  const nextTue = getNextDayOfWeek(2);
-  const nextWed = getNextDayOfWeek(3);
-  const nextThu = getNextDayOfWeek(4);
-  const nextFri = getNextDayOfWeek(5);
-  const nextSat = getNextDayOfWeek(6);
-  const nextSun = getNextDayOfWeek(0);
-  const nextTue2 = getNextDayOfWeek(2, 1);
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  return label
-    .replace('{nextMon}', formatShortDate(nextMon))
-    .replace('{nextTue2}', formatShortDate(nextTue2))
-    .replace('{nextTue}', formatShortDate(nextTue))
-    .replace('{nextWed}', formatShortDate(nextWed))
-    .replace('{nextThu}', formatShortDate(nextThu))
-    .replace('{nextFri}', formatShortDate(nextFri))
-    .replace('{nextSat}', formatShortDate(nextSat))
-    .replace('{nextSun}', formatShortDate(nextSun));
+interface ResolvedSlot {
+  date: Date;
+  dateStr: string;
+  time: string;
+  label: string;
+  description: string;
 }
 
 interface SchedulePublishingPanelProps {
@@ -89,12 +81,29 @@ export function SchedulePublishingPanel({
   onPublishDateChange,
   onPublishTimeChange,
 }: SchedulePublishingPanelProps) {
-  const recommendedTimes = useMemo(() => {
-    return (RECOMMENDED_TIMES[platform] || []).map(t => ({
-      ...t,
-      label: resolveTimeLabel(t.label),
-    }));
+  const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
+
+  const resolvedSlots: ResolvedSlot[] = useMemo(() => {
+    return (RECOMMENDED_SLOTS[platform] || []).map(slot => {
+      const date = getNextDayOfWeek(slot.dayOfWeek, slot.weekOffset);
+      const dayName = DAY_NAMES[slot.dayOfWeek];
+      const shortDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return {
+        date,
+        dateStr: toISODate(date),
+        time: slot.time,
+        label: `${dayName}, ${shortDate} at ${slot.time}`,
+        description: slot.description,
+      };
+    });
   }, [platform]);
+
+  const handleSlotClick = (slot: ResolvedSlot, index: number) => {
+    onPublishDateChange(slot.dateStr);
+    onPublishTimeChange(slot.time);
+    setSelectedSlotIndex(index);
+    toast.success(`Scheduled for ${slot.label}`);
+  };
 
   return (
     <>
@@ -125,7 +134,7 @@ export function SchedulePublishingPanel({
                 <Input
                   type="date"
                   value={publishDate}
-                  onChange={e => onPublishDateChange(e.target.value)}
+                  onChange={e => { onPublishDateChange(e.target.value); setSelectedSlotIndex(null); }}
                   className="pl-9"
                 />
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
@@ -133,14 +142,11 @@ export function SchedulePublishingPanel({
             </div>
             <div className="space-y-2">
               <Label>Publish Time (CET)</Label>
-              <div className="relative">
-                <Input
-                  type="time"
-                  value={publishTime}
-                  onChange={e => onPublishTimeChange(e.target.value)}
-                  className="pl-3"
-                />
-              </div>
+              <Input
+                type="time"
+                value={publishTime}
+                onChange={e => { onPublishTimeChange(e.target.value); setSelectedSlotIndex(null); }}
+              />
             </div>
 
             {/* Recommended times */}
@@ -149,20 +155,28 @@ export function SchedulePublishingPanel({
                 <Lightbulb className="w-3 h-3 text-warning" /> Recommended times
               </p>
               <div className="space-y-1.5">
-                {recommendedTimes.map((rt, i) => (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      // Parse the date/time from the label
-                      const timeMatch = rt.label.match(/at (\d{2}:\d{2})/);
-                      if (timeMatch) onPublishTimeChange(timeMatch[1]);
-                    }}
-                    className="w-full text-left p-2.5 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/30 transition-all"
-                  >
-                    <p className="text-sm font-medium">{rt.label}</p>
-                    <p className="text-xs text-muted-foreground">{rt.description}</p>
-                  </button>
-                ))}
+                {resolvedSlots.map((slot, i) => {
+                  const isSelected = selectedSlotIndex === i ||
+                    (selectedSlotIndex === null && publishDate === slot.dateStr && publishTime === slot.time);
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => handleSlotClick(slot, i)}
+                      className={cn(
+                        'w-full text-left p-2.5 rounded-lg border transition-all',
+                        isSelected
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                          : 'border-border hover:border-primary/30 hover:bg-muted/30'
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium">{slot.label}</p>
+                        {isSelected && <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{slot.description}</p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </CardContent>
