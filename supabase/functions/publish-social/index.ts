@@ -325,24 +325,16 @@ Deno.serve(async (req) => {
         results[platform] = result;
         if (!result.success) allSuccess = false;
       } else if (platform === "facebook") {
-        const scheduledAt = item.publish_date && item.publish_time
-          ? `${item.publish_date}T${item.publish_time}:00Z`
-          : null;
         const result = await publishToFacebook(
           item.draft_content || "",
           finalImageUrl,
-          scheduledAt,
         );
         results[platform] = result;
         if (!result.success) allSuccess = false;
       } else if (platform === "instagram") {
-        const scheduledAt = item.publish_date && item.publish_time
-          ? `${item.publish_date}T${item.publish_time}:00Z`
-          : null;
         const result = await publishToInstagram(
           item.draft_content || "",
           finalImageUrl,
-          scheduledAt,
         );
         results[platform] = result;
         if (result.skipped) {
