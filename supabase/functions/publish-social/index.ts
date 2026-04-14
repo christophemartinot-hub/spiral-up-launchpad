@@ -20,144 +20,116 @@ function isValidPublicImageUrl(url: unknown): url is string {
   }
 }
 
-/** Publish to LinkedIn via Composio */
-async function publishToLinkedIn(
-  content: string,
-  imageUrl?: string | null,
-): Promise<{
-  success: boolean;
-  response: unknown;
-  postId?: string;
-  error?: string;
-}> {
-  try {
-    if (!COMPOSIO_API_KEY) {
-      return { success: false, response: null, error: "COMPOSIO_API_KEY not configured" };
-    }
-
-    const tag = "#SpiralUpWorks";
-    const finalContent = content.includes(tag) ? content : `${content}\n\n${tag}`;
-
-    const entityId = getComposioEntityId("linkedin");
-    const body: Record<string, unknown> = {
-      connectedAccountId: entityId,
-      appName: "linkedin",
-      actionName: "LINKEDIN_CREATE_POST",
-      input: {
-        text: finalContent,
-        visibility: "PUBLIC",
-      } as Record<string, unknown>,
-    };
-    const input = body.input as Record<string, unknown>;
-    if (imageUrl) {
-      input.image_url = imageUrl;
-    }
-
-    const response = await fetch(`${COMPOSIO_BASE_URL}/actions/execute`, {
-      method: "POST",
-      headers: {
-        "x-api-key": COMPOSIO_API_KEY!,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-    const data = await response.json();
-    if (!response.ok || data.error) {
-      throw new Error(
-        data.error || `LinkedIn publish failed [${response.status}]`
-      );
-    }
-    return {
-      success: true,
-      response: data,
-      postId: data.data?.id || data.executionId,
-    };
-  } catch (error: unknown) {
-    console.error("LinkedIn publish error:", error);
-    return {
-      success: false,
-      response: null,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
-
 // ============================================
-// COMPOSIO PUBLISHING — replaces Buffer
+// COMPOSIO v3 PUBLISHING
 // ============================================
 
 const COMPOSIO_API_KEY = Deno.env.get("COMPOSIO_API_KEY");
-const COMPOSIO_BASE_URL = "https://backend.composio.dev/api/v3";
+const COMPOSIO_EXECUTE_URL = "https://backend.composio.dev/api/v3/actions/execute";
+const FACEBOOK_PAGE_ID = "1005887942614017";
 
-function getComposioEntityId(platform: string): string {
+function getComposioAccountId(platform: string): string {
   const accountIds: Record<string, string> = {
-    'linkedin': 'linkedin_boba-irving',
-    'facebook': 'facebook_wafer-furor',
-    'instagram': 'instagram_manal-sarah',
+    linkedin: "linkedin_boba-irving",
+    facebook: "facebook_wafer-furor",
+    instagram: "instagram_manal-sarah",
   };
   const id = accountIds[platform.toLowerCase()];
   if (!id) throw new Error(`No account ID configured for ${platform}`);
   return id;
 }
 
-const FACEBOOK_PAGE_ID = '1005887942614017'; // Spiral Up page
+async function executeComposioAction(
+  toolSlug: string,
+  input: Record<string, unknown>,
+  accountId: string,
+): Promise<unknown> {
+  const response = await fetch(COMPOSIO_EXECUTE_URL, {
+    method: "POST",
+    headers: {
+      "x-api-key": COMPOSIO_API_KEY!,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      tool_slug: toolSlug,
+      input,
+      connected_account_id: accountId,
+    }),
+  });
+  const text = await response.text();
+
+  if (!response.ok) {
+    throw new Error(`Composio API error ${response.status}: ${text}`);
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Composio returned non-JSON: ${text.slice(0, 200)}`);
+  }
+}
+
+async function publishToLinkedIn(
+  content: string,
+  imageUrl?: string | null,
+): Promise<{ success: boolean; response?: unknown; postId?: string; error?: string }> {
+  try {
+    const accountId = getComposioAccountId("linkedin");
+    const input: Record<string, unknown> = {
+      author: "urn:li:person:W6qTJ8EL8v",
+      commentary: content,
+      visibility: "PUBLIC",
+      lifecycleState: "PUBLISHED",
+    };
+
+    const data = await executeComposioAction(
+      "LINKEDIN_CREATE_LINKED_IN_POST",
+      input,
+      accountId,
+    ) as Record<string, any>;
+
+    return {
+      success: true,
+      response: data,
+      postId: data?.data?.x_restli_id || data?.executionId,
+    };
+  } catch (error: unknown) {
+    console.error("LinkedIn publish error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
 
 async function publishToFacebook(
   content: string,
   imageUrl?: string | null,
-  scheduledAt?: string | null
-): Promise<{
-  success: boolean;
-  response: unknown;
-  postId?: string;
-  error?: string;
-}> {
+): Promise<{ success: boolean; response?: unknown; postId?: string; error?: string }> {
   try {
-    if (!COMPOSIO_API_KEY) {
-      return { success: false, response: null, error: "COMPOSIO_API_KEY not configured" };
-    }
-    const entityId = getComposioEntityId("facebook");
-    const body: Record<string, unknown> = {
-      connectedAccountId: entityId,
-      appName: "facebook",
-      actionName: "FACEBOOK_CREATE_PAGE_POST",
-      input: { message: content, page_id: "1005887942614017" } as Record<string, unknown>,
+    const accountId = getComposioAccountId("facebook");
+    const input: Record<string, unknown> = {
+      page_id: FACEBOOK_PAGE_ID,
+      message: content,
     };
-    const input = body.input as Record<string, unknown>;
     if (imageUrl) {
       input.link = imageUrl;
     }
-    if (scheduledAt) {
-      input.scheduled_publish_time = Math.floor(
-        new Date(scheduledAt).getTime() / 1000
-      );
-      input.published = false;
-    }
 
-    const response = await fetch(`${COMPOSIO_BASE_URL}/actions/execute`, {
-      method: "POST",
-      headers: {
-        "x-api-key": COMPOSIO_API_KEY!,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-    const data = await response.json();
-    if (!response.ok || data.error) {
-      throw new Error(
-        data.error || `Facebook publish failed [${response.status}]`
-      );
-    }
+    const data = await executeComposioAction(
+      "FACEBOOK_CREATE_PAGE_POST",
+      input,
+      accountId,
+    ) as Record<string, any>;
+
     return {
       success: true,
       response: data,
-      postId: data.data?.id || data.executionId,
+      postId: data?.data?.id || data?.executionId,
     };
   } catch (error: unknown) {
     console.error("Facebook publish error:", error);
     return {
       success: false,
-      response: null,
       error: error instanceof Error ? error.message : String(error),
     };
   }
@@ -166,65 +138,33 @@ async function publishToFacebook(
 async function publishToInstagram(
   caption: string,
   imageUrl?: string | null,
-  scheduledAt?: string | null
-): Promise<{
-  success: boolean;
-  response: unknown;
-  postId?: string;
-  error?: string;
-  skipped?: boolean;
-}> {
+): Promise<{ success: boolean; response?: unknown; postId?: string; error?: string; skipped?: boolean }> {
   try {
-    if (!COMPOSIO_API_KEY) {
-      return { success: false, response: null, error: "COMPOSIO_API_KEY not configured" };
-    }
     if (!imageUrl) {
       console.warn("Instagram requires an image — skipping");
-      return {
-        success: false,
-        response: null,
-        skipped: true,
-        error: "Instagram requires an image URL",
-      };
+      return { success: false, skipped: true, error: "Instagram requires an image URL" };
     }
-    const entityId = getComposioEntityId("instagram");
-    const body: Record<string, unknown> = {
-      connectedAccountId: entityId,
-      appName: "instagram",
-      actionName: "INSTAGRAM_CREATE_PHOTO_POST",
-      input: { caption, image_url: imageUrl } as Record<string, unknown>,
+    const accountId = getComposioAccountId("instagram");
+    const input: Record<string, unknown> = {
+      caption,
+      image_url: imageUrl,
     };
-    const input = body.input as Record<string, unknown>;
-    if (scheduledAt) {
-      input.scheduled_publish_time = Math.floor(
-        new Date(scheduledAt).getTime() / 1000
-      );
-    }
 
-    const response = await fetch(`${COMPOSIO_BASE_URL}/actions/execute`, {
-      method: "POST",
-      headers: {
-        "x-api-key": COMPOSIO_API_KEY!,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-    const data = await response.json();
-    if (!response.ok || data.error) {
-      throw new Error(
-        data.error || `Instagram publish failed [${response.status}]`
-      );
-    }
+    const data = await executeComposioAction(
+      "INSTAGRAM_CREATE_PHOTO_POST",
+      input,
+      accountId,
+    ) as Record<string, any>;
+
     return {
       success: true,
       response: data,
-      postId: data.data?.id || data.executionId,
+      postId: data?.data?.id || data?.executionId,
     };
   } catch (error: unknown) {
     console.error("Instagram publish error:", error);
     return {
       success: false,
-      response: null,
       error: error instanceof Error ? error.message : String(error),
     };
   }
@@ -385,24 +325,16 @@ Deno.serve(async (req) => {
         results[platform] = result;
         if (!result.success) allSuccess = false;
       } else if (platform === "facebook") {
-        const scheduledAt = item.publish_date && item.publish_time
-          ? `${item.publish_date}T${item.publish_time}:00Z`
-          : null;
         const result = await publishToFacebook(
           item.draft_content || "",
           finalImageUrl,
-          scheduledAt,
         );
         results[platform] = result;
         if (!result.success) allSuccess = false;
       } else if (platform === "instagram") {
-        const scheduledAt = item.publish_date && item.publish_time
-          ? `${item.publish_date}T${item.publish_time}:00Z`
-          : null;
         const result = await publishToInstagram(
           item.draft_content || "",
           finalImageUrl,
-          scheduledAt,
         );
         results[platform] = result;
         if (result.skipped) {
