@@ -20,6 +20,7 @@ import {
   Lightbulb, ImagePlus, RefreshCw, Upload, ArrowRight, CheckCircle, Facebook,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { SchedulePublishingPanel } from '@/components/SchedulePublishingPanel';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 const STATUS_STYLES: Record<string, string> = {
@@ -60,6 +61,8 @@ export default function FacebookPublishing() {
   // Drag state
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
   const [draggedPostId, setDraggedPostId] = useState<string | null>(null);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('08:00');
 
   const selectedPost = posts.find((p: any) => p.id === selectedId) ?? null;
 
@@ -485,6 +488,16 @@ Stay unmistakably Spiral Up in voice.`;
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Status & Schedule */}
+                <SchedulePublishingPanel
+                  status={(selectedPost as any).status}
+                  platform="facebook"
+                  publishDate={scheduleDate}
+                  publishTime={scheduleTime}
+                  onPublishDateChange={setScheduleDate}
+                  onPublishTimeChange={setScheduleTime}
+                />
 
                 {/* Actions */}
                 <Card className="shadow-card">
