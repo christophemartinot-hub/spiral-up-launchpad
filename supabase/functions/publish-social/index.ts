@@ -71,33 +71,45 @@ async function executeComposioAction(
 async function publishToLinkedIn(
   content: string,
   imageUrl?: string | null,
-): Promise<{ success: boolean; response?: unknown; postId?: string; error?: string }> {
+): Promise<{ success: boolean; postId?: string; error?: string }> {
   try {
-    const accountId = getComposioAccountId("linkedin");
-    const input: Record<string, unknown> = {
+    const LINKEDIN_TOKEN = Deno.env.get("LINKEDIN_ACCESS_TOKEN");
+    if (!LINKEDIN_TOKEN) throw new Error("Missing LINKEDIN_ACCESS_TOKEN");
+
+    const body: Record<string, unknown> = {
       author: "urn:li:person:W6qTJ8EL8v",
       commentary: content,
       visibility: "PUBLIC",
+      distribution: {
+        feedDistribution: "MAIN_FEED",
+        targetEntities: [],
+        thirdPartyDistributionChannels: [],
+      },
       lifecycleState: "PUBLISHED",
+      isReshareDisabledByAuthor: false,
     };
 
-    const data = await executeComposioAction(
-      "LINKEDIN_CREATE_LINKED_IN_POST",
-      input,
-      accountId,
-    ) as Record<string, any>;
+    const response = await fetch("https://api.linkedin.com/rest/posts", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LINKEDIN_TOKEN}`,
+        "Content-Type": "application/json",
+        "LinkedIn-Version": "202504",
+        "X-Restli-Protocol-Version": "2.0.0",
+      },
+      body: JSON.stringify(body),
+    });
 
-    return {
-      success: true,
-      response: data,
-      postId: data?.data?.x_restli_id || data?.executionId,
-    };
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`LinkedIn API error ${response.status}: ${error}`);
+    }
+
+    const postId = response.headers.get("x-restli-id") || "";
+    return { success: true, postId };
   } catch (error: unknown) {
     console.error("LinkedIn publish error:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
 
