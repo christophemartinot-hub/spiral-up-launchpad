@@ -21,6 +21,7 @@ import {
   ChevronLeft, ChevronRight, ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { SchedulePublishingPanel } from '@/components/SchedulePublishingPanel';
 
 const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 const STATUS_STYLES: Record<string, string> = {
