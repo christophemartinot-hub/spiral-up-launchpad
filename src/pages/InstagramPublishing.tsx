@@ -689,6 +689,16 @@ Stay unmistakably Spiral Up in voice. Write as Christophe Martinot.`;
                   </CardContent>
                 </Card>
 
+                {/* Status & Schedule */}
+                <SchedulePublishingPanel
+                  status={selectedPost.status}
+                  platform="instagram"
+                  publishDate={scheduleDate}
+                  publishTime={scheduleTime}
+                  onPublishDateChange={setScheduleDate}
+                  onPublishTimeChange={setScheduleTime}
+                />
+
                 <Card className="shadow-card">
                   <CardHeader><CardTitle className="font-display text-base">Actions</CardTitle></CardHeader>
                   <CardContent className="space-y-2">

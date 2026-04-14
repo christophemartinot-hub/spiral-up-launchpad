@@ -492,6 +492,16 @@ Stay unmistakably Spiral Up in voice.`;
                   </CardContent>
                 </Card>
 
+                {/* Status & Schedule */}
+                <SchedulePublishingPanel
+                  status={selectedPost.status}
+                  platform="linkedin"
+                  publishDate={scheduleDate}
+                  publishTime={scheduleTime}
+                  onPublishDateChange={setScheduleDate}
+                  onPublishTimeChange={setScheduleTime}
+                />
+
                 {/* Actions */}
                 <Card className="shadow-card">
                   <CardHeader><CardTitle className="font-display text-base">Actions</CardTitle></CardHeader>
