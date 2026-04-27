@@ -22,11 +22,17 @@ Deno.serve(async (req) => {
       const { data, error } = await db.from("blog_posts").select("id, slug, title, status, published_at").eq("id", id).maybeSingle();
       byId.push({ id, data, error: error?.message });
     }
-    const { data: bySlug, error: slugErr } = await db
+    const { data: agile } = await db
       .from("blog_posts")
-      .select("id, slug, title, status, published_at")
-      .or("slug.ilike.%trust-is-not%,slug.ilike.%agile-transformation%");
-    return new Response(JSON.stringify({ byId, bySlug, slugErr: slugErr?.message }, null, 2), {
+      .select("*")
+      .eq("slug", "why-agile-transformation-is-an-oxymoron")
+      .maybeSingle();
+    const { data: recent } = await db
+      .from("blog_posts")
+      .select("id, slug, title, status, published_at, created_at")
+      .order("created_at", { ascending: false })
+      .limit(10);
+    return new Response(JSON.stringify({ byId, agile, recent }, null, 2), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e: any) {
