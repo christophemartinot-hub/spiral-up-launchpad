@@ -332,6 +332,23 @@ Deno.serve(async (req) => {
         );
         results[platform] = result;
         if (!result.success) allSuccess = false;
+
+        // Persist the LinkedIn URN on the linkedin_posts row so the UI shows it as live
+        if (result.success && (result as any).postId) {
+          try {
+            await supabase
+              .from("linkedin_posts")
+              .update({
+                external_post_id: (result as any).postId,
+                status: "published",
+                published_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              })
+              .eq("editorial_item_id", editorialItemId);
+          } catch (linkErr) {
+            console.warn("Failed to persist linkedin external_post_id:", linkErr);
+          }
+        }
       } else if (platform === "blog") {
         const result = await publishToBlog(item, supabase);
         results[platform] = result;
