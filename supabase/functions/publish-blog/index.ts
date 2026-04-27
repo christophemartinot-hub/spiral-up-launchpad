@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
         success: true,
         action: "published",
         externalId,
-        url: `https://spiralingup.works/blog/${post.slug}`,
+        url: `https://spiralingup.works/blog/${cleanSlug}`,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
