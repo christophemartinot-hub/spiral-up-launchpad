@@ -115,9 +115,29 @@ Deno.serve(async (req) => {
       ? post.tags
       : (post.content_pillar ? [post.content_pillar] : ["Leadership"]);
 
+    // Sanitize slug: strip dots and other URL-unsafe characters, collapse dashes, trim leading/trailing punctuation.
+    const sanitizeSlug = (s: string) =>
+      (s || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^[-.]+|[-.]+$/g, "")
+        .slice(0, 80);
+
+    const cleanSlug = sanitizeSlug(post.slug || post.title);
+
+    // Persist sanitized slug locally so future calls stay consistent
+    if (cleanSlug && cleanSlug !== post.slug) {
+      await supabase
+        .from("blog_posts")
+        .update({ slug: cleanSlug })
+        .eq("id", blogPostId);
+    }
+
     const externalPayload = {
       title: post.title,
-      slug: post.slug,
+      slug: cleanSlug,
       content: post.content,
       excerpt: post.excerpt || post.content?.substring(0, 200) || "",
       author: post.author,
