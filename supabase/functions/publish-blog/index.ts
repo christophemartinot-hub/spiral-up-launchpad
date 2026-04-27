@@ -94,9 +94,11 @@ Deno.serve(async (req) => {
         );
       }
 
+      // Only revert local status if it was 'published'; otherwise preserve user's current stage (e.g. review, draft)
+      const newLocalStatus = post.status === "published" ? "approved" : post.status;
       await supabase
         .from("blog_posts")
-        .update({ status: "approved", updated_at: new Date().toISOString() })
+        .update({ status: newLocalStatus, updated_at: new Date().toISOString() })
         .eq("id", blogPostId);
 
       return new Response(
