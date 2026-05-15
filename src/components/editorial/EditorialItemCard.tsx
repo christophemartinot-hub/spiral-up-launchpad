@@ -7,8 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import {
   ChevronDown, ChevronUp, Check, X, RefreshCw, Edit3, Calendar,
-  Loader2, Info, Palette, Lightbulb, Send,
+  Loader2, Info, Palette, Lightbulb, Send, Eye,
 } from 'lucide-react';
+import LinkedInPreview from './LinkedInPreview';
 import { format, parseISO } from 'date-fns';
 import { useUpdateEditorialItem, useRegenerateItem } from '@/hooks/use-editorial';
 import { useRecordFeedback } from '@/hooks/use-feedback';
