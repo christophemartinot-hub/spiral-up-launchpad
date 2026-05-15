@@ -412,9 +412,29 @@ export default function EditorialItemCard({ item }: { item: any }) {
           )}
 
           <div>
-            <p className="text-xs font-medium text-muted-foreground mb-1">Draft Content</p>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs font-medium text-muted-foreground">Draft Content</p>
+              {item.channel === 'linkedin' && !editing && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 gap-1 text-[11px] text-blue-600"
+                  onClick={() => setShowLinkedInPreview(v => !v)}
+                >
+                  <Eye className="w-3 h-3" />
+                  {showLinkedInPreview ? 'Hide' : 'Show'} LinkedIn preview
+                </Button>
+              )}
+            </div>
             {editing ? (
               <Textarea rows={8} value={form.draft_content || ''} onChange={e => setForm((f: any) => ({ ...f, draft_content: e.target.value }))} className="font-mono text-xs" />
+            ) : showLinkedInPreview && item.channel === 'linkedin' ? (
+              <div className="bg-[#f3f2ef] dark:bg-black/30 rounded-lg p-4">
+                <LinkedInPreview
+                  content={item.draft_content || ''}
+                  imageUrl={item.image_url ? normalizeImageUrl(item.image_url) : undefined}
+                />
+              </div>
             ) : (
               <div className="bg-muted/50 rounded-lg p-4 text-sm whitespace-pre-wrap max-h-64 overflow-y-auto">
                 {item.draft_content || 'No draft yet.'}
