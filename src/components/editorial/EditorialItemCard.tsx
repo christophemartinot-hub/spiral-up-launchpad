@@ -60,6 +60,7 @@ export default function EditorialItemCard({ item }: { item: any }) {
   const [publishingLinkedIn, setPublishingLinkedIn] = useState(false);
   const [imageUrlInput, setImageUrlInput] = useState(item.image_url || '');
   const [savingImage, setSavingImage] = useState(false);
+  const [showLinkedInPreview, setShowLinkedInPreview] = useState(false);
   const queryClient = useQueryClient();
   const updateItem = useUpdateEditorialItem();
   const regenerate = useRegenerateItem();
